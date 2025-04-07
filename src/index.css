@@ -1,6 +1,8 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 
+@custom-variant dark (&:is(.dark *));
+
 :root {
   --radius: 0.5rem;
   --background: oklch(1 0 0);
@@ -121,6 +123,6 @@ html, body, #root {
   height: 100%;
 }
 
-div, p {
-  border: 1px solid red;
-}
+/*div, p {*/
+/*  border: 1px solid red;*/
+/*}*/
