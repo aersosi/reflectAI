@@ -116,3 +116,11 @@
     @apply bg-background text-foreground;
   }
 }
+
+html, body, #root {
+  height: 100%;
+}
+
+div, p {
+  border: 1px solid red;
+}

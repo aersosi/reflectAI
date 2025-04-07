@@ -1,7 +1,8 @@
-function Session() {
+function SelectModel() {
     return (
         <div>Session works</div>
     );
 }
 
-export default Session;
+export default SelectModel;
+

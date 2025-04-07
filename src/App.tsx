@@ -1,12 +1,10 @@
-import { Button } from "@/components/ui/button";
 import { Session,SidebarMain } from "@/components";
 
 function App() {
     return (
-        <div className="flex gap-4">
+        <div className="flex h-full">
             <SidebarMain />
             <Session />
-            <Button>Click me</Button>
         </div>
     )
 }
