@@ -1,13 +1,14 @@
-import { Button } from "./components/ui/button.tsx";
+import { Button } from "@/components/ui/button";
+import { Session,SidebarMain } from "@/components";
 
 function App() {
-  return (
-    <div className="flex gap-4">
-      <p>test</p>
-      <p>test2</p>
-        <Button>Click me</Button>
-    </div>
-  )
+    return (
+        <div className="flex gap-4">
+            <SidebarMain />
+            <Session />
+            <Button>Click me</Button>
+        </div>
+    )
 }
 
 export default App
