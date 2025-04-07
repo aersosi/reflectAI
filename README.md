@@ -1,1 +1,1 @@
-# vite-react-tailwind-shadcn-starte
+# vite-react-tailwind-shadcn-starter
