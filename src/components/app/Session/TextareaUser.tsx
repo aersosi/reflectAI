@@ -1,10 +1,8 @@
-import { Textarea } from "@/components/ui/textarea"
+// import { Textarea } from "@/components/ui/textarea"
 
 function TextareaUser() {
     return (
-        <div className="grow">
-            <Textarea />
-        </div>
+        <></>
     );
 }
 

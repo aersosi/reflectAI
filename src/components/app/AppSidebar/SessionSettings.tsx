@@ -1,46 +1,70 @@
+import { Children } from 'react';
+
 import { Button } from "@/components/ui/button"
 import {
     Sheet,
     SheetClose,
     SheetContent,
-    SheetDescription,
     SheetFooter,
     SheetHeader,
     SheetTitle,
     SheetTrigger,
 } from "@/components/ui/sheet"
-import { Settings } from "lucide-react";
-import Model from "@/components/app/AppSidebar/Model.tsx";
-import MaxTokens from "@/components/app/AppSidebar/MaxTokens.tsx";
-import Temperature from "@/components/app/AppSidebar/Temperature.tsx";
-import ApiKey from "@/components/app/AppSidebar/ApiKey.tsx";
+import { Braces, List, Settings, Smile } from "lucide-react";
+import * as React from "react";
 
-export function SessionSettings() {
+type BasicPageProps = React.PropsWithChildren & {
+    title: string;
+    side?: "top" | "right" | "bottom" | "left" | undefined;
+    icon?: "settings" | "braces" | "list";
+    saveButton?: boolean;
+    disabled?: boolean;
+}
+
+export function SessionSettings({title, side, icon, saveButton, disabled, children}: BasicPageProps) {
+
+    // Todo: on sheet close: -> check if changes:
+    //  -> no: exit without saving
+    //  -> yes: -> ask: "do you want to save?"
+    //      -> yes: save messages and send toast "Settings saved"
+    //      -> no: exit without saving
+
+    let triggerIcon;
+    if (icon === "settings") {
+        triggerIcon = <Settings/>;
+    } else if (icon === "braces") {
+        triggerIcon = <Braces/>;
+    } else if (icon === "list") {
+        triggerIcon = <List/>;
+    } else {
+        triggerIcon = <Smile/>;
+    }
+
     return (
-        <Sheet key="SessionSettings">
+        <Sheet>
             <SheetTrigger asChild>
-                <Button variant="ghost" size="iconSmall">
-                    <Settings/>
+                <Button variant="outline" size="iconSmall" disabled={disabled}>
+                    {triggerIcon}
                 </Button>
             </SheetTrigger>
-            <SheetContent side="left" className="gap-0">
+            <SheetContent side={side} className="gap-0">
                 <SheetHeader>
-                    <SheetTitle>Edit profile</SheetTitle>
-                    <SheetDescription>
-                        Make changes to your profile here. Click save when you're done.
-                    </SheetDescription>
+                    <SheetTitle className="flex items-center h-7">{title}</SheetTitle>
                 </SheetHeader>
-                <div className="flex flex-col gap-4 p-4">
-                    <Model></Model>
-                    <MaxTokens></MaxTokens>
-                    <Temperature></Temperature>
-                    <ApiKey></ApiKey>
+                <hr/>
+                <div className="flex flex-col gap-4 p-4 grow overflow-auto">
+                    {Children.map(children, child =>
+                        <>{child}</>
+                    )}
                 </div>
-                <SheetFooter>
-                    <SheetClose asChild>
-                        <Button type="submit">Save changes</Button>
-                    </SheetClose>
-                </SheetFooter>
+                <hr/>
+                {saveButton &&
+                    <SheetFooter>
+                        <SheetClose asChild>
+                            <Button type="submit">Save changes</Button>
+                        </SheetClose>
+                    </SheetFooter>
+                }
             </SheetContent>
         </Sheet>
     )

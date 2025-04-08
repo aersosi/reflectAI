@@ -6,16 +6,25 @@ export type Post = {
 };
 
 export type MessageFragmentProps = {
+    isUser?: boolean;
+    isVariable?: boolean;
+    title: string;
+    placeholder: string;
     onVariableChange?: (params: {
         value: string;
         id: string;
     }) => void;
-    title: string;
-    placeholder: string;
+    className?: string;
 };
 
 export type CardMessageProps = {
     className?: string,
+    isUser?: boolean;
     title: string
     message: string
 };
+
+export type SessionVariablesData = Array<{
+    title: string;
+    variables: string[];
+}>;
