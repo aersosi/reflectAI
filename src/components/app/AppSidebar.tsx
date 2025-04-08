@@ -1,14 +1,12 @@
 import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, } from "@/components/ui/sidebar"
 
 import { useState } from "react";
-import MessageFragment from "@/components/lib/MessageFragment.tsx";
+import { MessageFragment } from "@/components/lib/MessageFragment.tsx";
 import { SessionSettings } from "./AppSidebar/SessionSettings.tsx";
-import Model from "./AppSidebar/Model.tsx";
-import MaxTokens from "./AppSidebar/MaxTokens.tsx";
-import SliderTooltip from "./AppSidebar/SliderTooltip.tsx";
-import ApiKey from "./AppSidebar/ApiKey.tsx";
+import { Model } from "./AppSidebar/Model.tsx";
+import { SliderTooltip } from "../lib/SliderTooltip.tsx";
+import { ApiKey } from "./AppSidebar/ApiKey.tsx";
 import { Textarea } from "@/components/ui/textarea.tsx";
-import { Label } from "@/components/ui/label"
 import { Button } from "@/components/ui/button.tsx";
 import { ChevronUpIcon, Play } from "lucide-react";
 
@@ -18,11 +16,13 @@ export function AppSidebar() {
     const [systemTitle, setSystemTitle] = useState('');
     const [userTitle, setUserTitle] = useState('');
     const [textareaExpanded, setTextareaExpanded] = useState(false);
-    const [sliderValue, setSliderValue] = useState([0]);
+    const [temperatureValue, setTemperatureValue] = useState([0]);
+    const [maxTokensValue, setMaxTokensValue] = useState([0]);
+
+
     const toggleTextareaExpanded = () => {
         setTextareaExpanded(prev => !prev);
     };
-
 
     function extractVariables(str: string) {
         return str.match(/\{\{\s*([^}]+)\s*}}/g) || [];
@@ -57,33 +57,45 @@ export function AppSidebar() {
         setUserTitle(params.id);
     };
 
+
+    const values = ["Apple", "Banana", "Blueberry", "Grapes", "Pineapple"]
+
+
+
     // {{test}}
     return (
         <Sidebar>
             <SidebarHeader className="flex-row items-center justify-between gap-4 p-4 border-b-1">
                 <h1 className="font-bold transition-colors text-primary hover:text-purple-500">reflectAI</h1>
-                <div className="flex gap-4">
+                <div className="flex gap-6">
                     <SessionSettings key="SessionSettings" title="Session Settings" side="left" icon="settings"
                                      saveButton={true}>
-                        <div className="grid gap-8">
-                            <Model></Model>
-                            <MaxTokens></MaxTokens>
-                            <div className="grid gap-6">
-                                    <Label htmlFor="SliderTemperature" className="pl-0.5 text-muted-foreground">
-                                        Model Temperature {...sliderValue}</Label>
-                                <SliderTooltip
-                                    id="SliderTemperature"
-                                    max={1}
-                                    step={0.05}
-                                    hasMarks={true}
-                                    showTooltip={true}
-                                    onValueCommit={setSliderValue}
-                                />
-                            </div>
-                            <ApiKey></ApiKey>
+                        <div className="grid gap-12">
+                            <Model key="aiModel" data={values} placeholder="Select a model" labelFor="aiModel" labelTitle="Model"></Model>
+                            <SliderTooltip
+                                id="SliderTemperature"
+                                max={1}
+                                step={0.1}
+                                hasMarks={true}
+                                showTooltip={true}
+                                labelFor="SliderTemperature"
+                                labelTitle="Temperature"
+                                labelValue={temperatureValue[0]}
+                                onValueCommit={setTemperatureValue}
+                            />
+                            <SliderTooltip
+                                id="SliderMaxTokens"
+                                max={4096}
+                                step={4}
+                                showTooltip={true}
+                                labelFor="SliderMaxTokens"
+                                labelTitle="Max tokens"
+                                labelValue={maxTokensValue[0]}
+                                onValueCommit={setMaxTokensValue}
+                            />
                         </div>
+                        <ApiKey className="mt-auto"></ApiKey>
                     </SessionSettings>
-
 
                     <SessionSettings key="SessionVariables" title="Session Variables" side="right" icon="braces"
                                      saveButton={true} disabled={data.length === 0}>
@@ -116,7 +128,7 @@ export function AppSidebar() {
             </SidebarContent>
             <SidebarFooter>
                 <div className="flex gap-4 p-4 border-t-1 relative">
-                    <div className={`flex gap-4 w-full transition-[height] ${textareaExpanded ? "h-20" : "h-60"}`}>
+                    <div className={`flex gap-4 w-full transition-[height] ${textareaExpanded ? "h-60" : "h-20"}`}>
                         <div className="grow relative">
                             <Textarea placeholder="Type Question ..." className="absolute inset-0 resize-none"/>
                         </div>
@@ -129,7 +141,7 @@ export function AppSidebar() {
                                 onClick={toggleTextareaExpanded}
                             >
                                 <ChevronUpIcon
-                                    className={`transition-transform ${!textareaExpanded && "rotate-180"}`}/>
+                                    className={`transition-transform ${textareaExpanded && "rotate-180"}`}/>
                             </Button>
                         </div>
                     </div>

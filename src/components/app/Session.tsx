@@ -1,5 +1,5 @@
 import { useSidebar } from "@/components/ui/sidebar";
-import CardMessage from "./Session/CardMessage.tsx";
+import { CardMessage } from "./Session/CardMessage.tsx";
 import { Post } from "@/definitions/types";
 import { SessionSettings } from "@/components/app/AppSidebar/SessionSettings.tsx";
 import { Button } from "@/components/ui/button.tsx";

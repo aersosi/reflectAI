@@ -7,7 +7,7 @@ import {
 import { CardMessageProps } from "@/definitions/types";
 import { cn } from "@/lib/utils.ts";
 
-function CardMessage({className, isUser, title, message}: CardMessageProps) {
+export function CardMessage({className, isUser, title, message}: CardMessageProps) {
     const roleMargin = isUser ? "xl:ml-56" : "xl:mr-56";
     const roleColor =
         isUser ?
@@ -27,6 +27,4 @@ function CardMessage({className, isUser, title, message}: CardMessageProps) {
         </div>
     );
 }
-
-export default CardMessage;
 

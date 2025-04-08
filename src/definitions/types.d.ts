@@ -1,3 +1,6 @@
+import * as React from "react";
+import * as SliderPrimitive from "@radix-ui/react-slider";
+
 export type Post = {
     body: string;
     id: number;
@@ -24,7 +27,10 @@ export type CardMessageProps = {
     message: string
 };
 
-export type SessionVariablesData = Array<{
-    title: string;
-    variables: string[];
-}>;
+export type SliderProps = React.ComponentPropsWithoutRef<typeof SliderPrimitive.Root> & {
+    showTooltip?: boolean;
+    hasMarks?: boolean;
+    labelTitle?: string;
+    labelValue?: number;
+    labelFor?: string;
+};

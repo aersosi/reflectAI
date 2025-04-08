@@ -11,14 +11,14 @@ import { MessageFragmentProps } from "@/definitions/types";
 import { Label } from "@/components/ui/label.tsx";
 import { cn } from "@/lib/utils.ts";
 
-function MessageFragment({
-                             className,
-                             onVariableChange,
-                             isUser,
-                             isVariable,
-                             title,
-                             placeholder
-                         }: MessageFragmentProps) {
+export function MessageFragment({
+                                    className,
+                                    onVariableChange,
+                                    isUser,
+                                    isVariable,
+                                    title,
+                                    placeholder
+                                }: MessageFragmentProps) {
     const [message, setMessage] = useState('');
 
     const handleVariableChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
@@ -33,7 +33,7 @@ function MessageFragment({
         "[&:has(textarea:aria-invalid)]:ring-destructive/20 dark:[&:has(textarea:aria-invalid)]:ring-destructive/40 [&:has(textarea:border-destructive)]"
 
     const purpleRing = "[&:has(textarea:focus-visible)]:ring-purple-500/50 [&:has(textarea:focus-visible)]:border-purple-500/50"
-    const systemColors = !isUser && isVariable && "[&_label]:text-primary bg-primary-50 border-primary/50 [&_hr]:border-primary/50";
+    const systemColors = !isUser && isVariable && "[&_label]:text-primary bg-primary/5 border-primary/50 [&_hr]:border-primary/50";
     const userColors = isUser && isVariable && cn(purpleRing, "[&_label]:text-purple-500 bg-purple-50 border-purple-500/50 [&_hr]:border-purple-500/50");
     const userRingColor = isUser && purpleRing;
 
@@ -43,7 +43,8 @@ function MessageFragment({
                 <SidebarGroupLabel asChild>
                     <CollapsibleTrigger className="group">
                         <Label htmlFor={title}>{title}</Label>
-                        <ChevronDown className="ml-auto transition-transform duration-200 group-data-[state=open]:rotate-180"/>
+                        <ChevronDown
+                            className="ml-auto transition-transform duration-200 group-data-[state=open]:rotate-180"/>
                     </CollapsibleTrigger>
                 </SidebarGroupLabel>
                 <CollapsibleContent className="relative px-2">
@@ -63,6 +64,4 @@ function MessageFragment({
         </Collapsible>
     );
 }
-
-export default MessageFragment;
 
