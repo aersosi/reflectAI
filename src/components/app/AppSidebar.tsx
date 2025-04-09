@@ -128,12 +128,12 @@ export function AppSidebar() {
             </SidebarContent>
             <SidebarFooter>
                 <div className="flex gap-4 p-4 border-t-1 relative">
-                    <div className={`flex gap-4 w-full transition-[height] ${textareaExpanded ? "h-60" : "h-20"}`}>
+                    <div className={`flex gap-4 w-full transition-[height] ${textareaExpanded ? "h-60" : "h-22"}`}>
                         <div className="grow relative">
                             <Textarea placeholder="Type Question ..." className="absolute inset-0 resize-none"/>
                         </div>
                         <div className="flex flex-col-reverse gap-4 justify-between items-end">
-                            <Button onClick={toggleTextareaExpanded}> <Play/> Run </Button>
+                            <Button size="lg"> <Play/> Run </Button>
                             <Button
                                 className=""
                                 variant="outline"

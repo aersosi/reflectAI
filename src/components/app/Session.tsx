@@ -4,6 +4,7 @@ import { Post } from "@/definitions/types";
 import { SessionSettings } from "@/components/app/AppSidebar/SessionSettings.tsx";
 import { Button } from "@/components/ui/button.tsx";
 import { PanelLeftIcon } from "lucide-react";
+import { SessionNameInput } from "@/components/app/Session/SessionNameInput.tsx";
 
 export function Session({posts}: { posts: Post[] }) {
     function CustomSidebarTrigger() {
@@ -23,9 +24,9 @@ export function Session({posts}: { posts: Post[] }) {
     return (
         <main className="flex flex-col grow">
             <div className="flex gap-4 p-4 justify-between border-b-1">
-                <div className="flex gap-4 items-center">
+                <div className="flex gap-4 items-center grow">
                     <CustomSidebarTrigger/>
-                    <h2 className="font-bold">Session Name</h2>
+                    <SessionNameInput/>
                 </div>
                 <SessionSettings key="Sessions" title="Sessions" side="right" icon="list">
                     <p>Lorem</p>
