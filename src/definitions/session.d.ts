@@ -1,6 +1,4 @@
-export type AnthropicModel = {
-    model: string;
-}
+import { AnthropicModel } from "@/definitions/api";
 
 export type Settings = {
     model: string;
@@ -45,5 +43,5 @@ export type SessionContextType = {
     saveCurrentSession: (sessionName: string, updatedState: AppState | null) => void;
     deleteSession: (sessionId: string) => void;
     isSessionLoading: boolean;
-    defaultInitialState: AppState;
+    initialAppState: AppState;
 };

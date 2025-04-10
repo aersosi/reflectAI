@@ -2,14 +2,16 @@ import { SheetWrapper } from "@/components/lib/SheetWrapper.tsx";
 import { ModelDropdown } from "@/components/app/MainSidebar/ModelDropdown.tsx";
 import { SliderTooltip } from "@/components/lib/SliderTooltip.tsx";
 import { ApiKeyInput } from "@/components/app/MainSidebar/ApiKeyInput.tsx";
-import { useSession } from "@/context/SessionContext.tsx";
 import { useState } from "react";
+import { useAnthropic } from "@/context/AnthropicContext.tsx";
 
 export const SettingsSheet = () => {
     const [temperatureValue, setTemperatureValue] = useState([0]);
     const [maxTokensValue, setMaxTokensValue] = useState([0]);
-    const {currentAppState} = useSession();
-    const isAnthropicModels = currentAppState?.settings?.anthropicModels;
+    const {anthropicModels} = useAnthropic()
+
+    // if (isLoadingModels) return <div>Loading Anthropic models...</div>;
+    // if (modelsError) return <div>An error occurred fetching models: {modelsError.message}</div>;
 
     return (
         <SheetWrapper
@@ -20,10 +22,10 @@ export const SettingsSheet = () => {
             saveButton={true}
         >
             <div className="grid gap-12">
-                {isAnthropicModels ?
+                {anthropicModels ?
                     <ModelDropdown
                         key="aiModel"
-                        data={isAnthropicModels}
+                        data={anthropicModels}
                         placeholder="Select a model"
                         labelFor="aiModel"
                         labelTitle="Model"

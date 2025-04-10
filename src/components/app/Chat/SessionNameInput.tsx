@@ -14,15 +14,15 @@ export function SessionNameInput() {
         createSession,
         saveCurrentSession,
         currentAppState,
-        defaultInitialState
+        initialAppState
     } = useSession();
 
     // Automatisch neue Session erstellen beim ersten Laden
     useEffect(() => {
         if (sessions.length === 0) {
-            createSession("New Session", defaultInitialState);
+            createSession("New Session", initialAppState);
         }
-    }, [createSession, defaultInitialState, sessions.length]);
+    }, [createSession, initialAppState, sessions.length]);
 
     // Focus handling beim Editieren
     useEffect(() => {
@@ -54,7 +54,7 @@ export function SessionNameInput() {
     };
 
     const handleCreateNewSession = () => {
-        createSession("New Session", defaultInitialState);
+        createSession("New Session", initialAppState);
     };
 
     return (

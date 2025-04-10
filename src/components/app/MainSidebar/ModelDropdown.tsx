@@ -9,6 +9,7 @@ import {
 import { Label } from "@/components/ui/label";
 import { ModelInputProps } from "@/definitions/props";
 import { useState } from "react";
+import { AnthropicModel } from "@/definitions/api";
 
 export function ModelDropdown({data, placeholder, labelTitle, labelFor}: ModelInputProps) {
     const [isOpen, setIsOpen] = useState(false);
@@ -16,7 +17,6 @@ export function ModelDropdown({data, placeholder, labelTitle, labelFor}: ModelIn
     const handleEscapeKeydown = () => {
         setIsOpen(false);
     }
-
 
     return (
         <div className="flex flex-col items-start gap-4 w-full">
@@ -31,13 +31,13 @@ export function ModelDropdown({data, placeholder, labelTitle, labelFor}: ModelIn
                 </SelectTrigger>
                 <SelectContent onEscapeKeyDown={handleEscapeKeydown} >
                     <SelectGroup>
-                        {data?.map((value) => (
+                        {(data as AnthropicModel[] | null)?.map((model) => (
                             <SelectItem
                                 className="hover:bg-primary/10 cursor-pointer"
-                                key={value.model}
-                                value={value.model}
+                                key={model.id}
+                                value={model.id}
                             >
-                                {value.model}
+                                {model.display_name} || ({model.id}) || {new Date(model.created_at).toLocaleDateString()}
                             </SelectItem>
                         ))}
                     </SelectGroup>

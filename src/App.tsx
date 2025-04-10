@@ -4,7 +4,6 @@ import { SidebarProvider } from "@/components/ui/sidebar";
 import axios from 'axios';
 import { useQuery } from '@tanstack/react-query';
 import { Post } from "@/definitions/api";
-
 const retrievePosts = async () => {
     const response = await axios.get(
         "https://jsonplaceholder.typicode.com/posts",
