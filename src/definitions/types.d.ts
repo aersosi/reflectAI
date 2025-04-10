@@ -1,11 +1,12 @@
 import * as React from "react";
 import * as SliderPrimitive from "@radix-ui/react-slider";
+import { AnthropicModel } from "@/definitions/session";
 
-export type Post = {
-    body: string;
-    id: number;
-    title: string;
-    userId: number;
+export type ModelInputProps = {
+    data?: AnthropicModel[];
+    placeholder?: string;
+    labelTitle?: string;
+    labelFor?: string;
 };
 
 export type MessageFragmentProps = {

@@ -1,11 +1,11 @@
 import { useSidebar } from "@/components/ui/sidebar";
-import { CardMessage } from "./Session/CardMessage.tsx";
-import { Post } from "@/definitions/types";
-import { MySheet } from "@/components/app/AppSidebar/MySheet.tsx";
-import { Button } from "@/components/ui/button.tsx";
+import { CardMessage } from "./Session/CardMessage";
+import { Post } from "@/definitions/api";
+import { MySheet } from "@/components/lib/MySheet";
+import { Button } from "@/components/ui/button";
 import { PanelLeftIcon, Trash2 } from "lucide-react";
-import { SessionNameInput } from "@/components/app/Session/SessionNameInput.tsx";
-import { useSession } from "@/context/SessionContext.tsx";
+import { SessionNameInput } from "@/components/app/Session/SessionNameInput";
+import { useSession } from "@/context/SessionContext";
 
 export function Session({posts}: { posts: Post[] }) {
     function CustomSidebarTrigger() {

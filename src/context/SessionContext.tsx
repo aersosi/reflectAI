@@ -177,7 +177,6 @@ export const SessionProvider: React.FC<{ children: React.ReactNode, defaultIniti
         date
     })).sort((a, b) => b.date - a.date); // Neueste zuerst
 
-
     const contextValue: SessionContextType = {
         sessions: sessionMetas,
         currentSessionId,

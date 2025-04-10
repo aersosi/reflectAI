@@ -1,7 +1,7 @@
-import { Input } from "@/components/ui/input.tsx";
+import { Input } from "@/components/ui/input";
 import { useState, useRef, useEffect } from "react";
-import { Button } from "@/components/ui/button.tsx";
-import { useSession } from "@/context/SessionContext.tsx";
+import { Button } from "@/components/ui/button";
+import { useSession } from "@/context/SessionContext";
 
 export function SessionNameInput() {
     const [isEditing, setIsEditing] = useState(false);
@@ -22,12 +22,6 @@ export function SessionNameInput() {
         if (sessions.length === 0) {
             createSession("New Session", defaultInitialState);
         }
-
-        // console.log(sessions.map((session) => session.appState));
-        console.log("defaultInitialState", defaultInitialState);
-        console.log("currentAppState", currentAppState);
-
-
     }, [createSession, defaultInitialState, sessions.length]);
 
     // Focus handling beim Editieren

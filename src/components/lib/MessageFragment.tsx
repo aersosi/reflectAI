@@ -2,13 +2,13 @@ import {
     Collapsible,
     CollapsibleContent,
     CollapsibleTrigger,
-} from "@/components/ui/collapsible.tsx"
-import { SidebarGroup, SidebarGroupLabel } from "@/components/ui/sidebar.tsx";
+} from "@/components/ui/collapsible"
+import { SidebarGroup, SidebarGroupLabel } from "@/components/ui/sidebar";
 import { ChevronDown } from "lucide-react";
-import { Textarea } from "@/components/ui/textarea.tsx";
+import { Textarea } from "@/components/ui/textarea";
 import { useState } from "react";
 import { MessageFragmentProps } from "@/definitions/types";
-import { Label } from "@/components/ui/label.tsx";
+import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils.ts";
 
 export function MessageFragment({

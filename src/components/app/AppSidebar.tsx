@@ -1,14 +1,15 @@
 import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, } from "@/components/ui/sidebar"
 
 import { useState } from "react";
-import { MessageFragment } from "@/components/lib/MessageFragment.tsx";
-import { MySheet } from "./AppSidebar/MySheet.tsx";
-import { Model } from "./AppSidebar/Model.tsx";
-import { SliderTooltip } from "../lib/SliderTooltip.tsx";
-import { ApiKey } from "./AppSidebar/ApiKey.tsx";
-import { Textarea } from "@/components/ui/textarea.tsx";
-import { Button } from "@/components/ui/button.tsx";
+import { MessageFragment } from "@/components/lib/MessageFragment";
+import { MySheet } from "../lib/MySheet";
+import { ModelInput } from "./AppSidebar/ModelInput";
+import { SliderTooltip } from "../lib/SliderTooltip";
+import { ApiKey } from "./AppSidebar/ApiKey";
+import { Textarea } from "@/components/ui/textarea";
+import { Button } from "@/components/ui/button";
 import { ChevronUpIcon, Play } from "lucide-react";
+import { useSession } from "@/context/SessionContext";
 
 export function AppSidebar() {
     const [systemVariable, setSystemVariable] = useState('');
@@ -18,7 +19,7 @@ export function AppSidebar() {
     const [textareaExpanded, setTextareaExpanded] = useState(false);
     const [temperatureValue, setTemperatureValue] = useState([0]);
     const [maxTokensValue, setMaxTokensValue] = useState([0]);
-
+    const {currentAppState} = useSession();
 
     const toggleTextareaExpanded = () => {
         setTextareaExpanded(prev => !prev);
@@ -57,10 +58,7 @@ export function AppSidebar() {
         setUserTitle(params.id);
     };
 
-
-    const values = ["Apple", "Banana", "Blueberry", "Grapes", "Pineapple"]
-
-
+    const isAnthropicModels = currentAppState?.settings?.anthropicModels;
 
     // {{test}}
     return (
@@ -69,9 +67,14 @@ export function AppSidebar() {
                 <h1 className="font-bold transition-colors text-primary hover:text-purple-500">reflectAI</h1>
                 <div className="flex gap-6">
                     <MySheet key="MySheet" title="Session Settings" side="left" icon="settings"
-                                     saveButton={true}>
+                             saveButton={true}>
                         <div className="grid gap-12">
-                            <Model key="aiModel" data={values} placeholder="Select a model" labelFor="aiModel" labelTitle="Model"></Model>
+                            {isAnthropicModels ?
+                                <ModelInput key="aiModel" data={isAnthropicModels} placeholder="Select a model"
+                                            labelFor="aiModel"
+                                            labelTitle="Model">
+                                </ModelInput> : <p>Loading Anthropic Models ...</p>
+                            }
                             <SliderTooltip
                                 id="SliderTemperature"
                                 max={1}
@@ -98,7 +101,7 @@ export function AppSidebar() {
                     </MySheet>
 
                     <MySheet key="SessionVariables" title="Session Variables" side="right" icon="braces" isWide={true}
-                                     saveButton={true} disabled={data.length === 0}>
+                             saveButton={true} disabled={data.length === 0}>
                         {data.map((vars, index) => (
                             vars.variables.map((singleVar: string) => (
                                 <MessageFragment
@@ -140,13 +143,11 @@ export function AppSidebar() {
                                 size="iconSmall"
                                 onClick={toggleTextareaExpanded}
                             >
-                                <ChevronUpIcon
-                                    className={`transition-transform ${textareaExpanded && "rotate-180"}`}/>
+                                <ChevronUpIcon className={`transition-transform ${textareaExpanded && "rotate-180"}`}/>
                             </Button>
                         </div>
                     </div>
                 </div>
-
             </SidebarFooter>
         </Sidebar>
     );

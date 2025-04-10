@@ -1,37 +1,31 @@
-export const data = [
-    {
-        sessionID: "12",
-        sessionName: "Session 1"
-    },    {
-        sessionID: "34",
-        sessionName: "Session 2"
-    },
+import { AnthropicModel, AppState, Conversation, PromptFragment, Settings } from "@/definitions/session";
+
+const anthropicModels: AnthropicModel[] = [
+    { model: "Claude 1" },
+    { model: "Claude 2" },
+    { model: "Claude 3" },
 ];
 
+const settings: Settings = {
+    model: "Claude 3.5",
+    temperature: 0.5,
+    maxTokens: 4096,
+    apiKey: "asdfgh-sdfgh-asdf",
+    anthropicModels: anthropicModels
+};
 
-export const data2 = [
-    {
-        "id": "uuid-1234-abcd", // Eindeutige ID (wichtiger als eine laufende Nummer)
-        "name": "Meine erste Analyse",
-        "date": 1678886400000, // Unix Timestamp (Millisekunden!)
-        "appState": {
-            // Hier kommt der komplette Zustand deiner App für diese Session rein
-            "userInput": "...",
-            "calculationResults": [...],
-            "chartOptions": {...},
-            // ...alle anderen Werte, die gespeichert werden sollen
-        }
-    },
-    {
-        "id": "uuid-5678-efgh",
-        "name": "Testlauf XYZ",
-        "date": 1678887500000,
-        "appState": {
-            "userInput": "anderer Input",
-            "calculationResults": [...],
-            "chartOptions": {...},
-            // ...
-        }
-    }
-    // ... weitere Sessions
-]
+const promptFragment: PromptFragment = {
+    systemPrompt: "",
+    userPrompt: ""
+};
+
+const conversation: Conversation = {
+    assistant: "",
+    user: ""
+};
+
+export const defaultAppState: AppState = {
+    settings,
+    promptFragment,
+    conversation,
+};
