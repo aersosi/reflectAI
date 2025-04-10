@@ -1,33 +1,6 @@
 import React, { createContext, useState, useContext, useEffect, useCallback } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-
-type AppState = {
-    // Definiere hier die Struktur deines App-Zustands
-    someValue: string;
-    anotherValue: number;
-    complexData: any[];
-    // Füge hier alle Teile deines States hinzu, die gespeichert werden sollen
-};
-
-type Session = {
-    id: string;
-    name: string;
-    date: number; // Unix Timestamp (ms)
-    appState: AppState;
-};
-
-type SessionMeta = Omit<Session, 'appState'>; // Nur Metadaten für die Liste
-
-type SessionContextType = {
-    sessions: SessionMeta[]; // Liste der Metadaten aller Sessions
-    currentSessionId: string | null;
-    currentAppState: AppState | null;
-    loadSession: (sessionId: string) => boolean; // Gibt true zurück bei Erfolg
-    createSession: (sessionName: string, initialState: AppState) => void;
-    saveCurrentSession: (updatedState: AppState) => void;
-    deleteSession: (sessionId: string) => void;
-    isSessionLoading: boolean; // Nützlich, um Ladezustände anzuzeigen
-};
+import { SessionContextType, Session, SessionMeta, AppState } from "@/definitions/session";
 
 // Hier den Context exportieren
 const SessionContext = createContext<SessionContextType | undefined>(undefined);
@@ -61,6 +34,7 @@ export const SessionProvider: React.FC<{ children: React.ReactNode, defaultIniti
                                                                                                         }) => {
     const [allSessions, setAllSessions] = useState<Session[]>([]);
     const [currentSessionId, setCurrentSessionId] = useState<string | null>(null);
+    const [currentSessionName, setCurrentSessionName] = useState<string | null>(null);
     const [currentAppState, setCurrentAppState] = useState<AppState | null>(null);
     const [isSessionLoading, setIsSessionLoading] = useState<boolean>(true); // Startet als true
 
@@ -96,6 +70,7 @@ export const SessionProvider: React.FC<{ children: React.ReactNode, defaultIniti
 
         if (sessionToLoad) {
             setCurrentSessionId(sessionToLoad.id);
+            setCurrentSessionName(sessionToLoad.name);
             setCurrentAppState(sessionToLoad.appState);
         } else {
             // Keine Sessions vorhanden oder keine spezifische geladen -> Initialzustand
@@ -111,6 +86,7 @@ export const SessionProvider: React.FC<{ children: React.ReactNode, defaultIniti
         if (session) {
             setIsSessionLoading(true);
             setCurrentSessionId(session.id);
+            setCurrentSessionName(session.name);
             setCurrentAppState(session.appState);
             // Update URL ohne Neuladen der Seite (falls noch nicht geschehen)
             if (searchParams.get('sessionId') !== sessionId) {
@@ -139,13 +115,14 @@ export const SessionProvider: React.FC<{ children: React.ReactNode, defaultIniti
 
         // Direkt zur neuen Session wechseln und URL aktualisieren
         setCurrentSessionId(newSession.id);
+        setCurrentSessionName(newSession.name);
         setCurrentAppState(newSession.appState);
         navigate(`/?sessionId=${newSession.id}`, {replace: true});
         setIsSessionLoading(false);
     }, [allSessions, navigate]);
 
     // Funktion zum Speichern des aktuellen Zustands der aktiven Session
-    const saveCurrentSession = useCallback((updatedState: AppState) => {
+    const saveCurrentSession = useCallback((sessionName: string, updatedState: AppState | null) => {
         if (!currentSessionId) {
             console.warn("Cannot save state: No session is currently loaded.");
             // Optional: Automatisch neue Session erstellen? Oder Fehler anzeigen?
@@ -156,14 +133,18 @@ export const SessionProvider: React.FC<{ children: React.ReactNode, defaultIniti
 
         const updatedSessions = allSessions.map(session =>
             session.id === currentSessionId
-                ? {...session, appState: updatedState, date: Date.now()} // Update state and timestamp
+                ? {
+                    ...session,
+                    name: sessionName || `Session ${new Date().toLocaleString()}`,
+                    appState: updatedState,
+                    date: Date.now()
+                } // Update state and timestamp
                 : session
         );
 
         setAllSessions(updatedSessions);
         setCurrentAppState(updatedState); // Auch den lokalen State im Context aktualisieren
         saveSessionsToStorage(updatedSessions);
-        // Kein navigate hier nötig, da die Session-ID gleich bleibt
     }, [currentSessionId, allSessions]);
 
     // Funktion zum Löschen einer Session
@@ -180,6 +161,7 @@ export const SessionProvider: React.FC<{ children: React.ReactNode, defaultIniti
             } else {
                 // Keine Sessions mehr übrig
                 setCurrentSessionId(null);
+                setCurrentSessionName(null);
                 setCurrentAppState(defaultInitialState); // Zurück zum Default
                 navigate('/', {replace: true}); // Zur Hauptseite ohne ID
             }
@@ -199,12 +181,14 @@ export const SessionProvider: React.FC<{ children: React.ReactNode, defaultIniti
     const contextValue: SessionContextType = {
         sessions: sessionMetas,
         currentSessionId,
+        currentSessionName,
         currentAppState,
         loadSession,
         createSession,
         saveCurrentSession,
         deleteSession,
         isSessionLoading,
+        defaultInitialState
     };
 
     return (

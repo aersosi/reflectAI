@@ -6,7 +6,6 @@ import axios from 'axios';
 
 function App() {
     const [posts, setPosts] = useState([]);
-
     useEffect(() => {
         axios.get('https://jsonplaceholder.typicode.com/posts')
             .then(response => {
@@ -18,10 +17,9 @@ function App() {
     }, []);
 
     return (
-
         <SidebarProvider className="h-full">
             <AppSidebar/>
-            <Session posts={posts} />
+            <Session posts={posts}/>
         </SidebarProvider>
     )
 }

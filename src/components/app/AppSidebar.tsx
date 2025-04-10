@@ -2,7 +2,7 @@ import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, } from "@/compon
 
 import { useState } from "react";
 import { MessageFragment } from "@/components/lib/MessageFragment.tsx";
-import { SessionSettings } from "./AppSidebar/SessionSettings.tsx";
+import { MySheet } from "./AppSidebar/MySheet.tsx";
 import { Model } from "./AppSidebar/Model.tsx";
 import { SliderTooltip } from "../lib/SliderTooltip.tsx";
 import { ApiKey } from "./AppSidebar/ApiKey.tsx";
@@ -68,7 +68,7 @@ export function AppSidebar() {
             <SidebarHeader className="flex-row items-center justify-between gap-4 p-4 border-b-1">
                 <h1 className="font-bold transition-colors text-primary hover:text-purple-500">reflectAI</h1>
                 <div className="flex gap-6">
-                    <SessionSettings key="SessionSettings" title="Session Settings" side="left" icon="settings"
+                    <MySheet key="MySheet" title="Session Settings" side="left" icon="settings"
                                      saveButton={true}>
                         <div className="grid gap-12">
                             <Model key="aiModel" data={values} placeholder="Select a model" labelFor="aiModel" labelTitle="Model"></Model>
@@ -95,9 +95,9 @@ export function AppSidebar() {
                             />
                         </div>
                         <ApiKey className="mt-auto"></ApiKey>
-                    </SessionSettings>
+                    </MySheet>
 
-                    <SessionSettings key="SessionVariables" title="Session Variables" side="right" icon="braces"
+                    <MySheet key="SessionVariables" title="Session Variables" side="right" icon="braces" isWide={true}
                                      saveButton={true} disabled={data.length === 0}>
                         {data.map((vars, index) => (
                             vars.variables.map((singleVar: string) => (
@@ -110,7 +110,7 @@ export function AppSidebar() {
                                 />
                             ))
                         ))}
-                    </SessionSettings>
+                    </MySheet>
                 </div>
             </SidebarHeader>
             <SidebarContent className="flex grow flex-col gap-4 p-4">
@@ -133,7 +133,7 @@ export function AppSidebar() {
                             <Textarea placeholder="Type Question ..." className="absolute inset-0 resize-none"/>
                         </div>
                         <div className="flex flex-col-reverse gap-4 justify-between items-end">
-                            <Button size="lg"> <Play/> Run </Button>
+                            <Button size="lg" variant="outlinePrimary"> <Play/> Run </Button>
                             <Button
                                 className=""
                                 variant="outline"

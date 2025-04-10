@@ -28,9 +28,9 @@ export function MessageFragment({
         onVariableChange?.({value: textareaValue, id: textareaId});
     };
 
-    const collapsibleClasses = "transition-colors border rounded-xl bg-card text-card-foreground shadow-sm\n" +
+    const collapsibleClasses = "transition border rounded-xl bg-card text-card-foreground shadow-sm\n" +
         "[&:has(textarea:focus-visible)]:border-primary/50 [&:has(textarea:focus-visible)]:ring-ring/50 [&:has(textarea:focus-visible)]:ring-[3px]\n" +
-        "[&:has(textarea:aria-invalid)]:ring-destructive/20 dark:[&:has(textarea:aria-invalid)]:ring-destructive/40 [&:has(textarea:border-destructive)]"
+        "[&:has(textarea:aria-invalid)]:ring-destructive/20 dark:[&:has(textarea:aria-invalid)]:ring-destructive/40 [&:has(textarea:aria-invalid)]:border-destructive"
 
     const purpleRing = "[&:has(textarea:focus-visible)]:ring-purple-500/50 [&:has(textarea:focus-visible)]:border-purple-500/50"
     const systemColors = !isUser && isVariable && "[&_label]:text-primary bg-primary/5 border-primary/50 [&_hr]:border-primary/50";

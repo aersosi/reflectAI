@@ -1,10 +1,11 @@
 import { useSidebar } from "@/components/ui/sidebar";
 import { CardMessage } from "./Session/CardMessage.tsx";
 import { Post } from "@/definitions/types";
-import { SessionSettings } from "@/components/app/AppSidebar/SessionSettings.tsx";
+import { MySheet } from "@/components/app/AppSidebar/MySheet.tsx";
 import { Button } from "@/components/ui/button.tsx";
-import { PanelLeftIcon } from "lucide-react";
+import { PanelLeftIcon, Trash2 } from "lucide-react";
 import { SessionNameInput } from "@/components/app/Session/SessionNameInput.tsx";
+import { useSession } from "@/context/SessionContext.tsx";
 
 export function Session({posts}: { posts: Post[] }) {
     function CustomSidebarTrigger() {
@@ -21,6 +22,8 @@ export function Session({posts}: { posts: Post[] }) {
         </Button>
     }
 
+    const {sessions, deleteSession} = useSession();
+
     return (
         <main className="flex flex-col grow">
             <div className="flex gap-4 p-4 justify-between border-b-1">
@@ -28,11 +31,24 @@ export function Session({posts}: { posts: Post[] }) {
                     <CustomSidebarTrigger/>
                     <SessionNameInput/>
                 </div>
-                <SessionSettings key="Sessions" title="Sessions" side="right" icon="list">
-                    <p>Lorem</p>
-                    <p>Ipsum</p>
-                    <p>Dolor</p>
-                </SessionSettings>
+                <MySheet key="Sessions" title="Sessions" side="right" icon="list">
+                    {!sessions.length && <p>No sessions saved yet.</p>}
+                    <ul className="flex flex-col gap-2">
+                        {sessions.map(session => (
+                            <li key={session.id} className="flex w-full justify-between items-center gap-4 rounded-lg p-2 pl-3 transition
+                            border hover:border-primary/50 [&:has(button:hover)]:border-destructive/50
+                            hover:ring-[3px] ring-primary/50 [&:has(button:hover)]:ring-destructive/50">
+                                <a href={`/?sessionId=${session.id}`}>
+                                    {session.name} ({new Date(session.date).toLocaleString()})
+                                </a>
+                                <Button onClick={() => deleteSession(session.id)} variant="ghostDestructive" size="iconSmall">
+                                    <Trash2></Trash2>
+                                </Button>
+                            </li>
+                        ))}
+                    </ul>
+
+                </MySheet>
             </div>
             <div className="flex flex-col gap-4 shrink overflow-auto p-4">
                 {posts.map(post => (

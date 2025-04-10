@@ -1,68 +1,97 @@
 import { Input } from "@/components/ui/input.tsx";
 import { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button.tsx";
+import { useSession } from "@/context/SessionContext.tsx";
 
 export function SessionNameInput() {
-    const [editSessionName, setEditSessionName] = useState(false);
-    const [sessionNameValue, setSessionNameValue] = useState("New Session");
-    const [originalValue, setOriginalValue] = useState(sessionNameValue);
+    const [isEditing, setIsEditing] = useState(false);
+    const [tempName, setTempName] = useState("");
     const inputRef = useRef<HTMLInputElement>(null);
 
+    const {
+        currentSessionName,
+        sessions,
+        createSession,
+        saveCurrentSession,
+        currentAppState,
+        defaultInitialState
+    } = useSession();
+
+    // Automatisch neue Session erstellen beim ersten Laden
     useEffect(() => {
-        // Set focus on input
-        if (editSessionName && inputRef.current) {
-            inputRef.current.focus();
+        if (sessions.length === 0) {
+            createSession("New Session", defaultInitialState);
         }
-    }, [editSessionName]);
 
-    function handleEditSessionNameClick() {
-        setOriginalValue(sessionNameValue);
-        setEditSessionName(true);
-    }
+        // console.log(sessions.map((session) => session.appState));
+        console.log("defaultInitialState", defaultInitialState);
+        console.log("currentAppState", currentAppState);
 
-    function handleEditSessionNameKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
-        if (e.key === "Enter") {
-            setEditSessionName(false);
-        } else if (e.key === "Escape") {
-            setSessionNameValue(originalValue);
-            setEditSessionName(false);
-        }
-    }
 
-    const handleSessionNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        setSessionNameValue(e.target.value);
+    }, [createSession, defaultInitialState, sessions.length]);
+
+    // Focus handling beim Editieren
+    useEffect(() => {
+        if (isEditing) inputRef.current?.focus();
+    }, [isEditing]);
+
+    const startEditing = () => {
+        setTempName(currentSessionName || "");
+        setIsEditing(true);
     };
 
-    const handleBlur = () => {
-        if (!sessionNameValue.trim()) {
-            setSessionNameValue(originalValue);
-            setEditSessionName(false);
+    const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+        if (e.key === "Enter") {
+            confirmEdit();
+        } else if (e.key === "Escape") {
+            cancelEdit();
         }
+    };
+
+    const confirmEdit = () => {
+        if (tempName.trim()) {
+            saveCurrentSession(tempName.trim(), currentAppState);
+        }
+        setIsEditing(false);
+    };
+
+    const cancelEdit = () => {
+        setIsEditing(false);
+    };
+
+    const handleCreateNewSession = () => {
+        createSession("New Session", defaultInitialState);
     };
 
     return (
         <div className="flex gap-4 items-center grow h-[28px]">
-            {editSessionName ? (
+            {isEditing ? (
                 <Input
                     className="grow"
-                    type="text"
-                    placeholder="Please enter session name"
-                    value={sessionNameValue}
-                    onChange={handleSessionNameChange}
-                    onKeyDown={handleEditSessionNameKeyDown}
-                    onBlur={handleBlur}
+                    value={tempName}
+                    onChange={(e) => setTempName(e.target.value)}
+                    onKeyDown={handleKeyDown}
+                    onBlur={confirmEdit}
                     ref={inputRef}
+                    placeholder="Session name"
                 />
             ) : (
-                <h2
-                    className="grow font-bold cursor-pointer"
-                    onDoubleClick={handleEditSessionNameClick}
-                    title="Double-click to edit"
-                >
-                    {sessionNameValue || "Please enter session name"}
-                </h2>
+                <>
+                    <h2
+                        className="grow font-bold cursor-pointer"
+                        onClick={startEditing}
+                        title="Click to edit">
+                        {currentSessionName || "New Session"}
+                    </h2>
+                    <Button
+                        size="sm"
+                        onClick={handleCreateNewSession}
+                        variant="outlinePrimary"
+                    >
+                        New Session
+                    </Button>
+                </>
             )}
-            <Button size="sm">New Session</Button>
         </div>
     );
 }
