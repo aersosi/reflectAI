@@ -121,7 +121,8 @@ export const SessionProvider: SessionProviderProps = ({children, initialAppState
         );
 
         setAllSessions(updatedSessions);
-        setCurrentAppState(updatedState); // Auch den lokalen State im Context aktualisieren
+        setCurrentAppState(updatedState);
+        setCurrentSessionName(validatedSessionName);
         saveSessionsToStorage<Session>(updatedSessions, LOCAL_STORAGE_KEY);
     }, [currentSessionId, allSessions]);
 

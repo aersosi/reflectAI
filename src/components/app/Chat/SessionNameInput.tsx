@@ -36,21 +36,11 @@ export function SessionNameInput() {
 
     const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
         if (e.key === "Enter") {
-            confirmEdit();
+            if (tempName.trim()) saveCurrentSession(tempName.trim(), currentAppState);
+            setIsEditing(false);
         } else if (e.key === "Escape") {
-            cancelEdit();
+            setIsEditing(false);
         }
-    };
-
-    const confirmEdit = () => {
-        if (tempName.trim()) {
-            saveCurrentSession(tempName.trim(), currentAppState);
-        }
-        setIsEditing(false);
-    };
-
-    const cancelEdit = () => {
-        setIsEditing(false);
     };
 
     const handleCreateNewSession = () => {
@@ -65,7 +55,7 @@ export function SessionNameInput() {
                     value={tempName}
                     onChange={(e) => setTempName(e.target.value)}
                     onKeyDown={handleKeyDown}
-                    onBlur={confirmEdit}
+                    onBlur={() => setIsEditing(false)}
                     ref={inputRef}
                     placeholder="Session Name"
                 />
