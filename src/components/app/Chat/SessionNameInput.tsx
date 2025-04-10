@@ -17,10 +17,10 @@ export function SessionNameInput() {
         defaultInitialState
     } = useSession();
 
-    // Automatisch neue Session erstellen beim ersten Laden
+    // Automatisch neue Chat erstellen beim ersten Laden
     useEffect(() => {
         if (sessions.length === 0) {
-            createSession("New Session", defaultInitialState);
+            createSession("New Chat", defaultInitialState);
         }
     }, [createSession, defaultInitialState, sessions.length]);
 
@@ -54,7 +54,7 @@ export function SessionNameInput() {
     };
 
     const handleCreateNewSession = () => {
-        createSession("New Session", defaultInitialState);
+        createSession("New Chat", defaultInitialState);
     };
 
     return (
@@ -67,7 +67,7 @@ export function SessionNameInput() {
                     onKeyDown={handleKeyDown}
                     onBlur={confirmEdit}
                     ref={inputRef}
-                    placeholder="Session name"
+                    placeholder="Chat name"
                 />
             ) : (
                 <>
@@ -75,14 +75,14 @@ export function SessionNameInput() {
                         className="grow font-bold cursor-pointer"
                         onClick={startEditing}
                         title="Click to edit">
-                        {currentSessionName || "New Session"}
+                        {currentSessionName || "New Chat"}
                     </h2>
                     <Button
                         size="sm"
                         onClick={handleCreateNewSession}
                         variant="outlinePrimary"
                     >
-                        New Session
+                        New Chat
                     </Button>
                 </>
             )}

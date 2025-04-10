@@ -1,25 +1,24 @@
 import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, } from "@/components/ui/sidebar"
 
 import { useState } from "react";
-import { MessageFragment } from "@/components/lib/MessageFragment";
-import { MySheet } from "../lib/MySheet";
-import { ModelInput } from "./AppSidebar/ModelInput";
-import { SliderTooltip } from "../lib/SliderTooltip";
-import { ApiKey } from "./AppSidebar/ApiKey";
+import { PromptTextarea } from "@/components/lib/PromptTextarea.tsx";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { ChevronUpIcon, Play } from "lucide-react";
-import { useSession } from "@/context/SessionContext";
+import { SettingsSheet } from "@/components/app/Sheets/SettingsSheet.tsx";
+import { PromptVariablesSheet } from "@/components/app/Sheets/PromptVariablesSheet.tsx";
+import { DataArray } from "@/definitions/api";
 
-export function AppSidebar() {
+
+
+
+export function MainSidebar() {
     const [systemVariable, setSystemVariable] = useState('');
     const [userVariable, setUserVariable] = useState('');
     const [systemTitle, setSystemTitle] = useState('');
     const [userTitle, setUserTitle] = useState('');
     const [textareaExpanded, setTextareaExpanded] = useState(false);
-    const [temperatureValue, setTemperatureValue] = useState([0]);
-    const [maxTokensValue, setMaxTokensValue] = useState([0]);
-    const {currentAppState} = useSession();
+
 
     const toggleTextareaExpanded = () => {
         setTextareaExpanded(prev => !prev);
@@ -29,7 +28,9 @@ export function AppSidebar() {
         return str.match(/\{\{\s*([^}]+)\s*}}/g) || [];
     }
 
-    const data: Array<{ title: string; variables: string[] }> = [];
+
+    const data: DataArray = [];
+
     // System variables
     const systemVars = extractVariables(systemVariable);
     if (systemVars.length > 0 && systemTitle) {
@@ -58,7 +59,6 @@ export function AppSidebar() {
         setUserTitle(params.id);
     };
 
-    const isAnthropicModels = currentAppState?.settings?.anthropicModels;
 
     // {{test}}
     return (
@@ -66,63 +66,17 @@ export function AppSidebar() {
             <SidebarHeader className="flex-row items-center justify-between gap-4 p-4 border-b-1">
                 <h1 className="font-bold transition-colors text-primary hover:text-purple-500">reflectAI</h1>
                 <div className="flex gap-6">
-                    <MySheet key="MySheet" title="Session Settings" side="left" icon="settings"
-                             saveButton={true}>
-                        <div className="grid gap-12">
-                            {isAnthropicModels ?
-                                <ModelInput key="aiModel" data={isAnthropicModels} placeholder="Select a model"
-                                            labelFor="aiModel"
-                                            labelTitle="Model">
-                                </ModelInput> : <p>Loading Anthropic Models ...</p>
-                            }
-                            <SliderTooltip
-                                id="SliderTemperature"
-                                max={1}
-                                step={0.1}
-                                hasMarks={true}
-                                showTooltip={true}
-                                labelFor="SliderTemperature"
-                                labelTitle="Temperature"
-                                labelValue={temperatureValue[0]}
-                                onValueCommit={setTemperatureValue}
-                            />
-                            <SliderTooltip
-                                id="SliderMaxTokens"
-                                max={4096}
-                                step={4}
-                                showTooltip={true}
-                                labelFor="SliderMaxTokens"
-                                labelTitle="Max tokens"
-                                labelValue={maxTokensValue[0]}
-                                onValueCommit={setMaxTokensValue}
-                            />
-                        </div>
-                        <ApiKey className="mt-auto"></ApiKey>
-                    </MySheet>
-
-                    <MySheet key="SessionVariables" title="Session Variables" side="right" icon="braces" isWide={true}
-                             saveButton={true} disabled={data.length === 0}>
-                        {data.map((vars, index) => (
-                            vars.variables.map((singleVar: string) => (
-                                <MessageFragment
-                                    isUser={vars.title.toLowerCase().includes("user")}
-                                    isVariable={true}
-                                    key={`${singleVar}-${index}`}
-                                    title={`${vars.title.replace("prompt", "variable")}: ${singleVar}`}
-                                    placeholder={singleVar}
-                                />
-                            ))
-                        ))}
-                    </MySheet>
+                    <SettingsSheet/>
+                    <PromptVariablesSheet data={data}/>
                 </div>
             </SidebarHeader>
             <SidebarContent className="flex grow flex-col gap-4 p-4">
-                <MessageFragment
+                <PromptTextarea
                     onVariableChange={handleSystemVariableUpdate}
                     title="System prompt"
                     placeholder="Enter system prompt"
                 />
-                <MessageFragment
+                <PromptTextarea
                     isUser={true}
                     onVariableChange={handleUserVariableUpdate}
                     title="User prompt"

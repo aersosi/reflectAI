@@ -7,7 +7,7 @@ import {
     SelectValue,
 } from "@/components/ui/select"
 import { Label } from "@/components/ui/label";
-import { ModelInputProps } from "@/definitions/types";
+import { ModelInputProps } from "@/definitions/props";
 
 export function ModelInput({data, placeholder, labelTitle, labelFor}: ModelInputProps) {
     return (

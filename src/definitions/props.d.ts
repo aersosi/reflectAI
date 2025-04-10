@@ -9,7 +9,7 @@ export type ModelInputProps = {
     labelFor?: string;
 };
 
-export type MessageFragmentProps = {
+export type PromptTextareaProps = {
     isUser?: boolean;
     isVariable?: boolean;
     title: string;
@@ -34,4 +34,8 @@ export type SliderProps = React.ComponentPropsWithoutRef<typeof SliderPrimitive.
     labelTitle?: string;
     labelValue?: number;
     labelFor?: string;
+};
+
+export type PromptVariablesSheetProps = {
+    data: DataArray;
 };

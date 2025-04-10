@@ -4,10 +4,10 @@ import {
     CardDescription,
     CardHeader,
 } from "@/components/ui/card"
-import { CardMessageProps } from "@/definitions/types";
+import { CardMessageProps } from "@/definitions/props";
 import { cn } from "@/lib/utils.ts";
 
-export function CardMessage({className, isUser, title, message}: CardMessageProps) {
+export function ChatCard({className, isUser, title, message}: CardMessageProps) {
     const roleMargin = isUser ? "xl:ml-56" : "xl:mr-56";
     const roleColor =
         isUser ?

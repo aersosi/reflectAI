@@ -4,3 +4,10 @@ export type Post = {
     title: string;
     body: string;
 }
+
+export type DataItem = {
+    title: string;
+    variables: string[];
+};
+
+export type DataArray = DataItem[];

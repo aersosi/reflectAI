@@ -23,7 +23,7 @@ type BasicPageProps = React.PropsWithChildren & {
     disabled?: boolean;
 }
 
-export function MySheet({title, side, icon,isWide, saveButton, disabled, children}: BasicPageProps) {
+export function SheetWrapper({title, side, icon,isWide, saveButton, disabled, children}: BasicPageProps) {
 
     // Todo: on sheet close: -> check if changes:
     //  -> no: exit without saving

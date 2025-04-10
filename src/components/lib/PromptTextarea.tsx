@@ -7,18 +7,18 @@ import { SidebarGroup, SidebarGroupLabel } from "@/components/ui/sidebar";
 import { ChevronDown } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
 import { useState } from "react";
-import { MessageFragmentProps } from "@/definitions/types";
+import { PromptTextareaProps } from "@/definitions/props";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils.ts";
 
-export function MessageFragment({
+export function PromptTextarea({
                                     className,
                                     onVariableChange,
                                     isUser,
                                     isVariable,
                                     title,
                                     placeholder
-                                }: MessageFragmentProps) {
+                                }: PromptTextareaProps) {
     const [message, setMessage] = useState('');
 
     const handleVariableChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {

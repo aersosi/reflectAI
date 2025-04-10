@@ -41,7 +41,7 @@ export const SessionProvider: React.FC<{ children: React.ReactNode, defaultIniti
     const navigate = useNavigate();
     const [searchParams] = useSearchParams();
 
-    // Initiales Laden der Sessions und Bestimmen der Start-Session
+    // Initiales Laden der Sessions und Bestimmen der Start-Chat
     useEffect(() => {
         setIsSessionLoading(true);
         const storedSessions = loadSessionsFromStorage();
@@ -60,11 +60,11 @@ export const SessionProvider: React.FC<{ children: React.ReactNode, defaultIniti
             }
         }
 
-        // Wenn keine gültige ID in URL, lade die letzte Session
+        // Wenn keine gültige ID in URL, lade die letzte Chat
         if (!sessionToLoad && storedSessions.length > 0) {
-            // Finde die neuste Session (höchster Timestamp)
+            // Finde die neuste Chat (höchster Timestamp)
             sessionToLoad = [...storedSessions].sort((a, b) => b.date - a.date)[0];
-            // Optional: URL aktualisieren auf die ID der geladenen Session?
+            // Optional: URL aktualisieren auf die ID der geladenen Chat?
             // navigate(`/?sessionId=${sessionToLoad.id}`, { replace: true });
         }
 
@@ -80,7 +80,7 @@ export const SessionProvider: React.FC<{ children: React.ReactNode, defaultIniti
         setIsSessionLoading(false);
     }, [searchParams, navigate, defaultInitialState]); // Abhängigkeit von searchParams, damit es bei URL-Änderung neu prüft
 
-    // Funktion zum Laden einer spezifischen Session
+    // Funktion zum Laden einer spezifischen Chat
     const loadSession = useCallback((sessionId: string): boolean => {
         const session = allSessions.find(s => s.id === sessionId);
         if (session) {
@@ -99,7 +99,7 @@ export const SessionProvider: React.FC<{ children: React.ReactNode, defaultIniti
         return false;
     }, [allSessions, navigate, searchParams]);
 
-    // Funktion zum Erstellen einer neuen Session
+    // Funktion zum Erstellen einer neuen Chat
     const createSession = useCallback((sessionName: string, initialState: AppState) => {
         setIsSessionLoading(true);
         const newSession: Session = {
@@ -113,7 +113,7 @@ export const SessionProvider: React.FC<{ children: React.ReactNode, defaultIniti
         setAllSessions(updatedSessions);
         saveSessionsToStorage(updatedSessions);
 
-        // Direkt zur neuen Session wechseln und URL aktualisieren
+        // Direkt zur neuen Chat wechseln und URL aktualisieren
         setCurrentSessionId(newSession.id);
         setCurrentSessionName(newSession.name);
         setCurrentAppState(newSession.appState);
@@ -121,13 +121,13 @@ export const SessionProvider: React.FC<{ children: React.ReactNode, defaultIniti
         setIsSessionLoading(false);
     }, [allSessions, navigate]);
 
-    // Funktion zum Speichern des aktuellen Zustands der aktiven Session
+    // Funktion zum Speichern des aktuellen Zustands der aktiven Chat
     const saveCurrentSession = useCallback((sessionName: string, updatedState: AppState | null) => {
         if (!currentSessionId) {
             console.warn("Cannot save state: No session is currently loaded.");
-            // Optional: Automatisch neue Session erstellen? Oder Fehler anzeigen?
+            // Optional: Automatisch neue Chat erstellen? Oder Fehler anzeigen?
             // Vielleicht hier createSession aufrufen?
-            // createSession("Auto-Saved Session", updatedState);
+            // createSession("Auto-Saved Chat", updatedState);
             return;
         }
 
@@ -147,13 +147,13 @@ export const SessionProvider: React.FC<{ children: React.ReactNode, defaultIniti
         saveSessionsToStorage(updatedSessions);
     }, [currentSessionId, allSessions]);
 
-    // Funktion zum Löschen einer Session
+    // Funktion zum Löschen einer Chat
     const deleteSession = useCallback((sessionId: string) => {
         const updatedSessions = allSessions.filter(s => s.id !== sessionId);
         setAllSessions(updatedSessions);
         saveSessionsToStorage(updatedSessions);
 
-        // Wenn die gelöschte Session die aktuelle war, zur neuesten verbleibenden oder zum Initialzustand wechseln
+        // Wenn die gelöschte Chat die aktuelle war, zur neuesten verbleibenden oder zum Initialzustand wechseln
         if (currentSessionId === sessionId) {
             const latestSession = [...updatedSessions].sort((a, b) => b.date - a.date)[0];
             if (latestSession) {
@@ -166,7 +166,7 @@ export const SessionProvider: React.FC<{ children: React.ReactNode, defaultIniti
                 navigate('/', {replace: true}); // Zur Hauptseite ohne ID
             }
         }
-        // Wenn eine andere Session gelöscht wurde, muss nichts am aktuellen Zustand geändert werden
+        // Wenn eine andere Chat gelöscht wurde, muss nichts am aktuellen Zustand geändert werden
     }, [allSessions, currentSessionId, navigate, loadSession, defaultInitialState]);
 
 

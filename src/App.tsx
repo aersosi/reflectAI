@@ -1,5 +1,5 @@
-import { AppSidebar } from "@/components/app/AppSidebar";
-import { Session } from "@/components/app/Session";
+import { MainSidebar } from "@/components/app/MainSidebar.tsx";
+import { Chat } from "@/components/app/Chat.tsx";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import axios from 'axios';
 import { useQuery } from '@tanstack/react-query';
@@ -18,19 +18,13 @@ function App() {
         queryFn: retrievePosts,
     });
 
-    // Behandle Ladezustand
-    if (isLoading) {
-        return <div>Loading posts...</div>;
-    }
-
-    if (error) {
-        return <div>An error occurred: {error.message}</div>;
-    }
+    if (isLoading) return <div>Loading posts...</div>;
+    if (error) return <div>An error occurred: {error.message}</div>;
 
     return (
         <SidebarProvider className="h-full">
-            <AppSidebar/>
-            {posts && <Session posts={posts}/>}
+            <MainSidebar/>
+            {posts && <Chat posts={posts}/>}
         </SidebarProvider>
     )
 }
