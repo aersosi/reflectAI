@@ -1,30 +1,19 @@
-import { Children } from 'react';
-
 import { Button } from "@/components/ui/button"
 import {
     Sheet,
     SheetClose,
     SheetContent,
+    SheetDescription,
     SheetFooter,
     SheetHeader,
     SheetTitle,
     SheetTrigger,
 } from "@/components/ui/sheet"
 import { Braces, List, Settings, Smile } from "lucide-react";
-import * as React from "react";
 import { cn } from "@/lib/utils.ts";
+import { SheetWrapperProps } from "@/definitions/props";
 
-type BasicPageProps = React.PropsWithChildren & {
-    title: string;
-    side?: "top" | "right" | "bottom" | "left" | undefined;
-    icon?: "settings" | "braces" | "list";
-    isWide?: boolean;
-    saveButton?: boolean;
-    disabled?: boolean;
-}
-
-export function SheetWrapper({title, side, icon,isWide, saveButton, disabled, children}: BasicPageProps) {
-
+export function SheetWrapper({title, side, icon, isWide, saveButton, disabled, children}: SheetWrapperProps) {
     // Todo: on sheet close: -> check if changes:
     //  -> no: exit without saving
     //  -> yes: -> ask: "do you want to save?"
@@ -52,12 +41,11 @@ export function SheetWrapper({title, side, icon,isWide, saveButton, disabled, ch
             <SheetContent side={side} className={cn(isWide && "sm:max-w-[40rem] lg:max-w-[60rem]", "gap-0")}>
                 <SheetHeader>
                     <SheetTitle className="flex items-center h-7">{title}</SheetTitle>
+                    <SheetDescription> Description goes here</SheetDescription>
                 </SheetHeader>
                 <hr/>
                 <div className="flex flex-col gap-4 p-4 grow overflow-auto">
-                    {Children.map(children, child =>
-                        <>{child}</>
-                    )}
+                    {children}
                 </div>
                 <hr/>
                 {saveButton &&
@@ -69,5 +57,6 @@ export function SheetWrapper({title, side, icon,isWide, saveButton, disabled, ch
                 }
             </SheetContent>
         </Sheet>
+
     )
 }

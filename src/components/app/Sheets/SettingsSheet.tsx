@@ -1,7 +1,7 @@
 import { SheetWrapper } from "@/components/lib/SheetWrapper.tsx";
-import { ModelInput } from "@/components/app/MainSidebar/ModelInput.tsx";
+import { ModelDropdown } from "@/components/app/MainSidebar/ModelDropdown.tsx";
 import { SliderTooltip } from "@/components/lib/SliderTooltip.tsx";
-import { ApiKey } from "@/components/app/MainSidebar/ApiKey.tsx";
+import { ApiKeyInput } from "@/components/app/MainSidebar/ApiKeyInput.tsx";
 import { useSession } from "@/context/SessionContext.tsx";
 import { useState } from "react";
 
@@ -12,14 +12,24 @@ export const SettingsSheet = () => {
     const isAnthropicModels = currentAppState?.settings?.anthropicModels;
 
     return (
-        <SheetWrapper key="SheetWrapper" title="Chat Settings" side="left" icon="settings"
-                      saveButton={true}>
+        <SheetWrapper
+            key="SheetWrapper"
+            title="Session Settings"
+            side="left"
+            icon="settings"
+            saveButton={true}
+        >
             <div className="grid gap-12">
                 {isAnthropicModels ?
-                    <ModelInput key="aiModel" data={isAnthropicModels} placeholder="Select a model"
-                                labelFor="aiModel"
-                                labelTitle="Model">
-                    </ModelInput> : <p>Loading Anthropic Models ...</p>
+                    <ModelDropdown
+                        key="aiModel"
+                        data={isAnthropicModels}
+                        placeholder="Select a model"
+                        labelFor="aiModel"
+                        labelTitle="Model"
+
+                    >
+                    </ModelDropdown> : <p>Loading Anthropic Models ...</p>
                 }
                 <SliderTooltip
                     id="SliderTemperature"
@@ -43,7 +53,7 @@ export const SettingsSheet = () => {
                     onValueCommit={setMaxTokensValue}
                 />
             </div>
-            <ApiKey className="mt-auto"></ApiKey>
+            <ApiKeyInput className="mt-auto"></ApiKeyInput>
         </SheetWrapper>
     );
 };

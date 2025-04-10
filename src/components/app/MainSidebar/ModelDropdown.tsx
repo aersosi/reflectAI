@@ -5,11 +5,19 @@ import {
     SelectItem,
     SelectTrigger,
     SelectValue,
-} from "@/components/ui/select"
+} from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import { ModelInputProps } from "@/definitions/props";
+import { useState } from "react";
 
-export function ModelInput({data, placeholder, labelTitle, labelFor}: ModelInputProps) {
+export function ModelDropdown({data, placeholder, labelTitle, labelFor}: ModelInputProps) {
+    const [isOpen, setIsOpen] = useState(false);
+
+    const handleEscapeKeydown = () => {
+        setIsOpen(false);
+    }
+
+
     return (
         <div className="flex flex-col items-start gap-4 w-full">
             {labelFor && labelTitle && (
@@ -17,11 +25,11 @@ export function ModelInput({data, placeholder, labelTitle, labelFor}: ModelInput
                     {labelTitle}
                 </Label>
             )}
-            <Select>
+            <Select open={isOpen} onOpenChange={setIsOpen}>
                 <SelectTrigger className="w-full">
                     <SelectValue placeholder={placeholder || "Select a model"}/>
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent onEscapeKeyDown={handleEscapeKeydown} >
                     <SelectGroup>
                         {data?.map((value) => (
                             <SelectItem
@@ -36,5 +44,5 @@ export function ModelInput({data, placeholder, labelTitle, labelFor}: ModelInput
                 </SelectContent>
             </Select>
         </div>
-    )
+    );
 }

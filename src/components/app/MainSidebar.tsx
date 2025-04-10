@@ -9,16 +9,12 @@ import { SettingsSheet } from "@/components/app/Sheets/SettingsSheet.tsx";
 import { PromptVariablesSheet } from "@/components/app/Sheets/PromptVariablesSheet.tsx";
 import { DataArray } from "@/definitions/api";
 
-
-
-
 export function MainSidebar() {
     const [systemVariable, setSystemVariable] = useState('');
     const [userVariable, setUserVariable] = useState('');
     const [systemTitle, setSystemTitle] = useState('');
     const [userTitle, setUserTitle] = useState('');
     const [textareaExpanded, setTextareaExpanded] = useState(false);
-
 
     const toggleTextareaExpanded = () => {
         setTextareaExpanded(prev => !prev);

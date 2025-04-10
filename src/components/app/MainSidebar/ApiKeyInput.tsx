@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Eye, EyeOff } from "lucide-react";
 import { cn } from "@/lib/utils.ts";
 
-export function ApiKey({className}: {className?: string}) {
+export function ApiKeyInput({className}: {className?: string}) {
     const [showApiKey, setShowApiKey] = useState(false);
     const toggleShowApiKey = () => {
         setShowApiKey(prev => !prev);

@@ -39,3 +39,12 @@ export type SliderProps = React.ComponentPropsWithoutRef<typeof SliderPrimitive.
 export type PromptVariablesSheetProps = {
     data: DataArray;
 };
+
+export type SheetWrapperProps = React.PropsWithChildren & {
+    title: string;
+    side?: "top" | "right" | "bottom" | "left" | undefined;
+    icon?: "settings" | "braces" | "list";
+    isWide?: boolean;
+    saveButton?: boolean;
+    disabled?: boolean;
+}
