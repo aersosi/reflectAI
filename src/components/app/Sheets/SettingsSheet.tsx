@@ -2,12 +2,9 @@ import { SheetWrapper } from "@/components/lib/SheetWrapper.tsx";
 import { ModelDropdown } from "@/components/app/MainSidebar/ModelDropdown.tsx";
 import { SliderTooltip } from "@/components/lib/SliderTooltip.tsx";
 import { ApiKeyInput } from "@/components/app/MainSidebar/ApiKeyInput.tsx";
-import { useState } from "react";
 import { useAnthropic } from "@/context/AnthropicContext.tsx";
 
 export const SettingsSheet = () => {
-    const [temperatureValue, setTemperatureValue] = useState([0]);
-    const [maxTokensValue, setMaxTokensValue] = useState([0]);
     const {anthropicModels} = useAnthropic()
 
     // if (isLoadingModels) return <div>Loading Anthropic models...</div>;
@@ -41,8 +38,6 @@ export const SettingsSheet = () => {
                     showTooltip={true}
                     labelFor="SliderTemperature"
                     labelTitle="Temperature"
-                    labelValue={temperatureValue[0]}
-                    onValueCommit={setTemperatureValue}
                 />
                 <SliderTooltip
                     id="SliderMaxTokens"
@@ -51,8 +46,6 @@ export const SettingsSheet = () => {
                     showTooltip={true}
                     labelFor="SliderMaxTokens"
                     labelTitle="Max tokens"
-                    labelValue={maxTokensValue[0]}
-                    onValueCommit={setMaxTokensValue}
                 />
             </div>
             <ApiKeyInput className="mt-auto"></ApiKeyInput>

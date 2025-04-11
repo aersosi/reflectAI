@@ -27,7 +27,7 @@ export function ModelDropdown({data, placeholder, labelTitle, labelFor}: ModelIn
             )}
             <Select open={isOpen} onOpenChange={setIsOpen}>
                 <SelectTrigger className="w-full">
-                    <SelectValue placeholder={placeholder || "Select a model"}/>
+                    <SelectValue placeholder={placeholder}/>
                 </SelectTrigger>
                 <SelectContent onEscapeKeyDown={handleEscapeKeydown} >
                     <SelectGroup>

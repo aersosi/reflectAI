@@ -1,7 +1,7 @@
 import React, { createContext, useState, useContext, useEffect, useCallback } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { SessionContextType, Session, SessionMeta, AppState } from "@/definitions/session";
-import { loadSessionsFromStorage, saveSessionsToStorage } from "@/lib/utils.ts";
+import { loadDataFromStorage, saveDataToStorage } from "@/lib/utils.ts";
 
 const SessionContext = createContext<SessionContextType | undefined>(undefined);
 
@@ -22,7 +22,7 @@ export const SessionProvider: SessionProviderProps = ({children, initialAppState
     // Initiales Laden der Sessions und Bestimmen der Start-Session
     useEffect(() => {
         setIsSessionLoading(true);
-        const storedSessions = loadSessionsFromStorage<Session>(LOCAL_STORAGE_KEY);
+        const storedSessions = loadDataFromStorage<Session>(LOCAL_STORAGE_KEY);
         setAllSessions(storedSessions);
 
         const sessionIdFromUrl = searchParams.get('sessionId');
@@ -89,7 +89,7 @@ export const SessionProvider: SessionProviderProps = ({children, initialAppState
 
         const updatedSessions = [...allSessions, newSession];
         setAllSessions(updatedSessions);
-        saveSessionsToStorage<Session>(updatedSessions, LOCAL_STORAGE_KEY);
+        saveDataToStorage<Session>(updatedSessions, LOCAL_STORAGE_KEY);
 
         // Direkt zur neuen Session wechseln und URL aktualisieren
         setCurrentSessionId(newSession.id);
@@ -123,14 +123,14 @@ export const SessionProvider: SessionProviderProps = ({children, initialAppState
         setAllSessions(updatedSessions);
         setCurrentAppState(updatedState);
         setCurrentSessionName(validatedSessionName);
-        saveSessionsToStorage<Session>(updatedSessions, LOCAL_STORAGE_KEY);
+        saveDataToStorage<Session>(updatedSessions, LOCAL_STORAGE_KEY);
     }, [currentSessionId, allSessions]);
 
     // Funktion zum Löschen einer Session
     const deleteSession = useCallback((sessionId: string) => {
         const updatedSessions = allSessions.filter(s => s.id !== sessionId);
         setAllSessions(updatedSessions);
-        saveSessionsToStorage<Session>(updatedSessions, LOCAL_STORAGE_KEY);
+        saveDataToStorage<Session>(updatedSessions, LOCAL_STORAGE_KEY);
 
         // Wenn die gelöschte Session die aktuelle war, zur neuesten verbleibenden oder zum Initialzustand wechseln
         if (currentSessionId === sessionId) {

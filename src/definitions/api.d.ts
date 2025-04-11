@@ -1,5 +1,3 @@
-import React from "react";
-
 export type Post = {
     userId: number;
     id: number;
@@ -21,17 +19,18 @@ export type AnthropicModel = {
     type: string
 }
 
-export type AnthropicContextType = {
-    anthropicModels: Model | null;
-    isLoadingModels: boolean;
-    modelsError: Error | null;
-}
-export type AnthropicProviderProps = React.FC<{ children: React.ReactNode }>
-
 export type AnthropicModelListResponse = {
-    data: Model;
+    data: AnthropicModel[] | null;
     first_id?: string | null;
     has_more: boolean;
     last_id?: string | null;
     // type: string; // Usually 'list' for paginated results, maybe not needed directly
 }
+
+export type AnthropicContextType = {
+    anthropicModels: AnthropicModel[] | null;
+    isLoadingModels: boolean;
+    modelsError: Error | null;
+}
+
+
