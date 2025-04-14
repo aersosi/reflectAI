@@ -1,62 +1,45 @@
-import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, } from "@/components/ui/sidebar"
-
 import { useState } from "react";
-import { PromptTextarea } from "@/components/lib/PromptTextarea.tsx";
+import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader } from "@/components/ui/sidebar";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { ChevronUpIcon, Play } from "lucide-react";
-import { SettingsSheet } from "@/components/app/Sheets/SettingsSheet.tsx";
-import { PromptVariablesSheet } from "@/components/app/Sheets/PromptVariablesSheet.tsx";
+import { SettingsSheet } from "@/components/app/Sheets/SettingsSheet";
+import { PromptVariablesSheet } from "@/components/app/Sheets/PromptVariablesSheet";
+import { PromptTextarea } from "@/components/lib/PromptTextarea";
 import { DataArray } from "@/definitions/api";
+import { useAnthropic } from "@/contexts/AnthropicContext";
 
 export function MainSidebar() {
     const [systemVariable, setSystemVariable] = useState('');
     const [userVariable, setUserVariable] = useState('');
-    const [systemTitle, setSystemTitle] = useState('');
-    const [userTitle, setUserTitle] = useState('');
     const [textareaExpanded, setTextareaExpanded] = useState(false);
+    const {isLoadingMessage, generateUserPrompt, generateSystemPrompt} = useAnthropic();
 
     const toggleTextareaExpanded = () => {
         setTextareaExpanded(prev => !prev);
     };
 
-    function extractVariables(str: string) {
+    function extractVariables(str: string): string[] {
         return str.match(/\{\{\s*([^}]+)\s*}}/g) || [];
     }
 
-
     const data: DataArray = [];
-
-    // System variables
     const systemVars = extractVariables(systemVariable);
-    if (systemVars.length > 0 && systemTitle) {
-        data.push({
-            title: systemTitle,
-            variables: systemVars
-        });
+    if (systemVars.length > 0) {
+        data.push({title: "System prompt", variables: systemVars});
     }
-
-    // User variables
     const userVars = extractVariables(userVariable);
-    if (userVars.length > 0 && userTitle) {
-        data.push({
-            title: userTitle,
-            variables: userVars
-        });
+    if (userVars.length > 0) {
+        data.push({title: "User prompt", variables: userVars});
     }
 
-    const handleSystemVariableUpdate = (params: { value: string; id: string }) => {
-        setSystemVariable(params.value);
-        setSystemTitle(params.id);
+    const handleGenerateClick = () => {
+        generateSystemPrompt(systemVariable.trim());
+        generateUserPrompt(userVariable.trim());
     };
 
-    const handleUserVariableUpdate = (params: { value: string; id: string }) => {
-        setUserVariable(params.value);
-        setUserTitle(params.id);
-    };
+    const isRunButtonDisabled = isLoadingMessage || (!systemVariable.trim() && !userVariable.trim());
 
-
-    // {{test}}
     return (
         <Sidebar>
             <SidebarHeader className="flex-row items-center justify-between gap-4 p-4 border-b-1">
@@ -68,15 +51,19 @@ export function MainSidebar() {
             </SidebarHeader>
             <SidebarContent className="flex grow flex-col gap-4 p-4">
                 <PromptTextarea
-                    onVariableChange={handleSystemVariableUpdate}
+                    value={systemVariable}
+                    onVariableChange={setSystemVariable}
                     title="System prompt"
                     placeholder="Enter system prompt"
+                    disabled={isLoadingMessage}
                 />
                 <PromptTextarea
+                    value={userVariable}
                     isUser={true}
-                    onVariableChange={handleUserVariableUpdate}
+                    onVariableChange={setUserVariable}
                     title="User prompt"
                     placeholder="Enter user prompt"
+                    disabled={isLoadingMessage}
                 />
             </SidebarContent>
             <SidebarFooter>
@@ -86,7 +73,10 @@ export function MainSidebar() {
                             <Textarea placeholder="Type Question ..." className="absolute inset-0 resize-none"/>
                         </div>
                         <div className="flex flex-col-reverse gap-4 justify-between items-end">
-                            <Button size="lg" variant="outlinePrimary"> <Play/> Run </Button>
+                            <Button onClick={handleGenerateClick} disabled={isRunButtonDisabled}
+                                    size="lg" variant="outlinePrimary">
+                                <Play/> Run
+                            </Button>
                             <Button
                                 className=""
                                 variant="outline"

@@ -1,4 +1,4 @@
-import { useAnthropic } from "@/context/AnthropicContext.tsx";
+import { useAnthropic } from "@/contexts/AnthropicContext";
 import { AnthropicModel } from "@/definitions/api";
 
 export const TestComponent = () => {

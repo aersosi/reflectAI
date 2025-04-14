@@ -10,14 +10,13 @@ export type ModelInputProps = {
 };
 
 export type PromptTextareaProps = {
+    title: string;
+    value: string;
     isUser?: boolean;
     isVariable?: boolean;
-    title: string;
     placeholder: string;
-    onVariableChange?: (params: {
-        value: string;
-        id: string;
-    }) => void;
+    disabled?: boolean;
+    onVariableChange: (value: string) => void;
     className?: string;
 };
 

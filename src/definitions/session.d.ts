@@ -1,16 +1,8 @@
-import { AnthropicModel } from "@/definitions/api";
-
 export type Settings = {
     model: string;
     temperature: number;
     maxTokens: number;
     apiKey: string;
-    anthropicModels: AnthropicModel[];
-}
-
-export type PromptFragment = {
-    systemPrompt: string;
-    userPrompt: string;
 }
 
 export type Conversation = {
@@ -20,7 +12,8 @@ export type Conversation = {
 
 export type AppState = {
     settings: Settings | null;
-    promptFragment: PromptFragment | null;
+    systemPrompt: string;
+    userPrompt: string;
     conversation: Conversation | null;
 };
 

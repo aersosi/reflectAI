@@ -1,8 +1,8 @@
-import { SheetWrapper } from "@/components/lib/SheetWrapper.tsx";
-import { ModelDropdown } from "@/components/app/MainSidebar/ModelDropdown.tsx";
-import { SliderTooltip } from "@/components/lib/SliderTooltip.tsx";
-import { ApiKeyInput } from "@/components/app/MainSidebar/ApiKeyInput.tsx";
-import { useAnthropic } from "@/context/AnthropicContext.tsx";
+import { SheetWrapper } from "@/components/lib/SheetWrapper";
+import { ModelDropdown } from "@/components/app/MainSidebar/ModelDropdown";
+import { SliderTooltip } from "@/components/lib/SliderTooltip";
+import { ApiKeyInput } from "@/components/app/MainSidebar/ApiKeyInput";
+import { useAnthropic } from "@/contexts/AnthropicContext";
 
 export const SettingsSheet = () => {
     const {anthropicModels} = useAnthropic()
@@ -26,7 +26,6 @@ export const SettingsSheet = () => {
                         placeholder="Select a model"
                         labelFor="aiModel"
                         labelTitle="Model"
-
                     >
                     </ModelDropdown> : <p>Loading Anthropic Models ...</p>
                 }

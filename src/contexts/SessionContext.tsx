@@ -51,7 +51,7 @@ export const SessionProvider: SessionProviderProps = ({children, initialAppState
             setCurrentSessionName(sessionToLoad.name);
             setCurrentAppState(sessionToLoad.appState);
         } else {
-            // Keine Sessions vorhanden oder keine spezifische geladen -> Initialzustand
+            // Keine Sessions vorhanden oder keine spezifische geladen = Initialzustand
             setCurrentSessionId(null);
             setCurrentAppState(initialAppState); // Oder null, je nach Bedarf
         }
@@ -81,10 +81,10 @@ export const SessionProvider: SessionProviderProps = ({children, initialAppState
     const createSession = useCallback((sessionName: string, initialState: AppState) => {
         setIsSessionLoading(true);
         const newSession: Session = {
-            id: crypto.randomUUID(), // Moderne Methode für eindeutige IDs
-            name: sessionName || `Session ${new Date().toLocaleString()}`, // Fallback-Name
-            date: Date.now(), // Unix Timestamp in Millisekunden
-            appState: initialState, // Startet mit dem übergebenen Initialzustand
+            id: crypto.randomUUID(),
+            name: sessionName || `Session ${new Date().toLocaleString()}`,
+            date: Date.now(),
+            appState: initialState,
         };
 
         const updatedSessions = [...allSessions, newSession];
@@ -105,6 +105,8 @@ export const SessionProvider: SessionProviderProps = ({children, initialAppState
             console.warn("Cannot save state: No session is currently loaded.");
             return;
         }
+
+        console.log("updatedState", updatedState)
 
         // Stelle sicher, dass der Name nicht leer ist, sonst Fallback
         const validatedSessionName = sessionName.trim() || `Session ${new Date().toLocaleString()}`;

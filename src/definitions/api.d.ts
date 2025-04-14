@@ -1,9 +1,25 @@
-export type Post = {
-    userId: number;
-    id: number;
-    title: string;
-    body: string;
-}
+type MessageContentPart = {
+    type: "text";
+    text: string;
+};
+
+type MessageUsage = {
+    input_tokens: number;
+    output_tokens: number;
+    cache_creation_input_tokens?: number;
+    cache_read_input_tokens?: number;
+};
+
+export type AssistantMessage = {
+    id: string;
+    type: "message";
+    role: "assistant" | "user";
+    model?: string;
+    content: MessageContentPart[];
+    stop_reason?: string;
+    stop_sequence?: string | null;
+    usage?: MessageUsage;
+};
 
 export type DataItem = {
     title: string;
@@ -24,13 +40,16 @@ export type AnthropicModelListResponse = {
     first_id?: string | null;
     has_more: boolean;
     last_id?: string | null;
-    // type: string; // Usually 'list' for paginated results, maybe not needed directly
 }
 
 export type AnthropicContextType = {
     anthropicModels: AnthropicModel[] | null;
     isLoadingModels: boolean;
     modelsError: Error | null;
+
+    messageReturn: AssistantMessage[] | null;
+    isLoadingMessage: boolean;
+    messageError: Error | null;
+    generateUserPrompt: (prompt: string) => void;
+    generateSystemPrompt: (prompt: string) => void;
 }
-
-

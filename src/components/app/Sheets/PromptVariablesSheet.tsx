@@ -1,5 +1,5 @@
-import { PromptTextarea } from "@/components/lib/PromptTextarea.tsx";
-import { SheetWrapper } from "@/components/lib/SheetWrapper.tsx";
+import { PromptTextarea } from "@/components/lib/PromptTextarea";
+import { SheetWrapper } from "@/components/lib/SheetWrapper";
 import { PromptVariablesSheetProps } from "@/definitions/props";
 import { DataItem } from "@/definitions/api";
 

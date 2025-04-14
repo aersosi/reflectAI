@@ -17,6 +17,7 @@ export function ModelDropdown({data, placeholder, labelTitle, labelFor}: ModelIn
     const handleEscapeKeydown = () => {
         setIsOpen(false);
     }
+    const firstItem = data? data[0].id : null;
 
     return (
         <div className="flex flex-col items-start gap-4 w-full">
@@ -25,7 +26,7 @@ export function ModelDropdown({data, placeholder, labelTitle, labelFor}: ModelIn
                     {labelTitle}
                 </Label>
             )}
-            <Select open={isOpen} onOpenChange={setIsOpen}>
+            <Select open={isOpen} onOpenChange={setIsOpen} defaultValue={firstItem}>
                 <SelectTrigger className="w-full">
                     <SelectValue placeholder={placeholder}/>
                 </SelectTrigger>
@@ -37,7 +38,7 @@ export function ModelDropdown({data, placeholder, labelTitle, labelFor}: ModelIn
                                 key={model.id}
                                 value={model.id}
                             >
-                                {model.display_name} || ({model.id}) || {new Date(model.created_at).toLocaleDateString()}
+                                 {model.id}
                             </SelectItem>
                         ))}
                     </SelectGroup>

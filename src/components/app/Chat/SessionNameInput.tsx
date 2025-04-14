@@ -1,7 +1,7 @@
 import { Input } from "@/components/ui/input";
 import { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { useSession } from "@/context/SessionContext";
+import { useSession } from "@/contexts/SessionContext";
 
 export function SessionNameInput() {
     const [isEditing, setIsEditing] = useState(false);
