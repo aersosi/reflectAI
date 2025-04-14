@@ -1,23 +1,28 @@
-import React, { createContext, useState, useContext, useEffect, useCallback } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import React, { createContext, useState, useContext, useEffect, useCallback, useRef } from 'react';
+import { useNavigate, useSearchParams, useLocation } from 'react-router-dom';
 import { SessionContextType, Session, SessionMeta, AppState, Settings } from "@/definitions/session";
 import { loadDataFromStorage, saveDataToStorage } from "@/lib/utils";
 
 const SessionContext = createContext<SessionContextType | undefined>(undefined);
-
 const LOCAL_STORAGE_KEY = 'reactAppSessions';
-
 type SessionProviderProps = React.FC<{ children: React.ReactNode, initialSession: AppState }>
 
 export const SessionProvider: SessionProviderProps = ({children, initialSession}) => {
     const [allSessions, setAllSessions] = useState<Session[]>([]);
     const [currentSessionId, setCurrentSessionId] = useState<string | null>(null);
-    const [currentSessionName, setCurrentSessionName] = useState<string | null>(null);
-    const [currentSession, setCurrentSession] = useState<AppState | null>(null);
-    const [isSessionLoading, setIsSessionLoading] = useState<boolean>(true); // Startet als true
+    const [isSessionLoading, setIsSessionLoading] = useState<boolean>(true);
+    const isInitialized = useRef(false);
 
     const navigate = useNavigate();
     const [searchParams] = useSearchParams();
+    const location = useLocation();
+
+    const currentSessionData = React.useMemo(() => {
+        return allSessions.find(s => s.id === currentSessionId);
+    }, [allSessions, currentSessionId]);
+
+    const currentSession = currentSessionData?.appState ?? null;
+    const currentSessionName = currentSessionData?.name ?? null;
 
     useEffect(() => {
         setIsSessionLoading(true);
@@ -25,58 +30,70 @@ export const SessionProvider: SessionProviderProps = ({children, initialSession}
         setAllSessions(storedSessions);
 
         const sessionIdFromUrl = searchParams.get('sessionId');
-        let sessionToLoad: Session | null = null;
+        let sessionToActivate: Session | undefined = undefined;
 
-        if (sessionIdFromUrl) {
-            sessionToLoad = storedSessions.find(s => s.id === sessionIdFromUrl) || null;
-            if (!sessionToLoad) {
-                console.warn(`Session ID "${sessionIdFromUrl}" not found - redirecting`);
-                navigate('/', { replace: true });
-                setIsSessionLoading(false);
-                return;
+        if (sessionIdFromUrl) sessionToActivate = storedSessions.find(s => s.id === sessionIdFromUrl);
+
+        if (!sessionToActivate && storedSessions.length > 0) {
+            sessionToActivate = [...storedSessions].sort((a, b) => b.date - a.date)[0];
+            if (sessionToActivate && location.pathname === '/') navigate(`/?sessionId=${sessionToActivate.id}`, {replace: true});
+        }
+
+        if (!sessionToActivate) {
+            const newSession: Session = {
+                id: crypto.randomUUID(),
+                name: `Session ${new Date().toLocaleString()}`,
+                date: Date.now(),
+                appState: initialSession,
+            };
+            const updatedSessions = [newSession];
+            setAllSessions(updatedSessions);
+            saveDataToStorage<Session>(updatedSessions, LOCAL_STORAGE_KEY);
+            sessionToActivate = newSession;
+            if (location.pathname === '/') navigate(`/?sessionId=${newSession.id}`, {replace: true});
+        }
+
+        setCurrentSessionId(sessionToActivate ? sessionToActivate.id : null);
+
+        setIsSessionLoading(false);
+        isInitialized.current = true;
+
+    }, [initialSession, navigate, location.pathname]);
+
+    useEffect(() => {
+        if (!isInitialized.current || isSessionLoading) return;
+
+        const sessionIdFromUrl = searchParams.get('sessionId');
+
+        if (sessionIdFromUrl && sessionIdFromUrl !== currentSessionId) {
+            const sessionExists = allSessions.some(s => s.id === sessionIdFromUrl);
+            if (sessionExists) {
+                setCurrentSessionId(sessionIdFromUrl);
+            } else {
+                console.warn(`SessionProvider: Session ID ${sessionIdFromUrl} from URL not found.`);
             }
+        } else if (!sessionIdFromUrl && currentSessionId) {
+            // todo: Intentionally left blank, decide action if needed
         }
 
-        if (!sessionToLoad && storedSessions.length > 0) {
-            sessionToLoad = [...storedSessions].sort((a, b) => b.date - a.date)[0];
-            navigate(`/?sessionId=${sessionToLoad.id}`, { replace: true });
-        }
+    }, [searchParams, allSessions, currentSessionId, isSessionLoading]);
 
-        if (sessionToLoad) {
-            Promise.resolve().then(() => {
-                setCurrentSessionId(sessionToLoad!.id);
-                setCurrentSessionName(sessionToLoad!.name);
-                setCurrentSession(sessionToLoad!.appState);
-                setIsSessionLoading(false);
-            });
-        } else {
-            setCurrentSessionId(null);
-            setCurrentSession(initialSession);
-            setIsSessionLoading(false);
-        }
-    }, [searchParams, navigate, initialSession]);
+    const updateAndSaveSessions = (newSessions: Session[]) => {
+        setAllSessions(newSessions);
+        saveDataToStorage<Session>(newSessions, LOCAL_STORAGE_KEY);
+    }
 
     const loadSession = useCallback((sessionId: string): boolean => {
         const session = allSessions.find(s => s.id === sessionId);
-
-        console.log("session", session);
-        if (session) {
+        if (session && sessionId !== currentSessionId) {
             setIsSessionLoading(true);
-            // Use functional update to ensure latest state
-            setCurrentSessionId(prev => {
-                if (prev !== session.id) {
-                    navigate(`/?sessionId=${session.id}`, { replace: true });
-                }
-                return session.id;
-            });
-            setCurrentSessionName(session.name);
-            setCurrentSession(session.appState);
+            setCurrentSessionId(session.id);
+            navigate(`/?sessionId=${session.id}`, {replace: true});
             setIsSessionLoading(false);
             return true;
         }
-        console.warn(`Session ${sessionId} not found`);
         return false;
-    }, [allSessions, navigate]);
+    }, [allSessions, navigate, currentSessionId]);
 
     const createSession = useCallback((sessionName: string, initialState: AppState) => {
         setIsSessionLoading(true);
@@ -88,102 +105,117 @@ export const SessionProvider: SessionProviderProps = ({children, initialSession}
         };
 
         const updatedSessions = [...allSessions, newSession];
-        setAllSessions(updatedSessions);
-        saveDataToStorage<Session>(updatedSessions, LOCAL_STORAGE_KEY);
-
-        // Direkt zur neuen Session wechseln und URL aktualisieren
+        updateAndSaveSessions(updatedSessions);
         setCurrentSessionId(newSession.id);
-        setCurrentSessionName(newSession.name);
-        setCurrentSession(newSession.appState);
         navigate(`/?sessionId=${newSession.id}`, {replace: true});
         setIsSessionLoading(false);
-    }, [allSessions, navigate]);
+    }, [allSessions, navigate, initialSession]);
 
-    // Funktion zum Speichern des aktuellen Zustands der aktiven Session
     const saveSession = useCallback((
         updates?: string | { settings: Partial<Settings> },
         updatedState?: AppState | null
     ) => {
-        setCurrentSession(prev => {
-            if (!currentSessionId || !prev) return prev;
+        if (!currentSessionId) return;
 
-            const mergeSettings = (existing: Settings | null, updates: Partial<Settings>): Settings => ({
-                model: updates.model ?? existing?.model ?? 'gpt-3.5-turbo',
-                temperature: updates.temperature ?? existing?.temperature ?? 0.7,
-                temperatureSteps: updates.temperatureSteps ?? existing?.temperatureSteps ?? 10,
-                maxTokens: updates.maxTokens ?? existing?.maxTokens ?? 1000,
-                maxTokensSteps: updates.maxTokensSteps ?? existing?.maxTokensSteps ?? 10,
-                apiKey: updates.apiKey ?? existing?.apiKey ?? '',
-            });
+        const sessionIndex = allSessions.findIndex(s => s.id === currentSessionId);
+        if (sessionIndex === -1) {
+            console.error("SessionProvider: Current session not found in allSessions during save.");
+            return;
+        }
 
-            let newAppState = { ...prev };
-            let newSessionName = currentSessionName;
+        const currentSessionToUpdate = allSessions[sessionIndex];
 
-            if (typeof updates === 'string') {
-                newSessionName = updates.trim() || `Session ${new Date().toLocaleString()}`;
-                if (updatedState) {
-                    newAppState = {
-                        ...newAppState,
-                        ...updatedState,
-                        settings: updatedState.settings ?
-                            mergeSettings(newAppState.settings, updatedState.settings) :
-                            newAppState.settings
-                    };
-                }
-            } else if (updates?.settings) {
-                newAppState = {
-                    ...newAppState,
-                    settings: mergeSettings(newAppState.settings, updates.settings)
-                };
+        const baseAppState: AppState = currentSessionToUpdate.appState ?? {
+            settings: null,
+            systemPrompt: '',
+            userPrompt: '',
+            conversation: null
+        };
+
+        let finalName = currentSessionToUpdate.name;
+        let finalAppState: AppState = { ...baseAppState };
+
+        const mergeSettings = (existing: Settings | null, partialUpdates: Partial<Settings>): Settings | null => {
+            const base = existing ?? {
+                model: 'default-model',
+                temperature: 0.7,
+                temperatureSteps: 10,
+                maxTokens: 1000,
+                maxTokensSteps: 10,
+                apiKey: '',
+            };
+
+            return {
+                ...base,
+                ...partialUpdates
+            };
+        };
+
+        if (typeof updates === 'string') {
+            finalName = updates.trim() || `Session ${new Date().toLocaleString()}`;
+            if (updatedState !== undefined) {
+                finalAppState = updatedState === null
+                    ? { settings: null, systemPrompt: '', userPrompt: '', conversation: null }
+                    : { ...updatedState, settings: updatedState.settings ?? null };
             }
 
-            const updatedSessions = allSessions.map(session =>
-                session.id === currentSessionId ? {
-                    ...session,
-                    name: newSessionName || session.name,
-                    appState: newAppState,
-                    date: Date.now()
-                } : session
-            );
+        } else if (updates?.settings) {
+            finalAppState = {
+                ...finalAppState,
+                settings: mergeSettings(finalAppState.settings, updates.settings)
+            };
 
-            setAllSessions(updatedSessions);
-            saveDataToStorage<Session>(updatedSessions, LOCAL_STORAGE_KEY);
-            return newAppState;
-        });
-    }, [allSessions, currentSessionId, currentSessionName]);
+        } else if (updatedState !== undefined) {
+            finalAppState = updatedState === null
+                ? { settings: null, systemPrompt: '', userPrompt: '', conversation: null }
+                : { ...updatedState, settings: updatedState.settings ?? null };
+        }
 
+        const updatedSession: Session = {
+            ...currentSessionToUpdate,
+            name: finalName,
+            appState: finalAppState,
+            date: Date.now()
+        };
 
+        const updatedSessions = [
+            ...allSessions.slice(0, sessionIndex),
+            updatedSession,
+            ...allSessions.slice(sessionIndex + 1)
+        ];
 
+        updateAndSaveSessions(updatedSessions);
 
-    // Funktion zum Löschen einer Session
+    }, [allSessions, currentSessionId, updateAndSaveSessions]);
+
     const deleteSession = useCallback((sessionId: string) => {
         const updatedSessions = allSessions.filter(s => s.id !== sessionId);
-        setAllSessions(updatedSessions);
-        saveDataToStorage<Session>(updatedSessions, LOCAL_STORAGE_KEY);
+        updateAndSaveSessions(updatedSessions);
 
-        // Wenn die gelöschte Session die aktuelle war, zur neuesten verbleibenden oder zum Initialzustand wechseln
         if (currentSessionId === sessionId) {
             const latestSession = [...updatedSessions].sort((a, b) => b.date - a.date)[0];
             if (latestSession) {
-                loadSession(latestSession.id); // Lädt die neueste und aktualisiert die URL
+                loadSession(latestSession.id);
             } else {
-                // Keine Sessions mehr übrig
-                setCurrentSessionId(null);
-                setCurrentSessionName(null);
-                setCurrentSession(initialSession); // Zurück zum Default
-                navigate('/', {replace: true}); // Zur Hauptseite ohne ID
+                const newSession: Session = {
+                    id: crypto.randomUUID(),
+                    name: `Session ${new Date().toLocaleString()}`,
+                    date: Date.now(),
+                    appState: initialSession
+                };
+                updateAndSaveSessions([newSession]);
+                setCurrentSessionId(newSession.id);
+                navigate(`/?sessionId=${newSession.id}`, {replace: true});
             }
         }
-        // Wenn eine andere Session gelöscht wurde, muss nichts am aktuellen Zustand geändert werden
     }, [allSessions, currentSessionId, navigate, loadSession, initialSession]);
 
 
-    // Nur die Metadaten für die Liste bereitstellen
     const sessionMetas: SessionMeta[] = allSessions.map(({id, name, date}) => ({
         id,
         name,
         date
-    })).sort((a, b) => b.date - a.date); // Neueste zuerst
+    })).sort((a, b) => b.date - a.date);
 
     const contextValue: SessionContextType = {
         sessions: sessionMetas,
@@ -200,16 +232,13 @@ export const SessionProvider: SessionProviderProps = ({children, initialSession}
 
     return (
         <SessionContext.Provider value={contextValue}>
-            {children}
+            {!isSessionLoading ? children : <div>Loading Session...</div>}
         </SessionContext.Provider>
     );
 };
 
-// Hook für einfachen Zugriff auf den Context
 export const useSession = (): SessionContextType => {
     const context = useContext(SessionContext);
-    if (context === undefined) {
-        throw new Error('useSession must be used within a SessionProvider');
-    }
+    if (context === undefined) throw new Error('useSession must be used within a SessionProvider');
     return context;
 };
