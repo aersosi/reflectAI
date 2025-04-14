@@ -35,7 +35,10 @@ export type SessionContextType = {
     initialSession: AppState;
     currentSession: AppState | null;
     loadSession: (sessionId: string) => boolean;
-    saveSession: (updates?: { settings: Partial<Settings> } | string, updatedState?: AppState | null) => void;
+    saveSession: (
+        updates?: string | { settings: Partial<Settings> },
+        updatedState?: AppState | null
+    ) => void;
     createSession: (sessionName: string, initialState: AppState) => void;
     deleteSession: (sessionId: string) => void;
     isSessionLoading: boolean;

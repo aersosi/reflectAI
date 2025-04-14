@@ -9,7 +9,7 @@ import {
 import { Label } from "@/components/ui/label";
 import { useSession } from "@/contexts/SessionContext";
 import { ModelInputProps } from "@/definitions/props";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { AnthropicModel } from "@/definitions/api";
 
 export function ModelDropdown({data, placeholder, labelTitle, labelFor}: ModelInputProps) {
