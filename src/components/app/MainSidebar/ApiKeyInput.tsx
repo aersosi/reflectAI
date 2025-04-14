@@ -15,7 +15,7 @@ export function ApiKeyInput({className}: { className?: string }) {
     };
 
     const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-        if (!currentSession) return; // Don't update if no session loaded
+        if (!currentSession) return;
         const newValue = event.target.value;
         saveSession({
             settings: {

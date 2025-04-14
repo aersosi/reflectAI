@@ -35,10 +35,10 @@ export const SettingsSheet = () => {
                     id="SliderTemperature"
                     max={currentSession?.settings?.temperature}
                     step={currentSession?.settings?.temperatureSteps}
-                    hasMarks={true}
                     showTooltip={true}
                     labelFor="SliderTemperature"
                     labelTitle="Temperature"
+                    hasMarks={true}
                 />
                 <SliderTooltip
                     id="SliderMaxTokens"

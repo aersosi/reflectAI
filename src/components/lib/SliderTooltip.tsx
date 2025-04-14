@@ -56,7 +56,7 @@ export const SliderTooltip = React.forwardRef<React.ComponentRef<typeof SliderPr
                 {
                     labelFor && labelTitle &&
                     <Label htmlFor={labelFor}
-                           className="flex justify-between pl-0.5 text-muted-foreground"> {/* Use flex for better alignment */}
+                           className="flex justify-between pl-0.5 text-muted-foreground">
                         <span>{labelTitle}</span><span>{value[0]}</span>
                     </Label>
                 }

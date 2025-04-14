@@ -26,7 +26,7 @@ export type Session = {
     appState: AppState | null;
 };
 
-export type SessionMeta = Omit<Session, 'appState'>; // Nur Metadaten für die Liste
+export type SessionMeta = Omit<Session, 'appState'>;
 
 export type SessionContextType = {
     sessions: SessionMeta[];
