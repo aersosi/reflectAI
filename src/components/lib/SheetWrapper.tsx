@@ -10,7 +10,7 @@ import {
     SheetTrigger,
 } from "@/components/ui/sheet"
 import { Braces, List, Settings, Smile } from "lucide-react";
-import { cn } from "@/lib/utils.ts";
+import { cn } from "@/lib/utils";
 import { SheetWrapperProps } from "@/definitions/props";
 
 export function SheetWrapper({title, side, icon, isWide, saveButton, disabled, children}: SheetWrapperProps) {

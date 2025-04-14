@@ -1,7 +1,9 @@
 export type Settings = {
     model: string;
     temperature: number;
+    temperatureSteps: number;
     maxTokens: number;
+    maxTokensSteps: number;
     apiKey: string;
 }
 
@@ -30,11 +32,11 @@ export type SessionContextType = {
     sessions: SessionMeta[];
     currentSessionId: string | null;
     currentSessionName: string | null;
-    currentAppState: AppState | null;
+    initialSession: AppState;
+    currentSession: AppState | null;
     loadSession: (sessionId: string) => boolean;
+    saveSession: (updates?: { settings: Partial<Settings> } | string, updatedState?: AppState | null) => void;
     createSession: (sessionName: string, initialState: AppState) => void;
-    saveCurrentSession: (sessionName: string, updatedState: AppState | null) => void;
     deleteSession: (sessionId: string) => void;
     isSessionLoading: boolean;
-    initialAppState: AppState;
 };

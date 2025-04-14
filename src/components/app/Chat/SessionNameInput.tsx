@@ -12,17 +12,17 @@ export function SessionNameInput() {
         currentSessionName,
         sessions,
         createSession,
-        saveCurrentSession,
-        currentAppState,
-        initialAppState
+        saveSession,
+        currentSession,
+        initialSession
     } = useSession();
 
     // Automatisch neue Session erstellen beim ersten Laden
     useEffect(() => {
         if (sessions.length === 0) {
-            createSession("New Session", initialAppState);
+            createSession("New Session", initialSession);
         }
-    }, [createSession, initialAppState, sessions.length]);
+    }, [createSession, initialSession, sessions.length]);
 
     // Focus handling beim Editieren
     useEffect(() => {
@@ -30,13 +30,17 @@ export function SessionNameInput() {
     }, [isEditing]);
 
     const startEditing = () => {
+
+        console.log("initialSession", initialSession.settings?.temperature)
+        console.log("currentSession", currentSession)
+
         setTempName(currentSessionName || "");
         setIsEditing(true);
     };
 
     const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
         if (e.key === "Enter") {
-            if (tempName.trim()) saveCurrentSession(tempName.trim(), currentAppState);
+            if (tempName.trim()) saveSession(tempName.trim(), currentSession);
             setIsEditing(false);
         } else if (e.key === "Escape") {
             setIsEditing(false);
@@ -44,7 +48,7 @@ export function SessionNameInput() {
     };
 
     const handleCreateNewSession = () => {
-        createSession("New Session", initialAppState);
+        createSession("New Session", initialSession);
     };
 
     return (

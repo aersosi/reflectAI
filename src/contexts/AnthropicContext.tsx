@@ -15,10 +15,10 @@ export const AnthropicProvider: React.FC<AnthropicProviderProps> = ({children}) 
 
     // Hook to generate the *next* assistant message
     const {
-        message: latestAssistantMessage, // This is AssistantMessage | null
+        message: latestAssistantMessage,
         isLoadingMessage,
         error: messageError,
-    } = useGenerateAnthropicMessage(currentSystemPrompt, promptToApi); // Pass the trigger state
+    } = useGenerateAnthropicMessage(currentSystemPrompt, promptToApi);
 
     // Function to set the system prompt (if needed outside initial)
     const handleGenerateSystemPrompt = useCallback((prompt: string) => {

@@ -8,7 +8,7 @@ import { ChevronDown } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
 import { PromptTextareaProps } from "@/definitions/props";
 import { Label } from "@/components/ui/label";
-import { cn } from "@/lib/utils.ts";
+import { cn } from "@/lib/utils";
 import React from "react";
 
 export function PromptTextarea({

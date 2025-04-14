@@ -5,7 +5,7 @@ import {
     CardHeader,
 } from "@/components/ui/card"
 import { CardMessageProps } from "@/definitions/props";
-import { cn } from "@/lib/utils.ts";
+import { cn } from "@/lib/utils";
 
 export function ChatCard({className, isUser, title, message}: CardMessageProps) {
     const roleMargin = isUser ? "xl:ml-56" : "xl:mr-56";

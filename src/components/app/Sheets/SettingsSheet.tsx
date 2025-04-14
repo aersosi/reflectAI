@@ -3,9 +3,11 @@ import { ModelDropdown } from "@/components/app/MainSidebar/ModelDropdown";
 import { SliderTooltip } from "@/components/lib/SliderTooltip";
 import { ApiKeyInput } from "@/components/app/MainSidebar/ApiKeyInput";
 import { useAnthropic } from "@/contexts/AnthropicContext";
+import { useSession } from "@/contexts/SessionContext";
 
 export const SettingsSheet = () => {
     const {anthropicModels} = useAnthropic()
+    const {currentSession} = useSession()
 
     // if (isLoadingModels) return <div>Loading Anthropic models...</div>;
     // if (modelsError) return <div>An error occurred fetching models: {modelsError.message}</div>;
@@ -31,8 +33,8 @@ export const SettingsSheet = () => {
                 }
                 <SliderTooltip
                     id="SliderTemperature"
-                    max={1}
-                    step={0.1}
+                    max={currentSession?.settings?.temperature}
+                    step={currentSession?.settings?.temperatureSteps}
                     hasMarks={true}
                     showTooltip={true}
                     labelFor="SliderTemperature"
@@ -40,8 +42,8 @@ export const SettingsSheet = () => {
                 />
                 <SliderTooltip
                     id="SliderMaxTokens"
-                    max={4096}
-                    step={4}
+                    max={currentSession?.settings?.maxTokens}
+                    step={currentSession?.settings?.maxTokensSteps}
                     showTooltip={true}
                     labelFor="SliderMaxTokens"
                     labelTitle="Max tokens"

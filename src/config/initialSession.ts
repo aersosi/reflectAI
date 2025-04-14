@@ -1,12 +1,13 @@
 import { AppState, Conversation, Settings } from "@/definitions/session";
 
 const settings: Settings = {
-    model: "Claude 3.5",
-    temperature: 0.5,
+    model: "",
+    temperature: 1,
+    temperatureSteps: 0.1,
     maxTokens: 4096,
-    apiKey: "asdfgh-sdfgh-asdf",
+    maxTokensSteps: 4,
+    apiKey: "",
 };
-
 
 const conversation: Conversation = {
     assistant: "",
@@ -16,7 +17,7 @@ const conversation: Conversation = {
 const systemPrompt: string = "";
 const userPrompt: string = "";
 
-export const defaultAppState: AppState = {
+export const defaultSession: AppState = {
     settings,
     systemPrompt,
     userPrompt,

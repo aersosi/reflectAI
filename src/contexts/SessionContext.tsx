@@ -1,19 +1,19 @@
 import React, { createContext, useState, useContext, useEffect, useCallback } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { SessionContextType, Session, SessionMeta, AppState } from "@/definitions/session";
-import { loadDataFromStorage, saveDataToStorage } from "@/lib/utils.ts";
+import { loadDataFromStorage, saveDataToStorage } from "@/lib/utils";
 
 const SessionContext = createContext<SessionContextType | undefined>(undefined);
 
 const LOCAL_STORAGE_KEY = 'reactAppSessions';
 
-type SessionProviderProps = React.FC<{ children: React.ReactNode, initialAppState: AppState }>
+type SessionProviderProps = React.FC<{ children: React.ReactNode, initialSession: AppState }>
 
-export const SessionProvider: SessionProviderProps = ({children, initialAppState}) => {
+export const SessionProvider: SessionProviderProps = ({children, initialSession}) => {
     const [allSessions, setAllSessions] = useState<Session[]>([]);
     const [currentSessionId, setCurrentSessionId] = useState<string | null>(null);
     const [currentSessionName, setCurrentSessionName] = useState<string | null>(null);
-    const [currentAppState, setCurrentAppState] = useState<AppState | null>(null);
+    const [currentSession, setCurrentSession] = useState<AppState | null>(null);
     const [isSessionLoading, setIsSessionLoading] = useState<boolean>(true); // Startet als true
 
     const navigate = useNavigate();
@@ -26,7 +26,6 @@ export const SessionProvider: SessionProviderProps = ({children, initialAppState
         setAllSessions(storedSessions);
 
         const sessionIdFromUrl = searchParams.get('sessionId');
-
         let sessionToLoad: Session | null = null;
 
         if (sessionIdFromUrl) {
@@ -40,7 +39,6 @@ export const SessionProvider: SessionProviderProps = ({children, initialAppState
 
         // Wenn keine gültige ID in URL, lade die letzte Session
         if (!sessionToLoad && storedSessions.length > 0) {
-            // Finde die neuste Session (höchster Timestamp)
             sessionToLoad = [...storedSessions].sort((a, b) => b.date - a.date)[0];
             // Optional: URL aktualisieren auf die ID der geladenen Session?
             // navigate(`/?sessionId=${sessionToLoad.id}`, { replace: true });
@@ -49,14 +47,14 @@ export const SessionProvider: SessionProviderProps = ({children, initialAppState
         if (sessionToLoad) {
             setCurrentSessionId(sessionToLoad.id);
             setCurrentSessionName(sessionToLoad.name);
-            setCurrentAppState(sessionToLoad.appState);
+            setCurrentSession(sessionToLoad.appState);
         } else {
             // Keine Sessions vorhanden oder keine spezifische geladen = Initialzustand
             setCurrentSessionId(null);
-            setCurrentAppState(initialAppState); // Oder null, je nach Bedarf
+            setCurrentSession(initialSession); // Oder null, je nach Bedarf
         }
         setIsSessionLoading(false);
-    }, [searchParams, navigate, initialAppState]); // Abhängigkeit von searchParams, damit es bei URL-Änderung neu prüft
+    }, [searchParams, navigate, initialSession]); // Abhängigkeit von searchParams, damit es bei URL-Änderung neu prüft
 
     // Funktion zum Laden einer spezifischen Session
     const loadSession = useCallback((sessionId: string): boolean => {
@@ -65,7 +63,7 @@ export const SessionProvider: SessionProviderProps = ({children, initialAppState
             setIsSessionLoading(true);
             setCurrentSessionId(session.id);
             setCurrentSessionName(session.name);
-            setCurrentAppState(session.appState);
+            setCurrentSession(session.appState);
             // Update URL ohne Neuladen der Seite (falls noch nicht geschehen)
             if (searchParams.get('sessionId') !== sessionId) {
                 navigate(`/?sessionId=${sessionId}`, {replace: true}); // replace:true ändert nicht den Browser-Verlauf
@@ -94,40 +92,60 @@ export const SessionProvider: SessionProviderProps = ({children, initialAppState
         // Direkt zur neuen Session wechseln und URL aktualisieren
         setCurrentSessionId(newSession.id);
         setCurrentSessionName(newSession.name);
-        setCurrentAppState(newSession.appState);
+        setCurrentSession(newSession.appState);
         navigate(`/?sessionId=${newSession.id}`, {replace: true});
         setIsSessionLoading(false);
     }, [allSessions, navigate]);
 
     // Funktion zum Speichern des aktuellen Zustands der aktiven Session
-    const saveCurrentSession = useCallback((sessionName: string, updatedState: AppState | null) => {
-        if (!currentSessionId) {
-            console.warn("Cannot save state: No session is currently loaded.");
-            return;
+    const saveSession = useCallback((sessionNameOrState?: string | Partial<AppState>, updatedState?: AppState | null) => {
+        let newAppState: AppState = currentSession || {
+            settings: null,
+            systemPrompt: '',
+            userPrompt: '',
+            conversation: null,
+        };
+        let newSessionName = currentSessionName;
+
+        // Handle the first parameter
+        if (typeof sessionNameOrState === 'string') {
+            newSessionName = sessionNameOrState.trim() || `Session ${new Date().toLocaleString()}`;
+            if (updatedState) {
+                newAppState = {
+                    settings: updatedState.settings ?? newAppState.settings,
+                    systemPrompt: updatedState.systemPrompt ?? newAppState.systemPrompt,
+                    userPrompt: updatedState.userPrompt ?? newAppState.userPrompt,
+                    conversation: updatedState.conversation ?? newAppState.conversation,
+                };
+            }
+        } else if (sessionNameOrState) {
+            newAppState = {
+                settings: sessionNameOrState.settings ?? newAppState.settings,
+                systemPrompt: sessionNameOrState.systemPrompt ?? newAppState.systemPrompt,
+                userPrompt: sessionNameOrState.userPrompt ?? newAppState.userPrompt,
+                conversation: sessionNameOrState.conversation ?? newAppState.conversation,
+            };
         }
 
-        console.log("updatedState", updatedState)
+        // Only proceed if there's an active session
+        if (currentSessionId) {
+            const updatedSessions = allSessions.map(session =>
+                session.id === currentSessionId
+                    ? {
+                        ...session,
+                        name: newSessionName || session.name,
+                        appState: newAppState,
+                        date: Date.now()
+                    }
+                    : session
+            );
 
-        // Stelle sicher, dass der Name nicht leer ist, sonst Fallback
-        const validatedSessionName = sessionName.trim() || `Session ${new Date().toLocaleString()}`;
-
-        const updatedSessions = allSessions.map(session =>
-            session.id === currentSessionId
-                ? {
-                    ...session,
-                    name: validatedSessionName, // Verwende den validierten Namen
-                    appState: updatedState, // Nimm den übergebenen App-State
-                    date: Date.now()        // Aktualisiere das Datum
-                }
-                : session
-        );
-
-        setAllSessions(updatedSessions);
-        setCurrentAppState(updatedState);
-        setCurrentSessionName(validatedSessionName);
-        saveDataToStorage<Session>(updatedSessions, LOCAL_STORAGE_KEY);
-    }, [currentSessionId, allSessions]);
-
+            setAllSessions(updatedSessions);
+            setCurrentSession(newAppState);
+            setCurrentSessionName(newSessionName);
+            saveDataToStorage<Session>(updatedSessions, LOCAL_STORAGE_KEY);
+        }
+    }, [allSessions, currentSessionId, currentSession, currentSessionName]);
     // Funktion zum Löschen einer Session
     const deleteSession = useCallback((sessionId: string) => {
         const updatedSessions = allSessions.filter(s => s.id !== sessionId);
@@ -143,12 +161,12 @@ export const SessionProvider: SessionProviderProps = ({children, initialAppState
                 // Keine Sessions mehr übrig
                 setCurrentSessionId(null);
                 setCurrentSessionName(null);
-                setCurrentAppState(initialAppState); // Zurück zum Default
+                setCurrentSession(initialSession); // Zurück zum Default
                 navigate('/', {replace: true}); // Zur Hauptseite ohne ID
             }
         }
         // Wenn eine andere Session gelöscht wurde, muss nichts am aktuellen Zustand geändert werden
-    }, [allSessions, currentSessionId, navigate, loadSession, initialAppState]);
+    }, [allSessions, currentSessionId, navigate, loadSession, initialSession]);
 
 
     // Nur die Metadaten für die Liste bereitstellen
@@ -162,13 +180,13 @@ export const SessionProvider: SessionProviderProps = ({children, initialAppState
         sessions: sessionMetas,
         currentSessionId,
         currentSessionName,
-        currentAppState,
+        currentSession,
         loadSession,
         createSession,
-        saveCurrentSession,
+        saveSession,
         deleteSession,
         isSessionLoading,
-        initialAppState
+        initialSession
     };
 
     return (
