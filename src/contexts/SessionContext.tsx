@@ -7,13 +7,6 @@ const SessionContext = createContext<SessionContextType | undefined>(undefined);
 const LOCAL_STORAGE_KEY = 'reactAppSessions';
 type SessionProviderProps = React.FC<{ children: React.ReactNode, initialSession: AppState }>
 
-/**
- * @function SessionProvider
- * @description Main component responsible for managing application sessions.
- * It handles loading, saving, creating, deleting, and switching sessions,
- * utilizing local storage and React context to provide session data and
- * management functions to its children.
- */
 export const SessionProvider: SessionProviderProps = ({children, initialSession}) => {
     const [allSessions, setAllSessions] = useState<Session[]>([]);
     const [currentSessionId, setCurrentSessionId] = useState<string | null>(null);
@@ -45,18 +38,29 @@ export const SessionProvider: SessionProviderProps = ({children, initialSession}
      * and manages the initial loading state.
      */
     useEffect(() => {
+        if (isInitialized.current) return;
         setIsSessionLoading(true);
-        const storedSessions = loadDataFromStorage<Session>(LOCAL_STORAGE_KEY);
-        setAllSessions(storedSessions);
 
+        const loadedSessions = loadDataFromStorage<Session>(LOCAL_STORAGE_KEY);
         const sessionIdFromUrl = searchParams.get('sessionId');
         let sessionToActivate: Session | undefined = undefined;
+        let sessionsToSave = [...loadedSessions];
 
-        if (sessionIdFromUrl) sessionToActivate = storedSessions.find(s => s.id === sessionIdFromUrl);
+        const navigateToSession = (session: Session) => {
+            if (location.pathname === '/') {
+                navigate(`/?sessionId=${session.id}`, { replace: true });
+            }
+        };
 
-        if (!sessionToActivate && storedSessions.length > 0) {
-            sessionToActivate = [...storedSessions].sort((a, b) => b.date - a.date)[0];
-            if (sessionToActivate && location.pathname === '/') navigate(`/?sessionId=${sessionToActivate.id}`, {replace: true});
+        if (sessionIdFromUrl) {
+            sessionToActivate = loadedSessions.find(s => s.id === sessionIdFromUrl);
+        }
+
+        if (!sessionToActivate && loadedSessions.length > 0) {
+            sessionToActivate = [...loadedSessions].sort((a, b) => b.date - a.date)[0];
+            if (sessionToActivate) {
+                 navigateToSession(sessionToActivate);
+            }
         }
 
         if (!sessionToActivate) {
@@ -66,19 +70,19 @@ export const SessionProvider: SessionProviderProps = ({children, initialSession}
                 date: Date.now(),
                 appState: initialSession,
             };
-            const updatedSessions = [newSession];
-            setAllSessions(updatedSessions);
-            saveDataToStorage<Session>(updatedSessions, LOCAL_STORAGE_KEY);
+            sessionsToSave = [newSession];
+            saveDataToStorage<Session>(sessionsToSave, LOCAL_STORAGE_KEY);
             sessionToActivate = newSession;
-            if (location.pathname === '/') navigate(`/?sessionId=${newSession.id}`, {replace: true});
+            navigateToSession(newSession);
         }
 
+        setAllSessions(sessionsToSave);
         setCurrentSessionId(sessionToActivate ? sessionToActivate.id : null);
-
         setIsSessionLoading(false);
         isInitialized.current = true;
 
-    }, [initialSession, navigate, location.pathname]);
+    }, [initialSession, navigate, searchParams, location.pathname]);
+
 
     /**
      * @useEffect hook
