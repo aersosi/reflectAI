@@ -1,8 +1,10 @@
 export type Settings = {
     model: string;
-    temperature: number;
+    temperature?: number | undefined;
+    temperatureMax: number;
     temperatureSteps: number;
-    maxTokens: number;
+    maxTokens?: number | undefined;
+    maxTokensMax: number;
     maxTokensSteps: number;
     apiKey: string;
 }
