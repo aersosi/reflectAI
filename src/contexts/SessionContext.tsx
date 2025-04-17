@@ -181,7 +181,7 @@ export const SessionProvider: SessionProviderProps = ({children, initialAppState
             settings: null,
             systemPrompt: '',
             userPrompt: '',
-            conversation: null
+            messages: null
         };
 
         let finalName = currentSessionToUpdate.name;
@@ -212,7 +212,7 @@ export const SessionProvider: SessionProviderProps = ({children, initialAppState
             finalName = updates.trim() || `Session ${new Date().toLocaleString()}`;
             if (updateAppState !== undefined) {
                 finalAppState = updateAppState === null
-                    ? { settings: null, systemPrompt: '', userPrompt: '', conversation: null }
+                    ? { settings: null, systemPrompt: '', userPrompt: '', messages: null }
                     : { ...updateAppState, settings: updateAppState.settings ?? null };
             }
 
@@ -224,7 +224,7 @@ export const SessionProvider: SessionProviderProps = ({children, initialAppState
 
         } else if (updateAppState !== undefined) {
             finalAppState = updateAppState === null
-                ? { settings: null, systemPrompt: '', userPrompt: '', conversation: null }
+                ? { settings: null, systemPrompt: '', userPrompt: '', messages: null }
                 : { ...updateAppState, settings: updateAppState.settings ?? null };
         }
 

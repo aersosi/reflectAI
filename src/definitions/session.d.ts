@@ -1,24 +1,29 @@
 export type Settings = {
     model: string;
     temperature?: number | undefined;
-    temperatureMax: number;
+    temperatureMax?: number | undefined;
     temperatureSteps: number;
     maxTokens?: number | undefined;
-    maxTokensMax: number;
+    maxTokensMax?: number | undefined;
     maxTokensSteps: number;
     apiKey: string;
 }
 
-export type Conversation = {
-    assistant: string;
-    user: string;
+export type Message = {
+    role: "user" | "assistant";
+    content: {
+        type: string;
+        text: string;
+    }[];
 }
+
+export type Messages = Message[];
 
 export type AppState = {
     settings: Settings | null;
     systemPrompt: string;
     userPrompt: string;
-    conversation: Conversation | null;
+    messages: Messages | null;
 };
 
 export type Session = {
