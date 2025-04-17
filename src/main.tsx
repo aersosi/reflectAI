@@ -4,7 +4,7 @@ import './index.css'
 import App from './App'
 import { BrowserRouter } from "react-router-dom";
 import { SessionProvider } from "@/contexts/SessionContext";
-import { defaultSession } from "@/config/initialSession.ts";
+import { defaultAppState } from "@/config/initialSession.ts";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { AnthropicProvider } from "@/contexts/AnthropicContext";
 
@@ -14,7 +14,7 @@ createRoot(document.getElementById('root')!).render(
   <StrictMode>
       <BrowserRouter>
           <QueryClientProvider client={queryClient}>
-              <SessionProvider initialAppState={defaultSession}>
+              <SessionProvider initialAppState={defaultAppState}>
                   <AnthropicProvider>
                       <App />
                   </AnthropicProvider>

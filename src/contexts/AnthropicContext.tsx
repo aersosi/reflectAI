@@ -2,7 +2,7 @@ import React, { createContext, useContext, useState, useCallback, useEffect } fr
 import { AnthropicContextType, AssistantMessage } from '@/definitions/api';
 import { useGenerateAnthropicMessage } from '@/hooks/useGenerateAnthropicMessage';
 import { useFetchAnthropicModels } from '@/hooks/useFetchAnthropicModels';
-
+import { LOCAL_STORAGE_SESSION } from "@/config/constants";
 
 const AnthropicContext = createContext<AnthropicContextType | undefined>(undefined);
 export type AnthropicProviderProps = { children: React.ReactNode };
@@ -16,8 +16,8 @@ export const AnthropicProvider: React.FC<AnthropicProviderProps> = ({children}) 
     // Hook to generate the *next* assistant message
     const {
         message: latestAssistantMessage,
-        isLoadingMessage,
-        error: messageError,
+        loadingMessages,
+        error: messagesError,
     } = useGenerateAnthropicMessage(currentSystemPrompt, promptToApi);
 
     // Function to set the system prompt (if needed outside initial)
@@ -29,6 +29,29 @@ export const AnthropicProvider: React.FC<AnthropicProviderProps> = ({children}) 
         }
     }, []);
 
+
+    // const handleSaveReturn = useCallback( () => {
+    //     const {currentAppState, saveSession} = useSession();
+    //
+    //     const updatedAppState: AppState = {
+    //         ...currentAppState,
+    //         messages: [
+    //             ...(currentAppState?.messages ?? []),
+    //             {
+    //                 role: "assistant",
+    //                 content: [{ type: "text", text: "Neue Nachricht vom Assistant." }]
+    //             }
+    //         ]
+    //     };
+    //
+    //     saveSession(undefined, updatedAppState);
+    //
+    //     console.log(currentAppState);
+    //
+    //
+    //     // saveDataToStorage<Session>([newSession], LOCAL_STORAGE_SESSION);
+    // }, [])
+
     // Function called by UI to send a new user message
     const handleGenerateUserPrompt = useCallback((prompt: string) => {
         if (!prompt || prompt.trim() === '') return;
@@ -38,6 +61,9 @@ export const AnthropicProvider: React.FC<AnthropicProviderProps> = ({children}) 
             role: "user",
             content: [{type: "text", text: prompt}]
         };
+
+        // handleSaveReturn();
+
 
         setMessages(prevMessages => [...prevMessages, userMessage]);
         setPromptToApi(prompt);
@@ -61,9 +87,9 @@ export const AnthropicProvider: React.FC<AnthropicProviderProps> = ({children}) 
         modelsError: modelsError ? modelsError : null,
 
         // Messages - Provide the *list* of messages
-        messageReturn: messages,
-        isLoadingMessage: isLoadingMessage,
-        messageError: messageError ? messageError : null,
+        messagesReturn: messages,
+        loadingMessages: loadingMessages,
+        messagesError: messagesError ? messagesError : null,
 
         // Functions to interact
         generateSystemPrompt: handleGenerateSystemPrompt,

@@ -64,7 +64,7 @@ export const useGenerateAnthropicMessage = (systemPrompt: string | null, userPro
 
     return {
         message: message,
-        isLoadingMessage: isLoading || isFetching,
+        loadingMessages: isLoading || isFetching,
         error: error,
         isSuccess: isSuccess,
         isFetching: isFetching,

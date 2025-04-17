@@ -13,7 +13,7 @@ export function MainSidebar() {
     const [systemVariable, setSystemVariable] = useState('');
     const [userVariable, setUserVariable] = useState('');
     const [textareaExpanded, setTextareaExpanded] = useState(false);
-    const {isLoadingMessage, generateUserPrompt, generateSystemPrompt} = useAnthropic();
+    const {loadingMessages, generateUserPrompt, generateSystemPrompt} = useAnthropic();
 
     const toggleTextareaExpanded = () => {
         setTextareaExpanded(prev => !prev);
@@ -38,7 +38,7 @@ export function MainSidebar() {
         generateUserPrompt(userVariable.trim());
     };
 
-    const isRunButtonDisabled = isLoadingMessage || (!systemVariable.trim() && !userVariable.trim());
+    const isRunButtonDisabled = loadingMessages || (!systemVariable.trim() && !userVariable.trim());
 
     return (
         <Sidebar>
@@ -55,7 +55,7 @@ export function MainSidebar() {
                     onVariableChange={setSystemVariable}
                     title="System prompt"
                     placeholder="Enter system prompt"
-                    disabled={isLoadingMessage}
+                    disabled={loadingMessages}
                 />
                 <PromptTextarea
                     value={userVariable}
@@ -63,7 +63,7 @@ export function MainSidebar() {
                     onVariableChange={setUserVariable}
                     title="User prompt"
                     placeholder="Enter user prompt"
-                    disabled={isLoadingMessage}
+                    disabled={loadingMessages}
                 />
             </SidebarContent>
             <SidebarFooter>

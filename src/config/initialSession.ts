@@ -19,7 +19,7 @@ const conversation: Conversation = {
 const systemPrompt: string = "";
 const userPrompt: string = "";
 
-export const defaultSession: AppState = {
+export const defaultAppState: AppState = {
     settings,
     systemPrompt,
     userPrompt,

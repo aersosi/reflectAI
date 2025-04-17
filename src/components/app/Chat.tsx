@@ -11,9 +11,9 @@ import React from "react"; // Import React for useRef
 export function Chat() {
     const {toggleSidebar} = useSidebar();
     const {
-        messageReturn: messages, // Get the messages array from contexts
-        isLoadingMessage, // Maybe show a loading indicator?
-        messageError // Maybe show an error message?
+        messagesReturn: messages, // Get the messages array from contexts
+        loadingMessages, // Maybe show a loading indicator?
+        messagesError // Maybe show an error message?
     } = useAnthropic();
 
     // Ref for scrolling
@@ -73,7 +73,7 @@ export function Chat() {
                     />
                 ))}
                 {/* Optional: Show loading indicator for the next message */}
-                {isLoadingMessage && (
+                {loadingMessages && (
                     <ChatCard
                         key="loading"
                         isUser={false} // Or a neutral style
@@ -82,12 +82,12 @@ export function Chat() {
                     />
                 )}
                 {/* Optional: Show error message */}
-                {messageError && (
+                {messagesError && (
                     <ChatCard
                         key="error"
                         isUser={false} // Or a neutral/error style
                         title="Error"
-                        message={`Failed to get response: ${messageError.message}`}
+                        message={`Failed to get response: ${messagesError.message}`}
                     />
                 )}
             </div>

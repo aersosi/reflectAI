@@ -2,9 +2,8 @@ import { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import Anthropic from '@anthropic-ai/sdk';
 import { AnthropicModelListResponse, AnthropicModel } from '@/definitions/api';
-import { loadDataFromStorage, saveDataToStorage } from '@/lib/utils'; // .ts ist nicht nötig bei Imports
-
-const LOCAL_STORAGE_KEY = 'anthropicModels';
+import { loadDataFromStorage, saveDataToStorage } from '@/lib/utils';
+import { LOCAL_STORAGE_MODELS } from "@/config/constants";
 
 const anthropic = new Anthropic({
     apiKey: import.meta.env.VITE_ANTHROPIC_API_KEY,
@@ -38,7 +37,7 @@ export const useFetchAnthropicModels = () => {
     const [initialStorageChecked, setInitialStorageChecked] = useState(false);
 
     useEffect(() => {
-        const stored = loadDataFromStorage<AnthropicModel>(LOCAL_STORAGE_KEY);
+        const stored = loadDataFromStorage<AnthropicModel>(LOCAL_STORAGE_MODELS);
         if (stored && Array.isArray(stored) && stored.length > 0) setModels(stored);
         setInitialStorageChecked(true);
     }, []); // Leeres Array stellt sicher, dass dies nur einmal beim Mount ausgeführt wird
@@ -62,7 +61,7 @@ export const useFetchAnthropicModels = () => {
         if (isSuccess && modelsResponse?.data) {
             console.log("API fetch successful, updating state and storage:", modelsResponse.data);
             setModels(modelsResponse.data);
-            saveDataToStorage(modelsResponse.data, LOCAL_STORAGE_KEY);
+            saveDataToStorage(modelsResponse.data, LOCAL_STORAGE_MODELS);
         }
     }, [modelsResponse, isSuccess]); // Nur auf Änderungen der Query-Ergebnisse reagieren
 

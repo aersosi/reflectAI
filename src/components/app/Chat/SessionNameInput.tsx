@@ -9,7 +9,7 @@ export function SessionNameInput() {
     const inputRef = useRef<HTMLInputElement>(null);
 
     const {
-        currentAppStateName,
+        currentSessionName,
         sessions,
         createSession,
         saveSession,
@@ -34,7 +34,7 @@ export function SessionNameInput() {
         console.log("initialAppState", initialAppState.settings?.temperature)
         console.log("currentAppState", currentAppState)
 
-        setTempName(currentAppStateName || "");
+        setTempName(currentSessionName || "");
         setIsEditing(true);
     };
 
@@ -69,7 +69,7 @@ export function SessionNameInput() {
                         className="grow font-bold cursor-pointer"
                         onClick={startEditing}
                         title="Click to edit">
-                        {currentAppStateName || "New Session"}
+                        {currentSessionName || "New Session"}
                     </h2>
                     <Button
                         size="sm"

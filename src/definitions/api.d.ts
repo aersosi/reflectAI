@@ -47,9 +47,9 @@ export type AnthropicContextType = {
     isLoadingModels: boolean;
     modelsError: Error | null;
 
-    messageReturn: AssistantMessage[] | null;
-    isLoadingMessage: boolean;
-    messageError: Error | null;
+    messagesReturn: AssistantMessage[] | null;
+    loadingMessages: boolean;
+    messagesError: Error | null;
     generateUserPrompt: (prompt: string) => void;
     generateSystemPrompt: (prompt: string) => void;
 }
