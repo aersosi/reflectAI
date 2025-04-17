@@ -32,10 +32,10 @@ export type SessionMeta = Omit<Session, 'appState'>;
 
 export type SessionContextType = {
     sessions: SessionMeta[];
-    currentSessionId: string | null;
-    currentSessionName: string | null;
-    initialSession: AppState;
-    currentSession: AppState | null;
+    currentAppStateId: string | null;
+    currentAppStateName: string | null;
+    initialAppState: AppState;
+    currentAppState: AppState | null;
     loadSession: (sessionId: string) => boolean;
     saveSession: (
         updates?: string | { settings: Partial<Settings> },

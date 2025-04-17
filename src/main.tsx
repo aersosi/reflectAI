@@ -14,7 +14,7 @@ createRoot(document.getElementById('root')!).render(
   <StrictMode>
       <BrowserRouter>
           <QueryClientProvider client={queryClient}>
-              <SessionProvider initialSession={defaultSession}>
+              <SessionProvider initialAppState={defaultSession}>
                   <AnthropicProvider>
                       <App />
                   </AnthropicProvider>

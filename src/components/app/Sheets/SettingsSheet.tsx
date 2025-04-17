@@ -7,21 +7,21 @@ import { useSession } from "@/contexts/SessionContext";
 
 export const SettingsSheet = () => {
     const {anthropicModels} = useAnthropic()
-    const {currentSession, saveSession} = useSession()
+    const {currentAppState, saveSession} = useSession()
 
     const handleTemperatureChange = (val: number[]) => {
         saveSession({
-            settings: {...currentSession?.settings, temperature: val[0]},
+            settings: {...currentAppState?.settings, temperature: val[0]},
         });
     }
     const handleMaxTokensChange = (val: number[]) => {
         saveSession({
-            settings: {...currentSession?.settings, maxTokens: val[0]},
+            settings: {...currentAppState?.settings, maxTokens: val[0]},
         });
     }
 
-    const temperatureValue = currentSession?.settings?.temperature ? [currentSession.settings.temperature] : undefined;
-    const maxTokensValue = currentSession?.settings?.maxTokens ? [currentSession.settings.maxTokens] : undefined;
+    const temperatureValue = currentAppState?.settings?.temperature ? [currentAppState.settings.temperature] : undefined;
+    const maxTokensValue = currentAppState?.settings?.maxTokens ? [currentAppState.settings.maxTokens] : undefined;
 
     return (
         <SheetWrapper
@@ -46,8 +46,8 @@ export const SettingsSheet = () => {
                 <SliderTooltip
                     id="SliderTemperature"
                     defaultValue={temperatureValue}
-                    max={currentSession?.settings?.temperatureMax}
-                    step={currentSession?.settings?.temperatureSteps}
+                    max={currentAppState?.settings?.temperatureMax}
+                    step={currentAppState?.settings?.temperatureSteps}
                     onValueCommit={handleTemperatureChange}
                     showTooltip={true}
                     labelFor="SliderTemperature"
@@ -57,8 +57,8 @@ export const SettingsSheet = () => {
                 <SliderTooltip
                     id="SliderMaxTokens"
                     defaultValue={maxTokensValue}
-                    max={currentSession?.settings?.maxTokensMax}
-                    step={currentSession?.settings?.maxTokensSteps}
+                    max={currentAppState?.settings?.maxTokensMax}
+                    step={currentAppState?.settings?.maxTokensSteps}
                     onValueCommit={handleMaxTokensChange}
                     showTooltip={true}
                     labelFor="SliderMaxTokens"

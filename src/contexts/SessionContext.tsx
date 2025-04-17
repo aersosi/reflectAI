@@ -5,11 +5,11 @@ import { loadDataFromStorage, saveDataToStorage } from "@/lib/utils";
 
 const SessionContext = createContext<SessionContextType | undefined>(undefined);
 const LOCAL_STORAGE_KEY = 'reactAppSessions';
-type SessionProviderProps = React.FC<{ children: React.ReactNode, initialSession: AppState }>
+type SessionProviderProps = React.FC<{ children: React.ReactNode, initialAppState: AppState }>
 
-export const SessionProvider: SessionProviderProps = ({children, initialSession}) => {
+export const SessionProvider: SessionProviderProps = ({children, initialAppState}) => {
     const [allSessions, setAllSessions] = useState<Session[]>([]);
-    const [currentSessionId, setCurrentSessionId] = useState<string | null>(null);
+    const [currentAppStateId, setCurrentSessionId] = useState<string | null>(null);
     const [isSessionLoading, setIsSessionLoading] = useState<boolean>(true);
     const isInitialized = useRef(false);
 
@@ -20,15 +20,15 @@ export const SessionProvider: SessionProviderProps = ({children, initialSession}
     /**
      * @function useMemo callback
      * @description Finds and returns the full session object corresponding to the
-     * currentSessionId from the allSessions array. Memoized to avoid
+     * currentAppStateId from the allSessions array. Memoized to avoid
      * recalculation unless dependencies change.
      */
-    const currentSessionData = React.useMemo(() => {
-        return allSessions.find(s => s.id === currentSessionId);
-    }, [allSessions, currentSessionId]);
+    const currentAppStateData = React.useMemo(() => {
+        return allSessions.find(s => s.id === currentAppStateId);
+    }, [allSessions, currentAppStateId]);
 
-    const currentSession = currentSessionData?.appState ?? null;
-    const currentSessionName = currentSessionData?.name ?? null;
+    const currentAppState = currentAppStateData?.appState ?? null;
+    const currentAppStateName = currentAppStateData?.name ?? null;
 
     /**
      * @useEffect hook
@@ -68,7 +68,7 @@ export const SessionProvider: SessionProviderProps = ({children, initialSession}
                 id: crypto.randomUUID(),
                 name: `Session ${new Date().toLocaleString()}`,
                 date: Date.now(),
-                appState: initialSession,
+                appState: initialAppState,
             };
             sessionsToSave = [newSession];
             saveDataToStorage<Session>(sessionsToSave, LOCAL_STORAGE_KEY);
@@ -81,12 +81,12 @@ export const SessionProvider: SessionProviderProps = ({children, initialSession}
         setIsSessionLoading(false);
         isInitialized.current = true;
 
-    }, [initialSession, navigate, searchParams, location.pathname]);
+    }, [initialAppState, navigate, searchParams, location.pathname]);
 
 
     /**
      * @useEffect hook
-     * @description Synchronizes the currentSessionId state with the sessionId found in the
+     * @description Synchronizes the currentAppStateId state with the sessionId found in the
      * URL's query parameters after the initial setup is complete and the component
      * is not in a loading state. This handles browser navigation (back/forward)
      * or manual URL changes affecting the sessionId.
@@ -95,14 +95,14 @@ export const SessionProvider: SessionProviderProps = ({children, initialSession}
         if (!isInitialized.current || isSessionLoading) return;
         const sessionIdFromUrl = searchParams.get('sessionId');
 
-        if (sessionIdFromUrl && sessionIdFromUrl !== currentSessionId) {
+        if (sessionIdFromUrl && sessionIdFromUrl !== currentAppStateId) {
             const sessionExists = allSessions.some(s => s.id === sessionIdFromUrl);
             if (sessionExists) setCurrentSessionId(sessionIdFromUrl);
-        } else if (!sessionIdFromUrl && currentSessionId) {
+        } else if (!sessionIdFromUrl && currentAppStateId) {
             // todo: Intentionally left blank, decide action if needed
         }
 
-    }, [searchParams, allSessions, currentSessionId, isSessionLoading]);
+    }, [searchParams, allSessions, currentAppStateId, isSessionLoading]);
 
     /**
      * @function updateAndSaveSessions
@@ -123,7 +123,7 @@ export const SessionProvider: SessionProviderProps = ({children, initialSession}
      */
     const loadSession = useCallback((sessionId: string): boolean => {
         const session = allSessions.find(s => s.id === sessionId);
-        if (session && sessionId !== currentSessionId) {
+        if (session && sessionId !== currentAppStateId) {
             setIsSessionLoading(true);
             setCurrentSessionId(session.id);
             navigate(`/?sessionId=${session.id}`, {replace: true});
@@ -131,7 +131,7 @@ export const SessionProvider: SessionProviderProps = ({children, initialSession}
             return true;
         }
         return false;
-    }, [allSessions, navigate, currentSessionId]);
+    }, [allSessions, navigate, currentAppStateId]);
 
     /**
      * @function createSession
@@ -154,7 +154,7 @@ export const SessionProvider: SessionProviderProps = ({children, initialSession}
         setCurrentSessionId(newSession.id);
         navigate(`/?sessionId=${newSession.id}`, {replace: true});
         setIsSessionLoading(false);
-    }, [allSessions, navigate, initialSession]);
+    }, [allSessions, navigate, initialAppState]);
 
     /**
      * @function saveSession
@@ -167,24 +167,24 @@ export const SessionProvider: SessionProviderProps = ({children, initialSession}
         updates?: string | { settings: Partial<Settings> },
         updatedState?: AppState | null
     ) => {
-        if (!currentSessionId) return;
+        if (!currentAppStateId) return;
 
-        const sessionIndex = allSessions.findIndex(s => s.id === currentSessionId);
+        const sessionIndex = allSessions.findIndex(s => s.id === currentAppStateId);
         if (sessionIndex === -1) {
             console.error("SessionProvider: Current session not found in allSessions during save.");
             return;
         }
 
-        const currentSessionToUpdate = allSessions[sessionIndex];
+        const currentAppStateToUpdate = allSessions[sessionIndex];
 
-        const baseAppState: AppState = currentSessionToUpdate.appState ?? {
+        const baseAppState: AppState = currentAppStateToUpdate.appState ?? {
             settings: null,
             systemPrompt: '',
             userPrompt: '',
             conversation: null
         };
 
-        let finalName = currentSessionToUpdate.name;
+        let finalName = currentAppStateToUpdate.name;
         let finalAppState: AppState = { ...baseAppState };
 
         /**
@@ -229,7 +229,7 @@ export const SessionProvider: SessionProviderProps = ({children, initialSession}
         }
 
         const updatedSession: Session = {
-            ...currentSessionToUpdate,
+            ...currentAppStateToUpdate,
             name: finalName,
             appState: finalAppState,
             date: Date.now()
@@ -243,7 +243,7 @@ export const SessionProvider: SessionProviderProps = ({children, initialSession}
 
         updateAndSaveSessions(updatedSessions);
 
-    }, [allSessions, currentSessionId, updateAndSaveSessions]);
+    }, [allSessions, currentAppStateId, updateAndSaveSessions]);
 
     /**
      * @function deleteSession
@@ -256,7 +256,7 @@ export const SessionProvider: SessionProviderProps = ({children, initialSession}
         const updatedSessions = allSessions.filter(s => s.id !== sessionId);
         updateAndSaveSessions(updatedSessions);
 
-        if (currentSessionId === sessionId) {
+        if (currentAppStateId === sessionId) {
             const latestSession = [...updatedSessions].sort((a, b) => b.date - a.date)[0];
             if (latestSession) {
                 loadSession(latestSession.id);
@@ -265,14 +265,14 @@ export const SessionProvider: SessionProviderProps = ({children, initialSession}
                     id: crypto.randomUUID(),
                     name: `Session ${new Date().toLocaleString()}`,
                     date: Date.now(),
-                    appState: initialSession
+                    appState: initialAppState
                 };
                 updateAndSaveSessions([newSession]);
                 setCurrentSessionId(newSession.id);
                 navigate(`/?sessionId=${newSession.id}`, {replace: true});
             }
         }
-    }, [allSessions, currentSessionId, navigate, loadSession, initialSession]);
+    }, [allSessions, currentAppStateId, navigate, loadSession, initialAppState]);
 
 
     /**
@@ -288,15 +288,15 @@ export const SessionProvider: SessionProviderProps = ({children, initialSession}
 
     const contextValue: SessionContextType = {
         sessions: sessionMetas,
-        currentSessionId,
-        currentSessionName,
-        currentSession,
+        currentAppStateId,
+        currentAppStateName,
+        currentAppState,
         loadSession,
         createSession,
         saveSession,
         deleteSession,
         isSessionLoading,
-        initialSession
+        initialAppState
     };
 
     return (

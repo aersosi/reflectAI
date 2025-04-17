@@ -8,7 +8,7 @@ import React, { useState } from "react";
 
 export const SliderTooltip = React.forwardRef<React.ComponentRef<typeof SliderPrimitive.Root>, SliderProps>(
     ({ className, showTooltip = false, hasMarks = false, labelTitle, labelFor, ...props }, ref) => {
-        const { currentSession, isSessionLoading } = useSession();
+        const { currentAppState, isSessionLoading } = useSession();
         const [showTooltipState, setShowTooltipState] = useState(false);
 
         const [currentValue, setCurrentValue] = useState<number[]>(() => {
@@ -67,7 +67,7 @@ export const SliderTooltip = React.forwardRef<React.ComponentRef<typeof SliderPr
                     )}
                     onValueChange={handleValueChange}
                     onPointerDown={handlePointerDown}
-                    disabled={isSessionLoading || !currentSession}
+                    disabled={isSessionLoading || !currentAppState}
                     {...props} // Pass all other slider props (max, min, step, disabled etc.)
                 >
 

@@ -9,20 +9,20 @@ export function SessionNameInput() {
     const inputRef = useRef<HTMLInputElement>(null);
 
     const {
-        currentSessionName,
+        currentAppStateName,
         sessions,
         createSession,
         saveSession,
-        currentSession,
-        initialSession
+        currentAppState,
+        initialAppState
     } = useSession();
 
     // Automatisch neue Session erstellen beim ersten Laden
     useEffect(() => {
         if (sessions.length === 0) {
-            createSession("New Session", initialSession);
+            createSession("New Session", initialAppState);
         }
-    }, [createSession, initialSession, sessions.length]);
+    }, [createSession, initialAppState, sessions.length]);
 
     // Focus handling beim Editieren
     useEffect(() => {
@@ -31,16 +31,16 @@ export function SessionNameInput() {
 
     const startEditing = () => {
 
-        console.log("initialSession", initialSession.settings?.temperature)
-        console.log("currentSession", currentSession)
+        console.log("initialAppState", initialAppState.settings?.temperature)
+        console.log("currentAppState", currentAppState)
 
-        setTempName(currentSessionName || "");
+        setTempName(currentAppStateName || "");
         setIsEditing(true);
     };
 
     const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
         if (e.key === "Enter") {
-            if (tempName.trim()) saveSession(tempName.trim(), currentSession);
+            if (tempName.trim()) saveSession(tempName.trim(), currentAppState);
             setIsEditing(false);
         } else if (e.key === "Escape") {
             setIsEditing(false);
@@ -48,7 +48,7 @@ export function SessionNameInput() {
     };
 
     const handleCreateNewSession = () => {
-        createSession("New Session", initialSession);
+        createSession("New Session", initialAppState);
     };
 
     return (
@@ -69,7 +69,7 @@ export function SessionNameInput() {
                         className="grow font-bold cursor-pointer"
                         onClick={startEditing}
                         title="Click to edit">
-                        {currentSessionName || "New Session"}
+                        {currentAppStateName || "New Session"}
                     </h2>
                     <Button
                         size="sm"

@@ -14,24 +14,24 @@ import { AnthropicModel } from "@/definitions/api";
 
 export function ModelDropdown({data, placeholder, labelTitle, labelFor}: ModelInputProps) {
     const [isOpen, setIsOpen] = useState(false);
-    const {currentSession, saveSession, isSessionLoading} = useSession();
+    const {currentAppState, saveSession, isSessionLoading} = useSession();
 
     const handleEscapeKeydown = () => {
         setIsOpen(false);
     }
 
     const handleValue = (): string => {
-        if (!currentSession?.settings) {
+        if (!currentAppState?.settings) {
             return data?.[0]?.id || '';
         }
-        return currentSession.settings.model || data?.[0]?.id || '';
+        return currentAppState.settings.model || data?.[0]?.id || '';
     };
 
     const handleChange = (value: string) => {
-        if (!currentSession) return;
+        if (!currentAppState) return;
         saveSession({
             settings: {
-                ...currentSession?.settings,
+                ...currentAppState?.settings,
                 model: value,
             },
         });
@@ -48,7 +48,7 @@ export function ModelDropdown({data, placeholder, labelTitle, labelFor}: ModelIn
                     onOpenChange={setIsOpen}
                     value={handleValue()}
                     onValueChange={handleChange}
-                    disabled={isSessionLoading || !currentSession}
+                    disabled={isSessionLoading || !currentAppState}
             >
                 <SelectTrigger className="w-full">
                     <SelectValue placeholder={placeholder}/>

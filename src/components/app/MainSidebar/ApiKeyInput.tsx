@@ -8,18 +8,18 @@ import { cn } from "@/lib/utils";
 
 export function ApiKeyInput({className}: { className?: string }) {
     const [showApiKey, setShowApiKey] = useState(false);
-    const {currentSession, saveSession, isSessionLoading} = useSession(); // Get context functions and state
+    const {currentAppState, saveSession, isSessionLoading} = useSession(); // Get context functions and state
 
     const toggleShowApiKey = () => {
         setShowApiKey(prev => !prev);
     };
 
     const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-        if (!currentSession) return;
+        if (!currentAppState) return;
         const newValue = event.target.value;
         saveSession({
             settings: {
-                ...currentSession?.settings,
+                ...currentAppState?.settings,
                 apiKey: newValue,
             },
         });
@@ -28,7 +28,7 @@ export function ApiKeyInput({className}: { className?: string }) {
     const inputType = showApiKey ? "text" : "password"
     const buttonColor = showApiKey && "border-primary"
 
-    const valueFromContext = currentSession?.settings?.apiKey || "";
+    const valueFromContext = currentAppState?.settings?.apiKey || "";
 
     return (
         <div className={cn("relative flex flex-col items-start gap-4 w-full", className)}>
@@ -41,7 +41,7 @@ export function ApiKeyInput({className}: { className?: string }) {
                 placeholder="Anthropic Api Key"
                 value={valueFromContext}
                 onChange={handleChange}
-                disabled={isSessionLoading || !currentSession}
+                disabled={isSessionLoading || !currentAppState}
             />
 
             <Button
@@ -49,7 +49,7 @@ export function ApiKeyInput({className}: { className?: string }) {
                 variant="outline"
                 size="iconSmall"
                 onClick={toggleShowApiKey}
-                disabled={isSessionLoading || !currentSession}
+                disabled={isSessionLoading || !currentAppState}
             >
                 {showApiKey ? <Eye className="text-primary"></Eye> : <EyeOff></EyeOff>}
                 <span className="sr-only">Toggle show/hide Anthropic AI key</span>
