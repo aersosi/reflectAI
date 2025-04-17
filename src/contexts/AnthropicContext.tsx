@@ -1,8 +1,11 @@
+import { useSession } from "@/contexts/SessionContext";
+import { AppState } from "@/definitions/session";
 import React, { createContext, useContext, useState, useCallback, useEffect } from 'react';
 import { AnthropicContextType, AssistantMessage } from '@/definitions/api';
 import { useGenerateAnthropicMessage } from '@/hooks/useGenerateAnthropicMessage';
 import { useFetchAnthropicModels } from '@/hooks/useFetchAnthropicModels';
 import { LOCAL_STORAGE_SESSION } from "@/config/constants";
+
 
 const AnthropicContext = createContext<AnthropicContextType | undefined>(undefined);
 export type AnthropicProviderProps = { children: React.ReactNode };
@@ -30,27 +33,27 @@ export const AnthropicProvider: React.FC<AnthropicProviderProps> = ({children}) 
     }, []);
 
 
-    // const handleSaveReturn = useCallback( () => {
-    //     const {currentAppState, saveSession} = useSession();
-    //
-    //     const updatedAppState: AppState = {
-    //         ...currentAppState,
-    //         messages: [
-    //             ...(currentAppState?.messages ?? []),
-    //             {
-    //                 role: "assistant",
-    //                 content: [{ type: "text", text: "Neue Nachricht vom Assistant." }]
-    //             }
-    //         ]
-    //     };
-    //
-    //     saveSession(undefined, updatedAppState);
-    //
-    //     console.log(currentAppState);
-    //
-    //
-    //     // saveDataToStorage<Session>([newSession], LOCAL_STORAGE_SESSION);
-    // }, [])
+    const handleSaveReturn = useCallback( () => {
+        const {currentAppState, saveSession} = useSession();
+
+        const updatedAppState: AppState = {
+            ...currentAppState,
+            messages: [
+                ...(currentAppState?.messages ?? []),
+                {
+                    role: "assistant",
+                    content: [{ type: "text", text: "Neue Nachricht vom Assistant." }]
+                }
+            ]
+        };
+
+        saveSession(undefined, updatedAppState);
+
+        console.log(currentAppState);
+
+
+        // saveDataToStorage<Session>([newSession], LOCAL_STORAGE_SESSION);
+    }, [])
 
     // Function called by UI to send a new user message
     const handleGenerateUserPrompt = useCallback((prompt: string) => {
@@ -62,7 +65,7 @@ export const AnthropicProvider: React.FC<AnthropicProviderProps> = ({children}) 
             content: [{type: "text", text: prompt}]
         };
 
-        // handleSaveReturn();
+        handleSaveReturn();
 
 
         setMessages(prevMessages => [...prevMessages, userMessage]);
