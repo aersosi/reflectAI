@@ -10,27 +10,29 @@ const settings: Settings = {
     maxTokensSteps: 4,
     apiKey: "",
 };
+//
+// const messages: Messages = [
+//     {
+//         "role": "user",
+//         "content": [
+//             {
+//                 "type": "text",
+//                 "text": ""
+//             }
+//         ]
+//     },
+//     {
+//         "role": "assistant",
+//         "content": [
+//             {
+//                 "type": "text",
+//                 "text": ""
+//             }
+//         ]
+//     }
+// ];
 
-const messages: Messages = [
-    {
-        "role": "user",
-        "content": [
-            {
-                "type": "text",
-                "text": ""
-            }
-        ]
-    },
-    {
-        "role": "assistant",
-        "content": [
-            {
-                "type": "text",
-                "text": ""
-            }
-        ]
-    }
-];
+const messages: Messages = [];
 
 
 const systemPrompt: string = "";

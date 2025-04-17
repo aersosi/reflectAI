@@ -9,22 +9,17 @@ import { Textarea } from "@/components/ui/textarea";
 import { PromptTextareaProps } from "@/definitions/props";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
-import React from "react";
 
 export function PromptTextarea({
                                    value,
                                    className,
-                                   onVariableChange,
+                                   onChange,
                                    isUser,
                                    isVariable,
                                    title,
                                    placeholder,
                                    disabled,
                                }: PromptTextareaProps) {
-
-    const handleVariableChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-        onVariableChange(e.target.value);
-    };
 
     const collapsibleClasses = cn(
         "transition border rounded-xl bg-card text-card-foreground shadow-sm",
@@ -53,7 +48,7 @@ export function PromptTextarea({
                         id={title}
                         name={title}
                         value={value}
-                        onChange={handleVariableChange}
+                        onChange={(e) => onChange(e.target.value)}
                         placeholder={placeholder}
                         disabled={disabled}
                         variant="no-focus"

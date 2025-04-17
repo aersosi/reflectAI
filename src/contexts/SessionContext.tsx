@@ -1,11 +1,11 @@
 import { LOCAL_STORAGE_SESSION } from "@/config/constants";
-import React, { createContext, useState, useContext, useEffect, useCallback, useRef } from 'react';
+import { createContext, useState, useContext, useEffect, useCallback, useRef, useMemo, FC, ReactNode } from 'react';
 import { useNavigate, useSearchParams, useLocation } from 'react-router-dom';
 import { SessionContextType, Session, SessionMeta, AppState, Settings } from "@/definitions/session";
 import { loadDataFromStorage, saveDataToStorage } from "@/lib/utils";
 
 const SessionContext = createContext<SessionContextType | undefined>(undefined);
-type SessionProviderProps = React.FC<{ children: React.ReactNode, initialAppState: AppState }>
+type SessionProviderProps = FC<{ children: ReactNode, initialAppState: AppState }>
 
 export const SessionProvider: SessionProviderProps = ({children, initialAppState}) => {
     const [allSessions, setAllSessions] = useState<Session[]>([]);
@@ -23,7 +23,7 @@ export const SessionProvider: SessionProviderProps = ({children, initialAppState
      * currentSessionId from the allSessions array. Memoized to avoid
      * recalculation unless dependencies change.
      */
-    const currentSessionData = React.useMemo(() => {
+    const currentSessionData = useMemo(() => {
         return allSessions.find(s => s.id === currentSessionId);
     }, [allSessions, currentSessionId]);
 

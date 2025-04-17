@@ -4,27 +4,27 @@ import { Button } from "@/components/ui/button";
 import { PanelLeftIcon } from "lucide-react";
 import { SessionNameInput } from "@/components/app/Chat/SessionNameInput";
 import { SessionsSheet } from "@/components/app/Sheets/SessionsSheet"; // Correct path?
-import { AssistantMessage } from "@/definitions/api";
+import { AnthropicResponse } from "@/definitions/api";
 import { useAnthropic } from "@/contexts/AnthropicContext"; // Import the hook
-import React from "react"; // Import React for useRef
+import { useEffect, useRef } from "react";
 
 export function Chat() {
     const {toggleSidebar} = useSidebar();
     const {
-        messagesReturn, // Get the messages array from contexts
+        messagesResponse, // Get the messages array from contexts
         loadingMessages, // Maybe show a loading indicator?
         messagesError // Maybe show an error message?
     } = useAnthropic();
 
     // Ref for scrolling
-    const scrollAreaRef = React.useRef<HTMLDivElement>(null);
+    const scrollAreaRef = useRef<HTMLDivElement>(null);
 
     // Scroll to bottom when messages change
-    React.useEffect(() => {
+    useEffect(() => {
         if (scrollAreaRef.current) {
             scrollAreaRef.current.scrollTo({top: scrollAreaRef.current.scrollHeight, behavior: 'smooth'});
         }
-    }, [messagesReturn]);
+    }, [messagesResponse]);
 
     function CustomSidebarTrigger() {
         return <Button
@@ -40,7 +40,7 @@ export function Chat() {
     }
 
     // Helper function to get the first text part of content
-    const getFirstTextMessage = (message: AssistantMessage): string => {
+    const getFirstTextMessage = (message: AnthropicResponse): string => {
         // Ensure content exists and is an array before finding
         if (message.content && Array.isArray(message.content)) {
             const textContent = message.content.find(part => part.type === 'text');
@@ -64,7 +64,7 @@ export function Chat() {
                 <SessionsSheet/>
             </div>
             <div className="flex flex-col gap-4 p-4">
-                {messagesReturn && messagesReturn.map(message => (
+                {messagesResponse && messagesResponse.map(message => (
                     <ChatCard
                         key={message.id} // Use the unique ID from the message object
                         isUser={message.role === 'user'}

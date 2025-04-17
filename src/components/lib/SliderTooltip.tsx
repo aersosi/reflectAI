@@ -4,11 +4,11 @@ import { cn } from "@/lib/utils";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Label } from "@/components/ui/label";
 import { SliderProps } from "@/definitions/props";
-import React, { useState } from "react";
+import { useState, forwardRef, ComponentRef, useCallback, useEffect } from "react";
 
-export const SliderTooltip = React.forwardRef<React.ComponentRef<typeof SliderPrimitive.Root>, SliderProps>(
-    ({ className, showTooltip = false, hasMarks = false, labelTitle, labelFor, ...props }, ref) => {
-        const { currentAppState, isSessionLoading } = useSession();
+export const SliderTooltip = forwardRef<ComponentRef<typeof SliderPrimitive.Root>, SliderProps>(
+    ({className, showTooltip = false, hasMarks = false, labelTitle, labelFor, ...props}, ref) => {
+        const {currentAppState, isSessionLoading} = useSession();
         const [showTooltipState, setShowTooltipState] = useState(false);
 
         const [currentValue, setCurrentValue] = useState<number[]>(() => {
@@ -30,11 +30,11 @@ export const SliderTooltip = React.forwardRef<React.ComponentRef<typeof SliderPr
         };
 
         // Using useCallback for stable function reference in useEffect dependency array
-        const handlePointerUp = React.useCallback(() => {
+        const handlePointerUp = useCallback(() => {
             setShowTooltipState(false);
         }, []);
 
-        React.useEffect(() => {
+        useEffect(() => {
             // Using document to catch pointer up even if it happens outside the slider thumb
             document.addEventListener("pointerup", handlePointerUp);
             return () => {

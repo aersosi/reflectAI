@@ -1,22 +1,20 @@
 import { useQuery } from '@tanstack/react-query';
 import Anthropic from '@anthropic-ai/sdk';
-import { AssistantMessage } from "@/definitions/api";
+import { AnthropicResponse } from "@/definitions/api";
 
-const anthropic = new Anthropic({
-    apiKey: import.meta.env.VITE_ANTHROPIC_API_KEY,
-    dangerouslyAllowBrowser: true, // Stelle sicher, dass dies in deiner Produktionsumgebung sicher ist
-});
+const apiKey = import.meta.env.VITE_ANTHROPIC_API_KEY;
+const anthropic = apiKey ? new Anthropic({
+    apiKey,
+    dangerouslyAllowBrowser: true, // todo: Stelle sicher, dass dies in deiner Produktionsumgebung sicher ist
+}) : new Anthropic();
 
-const generateAnthropicMessage = async (systemPrompt: string, userPrompt: string): Promise<AssistantMessage> => {
+const callAnthropicApi = async (userPrompt: string, systemPrompt?: string): Promise<AnthropicResponse> => {
     try {
-        // console.log(`Initiating Anthropic call with System Prompt: ${systemPrompt}`);
-        // console.log(`User Prompt: ${userPrompt}`);
-
-        const message = await anthropic.messages.create({
+        const response = await anthropic.messages.create({
             model: "claude-3-haiku-20240307", // Or make this configurable
             max_tokens: 200,
-            temperature: 0.8,
-            system: systemPrompt,
+            temperature: 1,
+            system: systemPrompt || "",
             messages: [
                 {
                     role: "user",
@@ -26,11 +24,11 @@ const generateAnthropicMessage = async (systemPrompt: string, userPrompt: string
         });
 
         // Validate the structure minimally if needed, though SDK types should help
-        if (!message || !message.id || !Array.isArray(message.content)) {
-            console.error("Invalid response structure from Anthropic SDK:", message);
+        if (!response || !response.id || !Array.isArray(response.content)) {
+            console.error("Invalid response structure from Anthropic SDK:", response);
             throw new Error("Received invalid message structure from Anthropic");
         }
-        return message as AssistantMessage;
+        return response as AnthropicResponse;
 
     } catch (error) {
         console.error("Error generating Anthropic message:", error);
@@ -39,20 +37,20 @@ const generateAnthropicMessage = async (systemPrompt: string, userPrompt: string
     }
 };
 
-export const useGenerateAnthropicMessage = (systemPrompt: string | null, userPrompt: string | null) => {
+export const useCallAnthropicApi = (userPrompt: string | null, systemPrompt: string | null) => {
 
-    const queryMessage = async (): Promise<AssistantMessage> => {
+    const queryMessage = async (): Promise<AnthropicResponse> => {
         if (!systemPrompt || !userPrompt) throw new Error("System and User prompts must be provided.");
-        return generateAnthropicMessage(systemPrompt, userPrompt);
+        return callAnthropicApi(systemPrompt, userPrompt);
     }
 
     const {
-        data: message,
+        data: response,
         isLoading,
         error,
         isFetching,
         isSuccess,
-    } = useQuery<AssistantMessage, Error>({ // <-- Correct Type: AssistantMessage
+    } = useQuery<AnthropicResponse, Error>({
         // changes to systemPrompt or userPrompt will trigger refetch/cache invalidation
         queryKey: ['anthropicMessage', systemPrompt, userPrompt],
         queryFn: queryMessage,
@@ -63,7 +61,7 @@ export const useGenerateAnthropicMessage = (systemPrompt: string | null, userPro
     });
 
     return {
-        message: message,
+        response: response,
         loadingMessages: isLoading || isFetching,
         error: error,
         isSuccess: isSuccess,

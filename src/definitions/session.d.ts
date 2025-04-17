@@ -10,6 +10,7 @@ export type Settings = {
 }
 
 export type Message = {
+    id?: string | undefined;
     role: "user" | "assistant";
     content: {
         type: string;
@@ -21,7 +22,7 @@ export type Messages = Message[];
 
 export type AppState = {
     settings: Settings | null;
-    systemPrompt: string;
+    systemPrompt: string | undefined;
     userPrompt: string;
     messages: Messages | null;
 };

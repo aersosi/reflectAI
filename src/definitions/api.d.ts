@@ -10,7 +10,7 @@ type MessageUsage = {
     cache_read_input_tokens?: number;
 };
 
-export type AssistantMessage = {
+export type AnthropicResponse = {
     id: string;
     type: "message";
     role: "assistant" | "user";
@@ -47,9 +47,8 @@ export type AnthropicContextType = {
     isLoadingModels: boolean;
     modelsError: Error | null;
 
-    messagesReturn: AssistantMessage[] | null;
+    messagesResponse: AssistantResponse[] | null;
     loadingMessages: boolean;
     messagesError: Error | null;
-    generateUserPrompt: (prompt: string) => void;
-    generateSystemPrompt: (prompt: string) => void;
+    callAnthropic: (userPrompt: string, systemPrompt?: string) => void;
 }

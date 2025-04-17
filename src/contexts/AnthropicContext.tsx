@@ -1,86 +1,92 @@
 import { useSession } from "@/contexts/SessionContext";
-import { AppState } from "@/definitions/session";
-import React, { createContext, useContext, useState, useCallback, useEffect } from 'react';
-import { AnthropicContextType, AssistantMessage } from '@/definitions/api';
-import { useGenerateAnthropicMessage } from '@/hooks/useGenerateAnthropicMessage';
+import { AppState, Message } from "@/definitions/session";
+import { createContext, useContext, useState, useCallback, useEffect, ReactNode, FC } from 'react';
+import { AnthropicContextType, AnthropicResponse, MessageContentPart } from '@/definitions/api';
+import { useCallAnthropicApi } from '@/hooks/useCallAnthropicApi';
 import { useFetchAnthropicModels } from '@/hooks/useFetchAnthropicModels';
-import { LOCAL_STORAGE_SESSION } from "@/config/constants";
+// import { LOCAL_STORAGE_SESSION } from "@/config/constants";
+// import Anthropic, { Message } from "@anthropic-ai/sdk";
 
 
 const AnthropicContext = createContext<AnthropicContextType | undefined>(undefined);
-export type AnthropicProviderProps = { children: React.ReactNode };
+export type AnthropicProviderProps = { children: ReactNode };
 
-export const AnthropicProvider: React.FC<AnthropicProviderProps> = ({children}) => {
+export const AnthropicProvider: FC<AnthropicProviderProps> = ({children}) => {
     const {models, isLoadingModels, error: modelsError} = useFetchAnthropicModels();
-    const [currentSystemPrompt, setCurrentSystemPrompt] = useState<string>("You are a helpful assistant."); // Default or set initially
-    const [promptToApi, setPromptToApi] = useState<string | null>(null);
-    const [messages, setMessages] = useState<AssistantMessage[]>([]);
+    const {currentAppState, saveSession} = useSession();
+    const [systemPrompt, setSystemPrompt] = useState<string | null>(null);
+    const [userPrompt, setUserPrompt] = useState<string | null>(null);
 
-    // Hook to generate the *next* assistant message
+    const currentAppStateMessages = currentAppState?.messages ?? [];
     const {
-        message: latestAssistantMessage,
+        response: latestAnthropicResponse,
         loadingMessages,
         error: messagesError,
-    } = useGenerateAnthropicMessage(currentSystemPrompt, promptToApi);
+    } = useCallAnthropicApi(systemPrompt, userPrompt);
 
-    // Function to set the system prompt (if needed outside initial)
-    const handleGenerateSystemPrompt = useCallback((prompt: string) => {
-        if (prompt && prompt.trim() !== '') {
-            setCurrentSystemPrompt(prompt);
-            // Optional: Clear chat or add system message indicator?
-            // setMessages([]); // Example: Clear chat when system prompt changes
-        }
-    }, []);
+    const formatMessagesForApi = (messages: Message[]): AnthropicResponse[] => {
+        return messages.map(
+            (msg) => ({
+                id: msg.id ?? `generated-${crypto.randomUUID()}`,
+                type: "message",
+                role: msg.role,
+                content: msg.content as MessageContentPart[],
+            })
+        )
+    };
 
-
-    const handleSaveReturn = useCallback( () => {
-        const {currentAppState, saveSession} = useSession();
+    const appendMessageToSession = (
+        newMessage: AnthropicResponse,
+        options?: { userPrompt?: string; systemPrompt?: string; }
+    ) => {
+        const updatedMessages = [...(currentAppState?.messages ?? []), newMessage];
 
         const updatedAppState: AppState = {
-            ...currentAppState,
-            messages: [
-                ...(currentAppState?.messages ?? []),
-                {
-                    role: "assistant",
-                    content: [{ type: "text", text: "Neue Nachricht vom Assistant." }]
-                }
-            ]
+            settings: currentAppState?.settings ?? null,
+            systemPrompt: options?.systemPrompt ?? currentAppState?.systemPrompt ?? "",
+            userPrompt: options?.userPrompt ?? currentAppState?.userPrompt ?? "",
+            messages: updatedMessages
         };
 
         saveSession(undefined, updatedAppState);
+    };
 
-        console.log(currentAppState);
 
+    const callSaveAnthropic = useCallback((userText: string, systemText?: string) => {
+        if (!userText.trim()) return;
 
-        // saveDataToStorage<Session>([newSession], LOCAL_STORAGE_SESSION);
-    }, [])
+        // These trigger the API call via useGenerateAnthropicMessage
+        setUserPrompt(userText);
+        systemText && setSystemPrompt(systemText);
 
-    // Function called by UI to send a new user message
-    const handleGenerateUserPrompt = useCallback((prompt: string) => {
-        if (!prompt || prompt.trim() === '') return;
-        const userMessage: AssistantMessage = {
-            id: `user-${crypto.randomUUID()}`, // Generate unique ID for the user message
+        const userMessage: AnthropicResponse = {
+            id: `user-${crypto.randomUUID()}`,
             type: "message",
             role: "user",
-            content: [{type: "text", text: prompt}]
+            content: [{type: "text", text: userText}]
         };
 
-        handleSaveReturn();
+        appendMessageToSession(userMessage, {
+            userPrompt: userText,
+            systemPrompt: systemText,
+        });
+
+    }, [currentAppState, saveSession]);
+
+    const saveAnthropicResponse = useCallback((assistantResponse: AnthropicResponse) => {
+        if (!assistantResponse?.content?.[0]?.text?.trim()) return;
+        appendMessageToSession(assistantResponse);
+    }, [currentAppState, saveSession]);
 
 
-        setMessages(prevMessages => [...prevMessages, userMessage]);
-        setPromptToApi(prompt);
-
-    }, []);
-
-    // Effect to add the assistant's response to the messages list when it arrives
+    // Effect to add the assistant's response to the currentAppStateMessages list when it arrives
     useEffect(() => {
-        // Check if there's a new assistant message and it's not already in the list
-        if (latestAssistantMessage && !messages.some(msg => msg.id === latestAssistantMessage.id)) {
-            setMessages(prevMessages => [...prevMessages, latestAssistantMessage]);
-            setPromptToApi(null);
+        if (latestAnthropicResponse && !currentAppStateMessages.some(msg => msg.id === latestAnthropicResponse.id)) {
+            saveAnthropicResponse(latestAnthropicResponse);
+            setUserPrompt(null);
         }
-    }, [latestAssistantMessage, messages]);
+    }, [latestAnthropicResponse, currentAppStateMessages, saveAnthropicResponse]);
+
 
     // Define the contexts value
     const contextValue: AnthropicContextType = {
@@ -89,14 +95,13 @@ export const AnthropicProvider: React.FC<AnthropicProviderProps> = ({children}) 
         isLoadingModels: isLoadingModels,
         modelsError: modelsError ? modelsError : null,
 
-        // Messages - Provide the *list* of messages
-        messagesReturn: messages,
+        // Messages - Provide the *list* of currentAppStateMessages
+        messagesResponse: formatMessagesForApi(currentAppStateMessages),
         loadingMessages: loadingMessages,
         messagesError: messagesError ? messagesError : null,
 
         // Functions to interact
-        generateSystemPrompt: handleGenerateSystemPrompt,
-        generateUserPrompt: handleGenerateUserPrompt,
+        callAnthropic: callSaveAnthropic,
     };
 
     return (

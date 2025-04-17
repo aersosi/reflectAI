@@ -1,46 +1,65 @@
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { useSession } from "@/contexts/SessionContext";
-import { useState } from "react";
+import { useEffect, useState, KeyboardEvent } from "react";
 import { Button } from "@/components/ui/button";
 import { Eye, EyeOff } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export function ApiKeyInput({className}: { className?: string }) {
     const [showApiKey, setShowApiKey] = useState(false);
-    const {currentAppState, saveSession, isSessionLoading} = useSession(); // Get context functions and state
+    const {currentAppState, saveSession, isSessionLoading} = useSession();
+    const [inputValue, setInputValue] = useState("");
+
+
+    // Sync with context value on mount/context change
+    useEffect(() => {
+        currentAppState?.settings?.apiKey && setInputValue(currentAppState.settings.apiKey);
+    }, [currentAppState?.settings?.apiKey]);
+
+    const persistInput = () => {
+        if (!currentAppState) return;
+        if (inputValue !== currentAppState.settings?.apiKey) {
+            saveSession({
+                settings: {
+                    ...currentAppState.settings,
+                    apiKey: inputValue,
+                },
+            });
+        }
+    };
 
     const toggleShowApiKey = () => {
         setShowApiKey(prev => !prev);
     };
 
-    const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-        if (!currentAppState) return;
-        const newValue = event.target.value;
-        saveSession({
-            settings: {
-                ...currentAppState?.settings,
-                apiKey: newValue,
-            },
-        });
+    const handleKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
+        if (e.key === "Enter") {
+            persistInput();
+        }
     };
 
-    const inputType = showApiKey ? "text" : "password"
-    const buttonColor = showApiKey && "border-primary"
-
-    const valueFromContext = currentAppState?.settings?.apiKey || "";
+    const inputType = showApiKey ? "text" : "password";
+    const buttonColor = showApiKey && "border-primary";
 
     return (
         <div className={cn("relative flex flex-col items-start gap-4 w-full", className)}>
             <Label htmlFor="ApiKey" className="pl-0.5 text-muted-foreground">
-                Anthropic Api Key</Label>
-            <p className="text-xs text-muted-foreground px-1">Note: Using at own risk</p>
+                Anthropic API Key
+            </Label>
+            <p className="text-xs text-muted-foreground px-1">
+                Note: Using at own risk
+            </p>
+
+            // todo: apply this pattern (value, onChange, Keydown, Blur) to all inputs
             <Input
                 type={inputType}
                 id="ApiKey"
-                placeholder="Anthropic Api Key"
-                value={valueFromContext}
-                onChange={handleChange}
+                placeholder="Anthropic API Key"
+                value={inputValue}
+                onChange={(e) => setInputValue(e.target.value)}
+                onKeyDown={handleKeyDown}
+                onBlur={persistInput}
                 disabled={isSessionLoading || !currentAppState}
             />
 
@@ -51,12 +70,9 @@ export function ApiKeyInput({className}: { className?: string }) {
                 onClick={toggleShowApiKey}
                 disabled={isSessionLoading || !currentAppState}
             >
-                {showApiKey ? <Eye className="text-primary"></Eye> : <EyeOff></EyeOff>}
+                {showApiKey ? <Eye className="text-primary"/> : <EyeOff/>}
                 <span className="sr-only">Toggle show/hide Anthropic AI key</span>
             </Button>
         </div>
-
     );
 }
-
-

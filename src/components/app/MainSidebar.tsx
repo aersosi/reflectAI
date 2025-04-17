@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useSession } from "@/contexts/SessionContext";
+import { useEffect, useState } from "react";
 import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader } from "@/components/ui/sidebar";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
@@ -13,7 +14,8 @@ export function MainSidebar() {
     const [systemVariable, setSystemVariable] = useState('');
     const [userVariable, setUserVariable] = useState('');
     const [textareaExpanded, setTextareaExpanded] = useState(false);
-    const {loadingMessages, generateUserPrompt, generateSystemPrompt} = useAnthropic();
+    const {loadingMessages, callAnthropic} = useAnthropic();
+    const {currentAppState} = useSession();
 
     const toggleTextareaExpanded = () => {
         setTextareaExpanded(prev => !prev);
@@ -24,21 +26,23 @@ export function MainSidebar() {
     }
 
     const data: DataArray = [];
-    const systemVars = extractVariables(systemVariable);
-    if (systemVars.length > 0) {
-        data.push({title: "System prompt", variables: systemVars});
-    }
-    const userVars = extractVariables(userVariable);
-    if (userVars.length > 0) {
-        data.push({title: "User prompt", variables: userVars});
-    }
 
-    const handleGenerateClick = () => {
-        generateSystemPrompt(systemVariable.trim());
-        generateUserPrompt(userVariable.trim());
-    };
+    const systemVars = extractVariables(systemVariable);
+    if (systemVars.length > 0) data.push({title: "System prompt", variables: systemVars});
+
+    const userVars = extractVariables(userVariable);
+    if (userVars.length > 0) data.push({title: "User prompt", variables: userVars});
+
+    const handleRunPrompt = () => callAnthropic(userVariable.trim(), systemVariable.trim());
 
     const isRunButtonDisabled = loadingMessages || (!systemVariable.trim() && !userVariable.trim());
+
+    useEffect(() => {
+
+        if (currentAppState?.systemPrompt) setSystemVariable(currentAppState.systemPrompt);
+        if (currentAppState?.userPrompt) setUserVariable(currentAppState.userPrompt);
+
+    }, [currentAppState?.systemPrompt, currentAppState?.userPrompt]);
 
     return (
         <Sidebar>
@@ -52,15 +56,15 @@ export function MainSidebar() {
             <SidebarContent className="flex grow flex-col gap-4 p-4">
                 <PromptTextarea
                     value={systemVariable}
-                    onVariableChange={setSystemVariable}
+                    onChange={setSystemVariable}
                     title="System prompt"
                     placeholder="Enter system prompt"
                     disabled={loadingMessages}
                 />
                 <PromptTextarea
-                    value={userVariable}
                     isUser={true}
-                    onVariableChange={setUserVariable}
+                    value={userVariable}
+                    onChange={setUserVariable}
                     title="User prompt"
                     placeholder="Enter user prompt"
                     disabled={loadingMessages}
@@ -73,7 +77,7 @@ export function MainSidebar() {
                             <Textarea placeholder="Type Question ..." className="absolute inset-0 resize-none"/>
                         </div>
                         <div className="flex flex-col-reverse gap-4 justify-between items-end">
-                            <Button onClick={handleGenerateClick} disabled={isRunButtonDisabled}
+                            <Button onClick={handleRunPrompt} disabled={isRunButtonDisabled}
                                     size="lg" variant="outlinePrimary">
                                 <Play/> Run
                             </Button>

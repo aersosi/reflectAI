@@ -1,5 +1,5 @@
 import { Input } from "@/components/ui/input";
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, KeyboardEvent } from "react";
 import { Button } from "@/components/ui/button";
 import { useSession } from "@/contexts/SessionContext";
 
@@ -38,7 +38,7 @@ export function SessionNameInput() {
         setIsEditing(true);
     };
 
-    const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    const handleKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
         if (e.key === "Enter") {
             if (tempName.trim()) saveSession(tempName.trim(), currentAppState);
             setIsEditing(false);
