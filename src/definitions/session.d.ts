@@ -24,12 +24,12 @@ export type AppState = {
     settings: Settings | null;
     systemPrompt: string | undefined;
     userPrompt: string;
-    messages: Messages | null;
+    messagesHistory: Messages | null;
 };
 
 export type Session = {
     id: string;
-    name: string;
+    name: string | null;
     date: number; // Unix Timestamp (ms)
     appState: AppState | null;
 };

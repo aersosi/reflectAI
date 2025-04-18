@@ -4,9 +4,9 @@ import { Button } from "@/components/ui/button";
 import { useSession } from "@/contexts/SessionContext";
 
 export function SessionNameInput() {
-    const [isEditing, setIsEditing] = useState(false);
-    const [tempName, setTempName] = useState("");
     const inputRef = useRef<HTMLInputElement>(null);
+    const [isEditing, setIsEditing] = useState(false);
+    const [inputValue, setInputValue] = useState("");
 
     const {
         currentSessionName,
@@ -30,17 +30,13 @@ export function SessionNameInput() {
     }, [isEditing]);
 
     const startEditing = () => {
-
-        console.log("initialAppState", initialAppState.settings?.temperature)
-        console.log("currentAppState", currentAppState)
-
-        setTempName(currentSessionName || "");
         setIsEditing(true);
+        setInputValue(currentSessionName || "");
     };
 
     const handleKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
         if (e.key === "Enter") {
-            if (tempName.trim()) saveSession(tempName.trim(), currentAppState);
+            if (inputValue.trim()) saveSession(inputValue.trim(), currentAppState);
             setIsEditing(false);
         } else if (e.key === "Escape") {
             setIsEditing(false);
@@ -56,8 +52,8 @@ export function SessionNameInput() {
             {isEditing ? (
                 <Input
                     className="grow"
-                    value={tempName}
-                    onChange={(e) => setTempName(e.target.value)}
+                    value={inputValue}
+                    onChange={(e) => setInputValue(e.target.value)}
                     onKeyDown={handleKeyDown}
                     onBlur={() => setIsEditing(false)}
                     ref={inputRef}

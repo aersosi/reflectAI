@@ -7,8 +7,8 @@ import { Eye, EyeOff } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export function ApiKeyInput({className}: { className?: string }) {
-    const [showApiKey, setShowApiKey] = useState(false);
     const {currentAppState, saveSession, isSessionLoading} = useSession();
+    const [showApiKey, setShowApiKey] = useState(false);
     const [inputValue, setInputValue] = useState("");
 
 
@@ -51,7 +51,7 @@ export function ApiKeyInput({className}: { className?: string }) {
                 Note: Using at own risk
             </p>
 
-            // todo: apply this pattern (value, onChange, Keydown, Blur) to all inputs
+            {/*todo: apply this pattern (value, onChange, Keydown, Blur) to all inputs*/}
             <Input
                 type={inputType}
                 id="ApiKey"

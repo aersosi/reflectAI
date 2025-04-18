@@ -66,7 +66,7 @@ export const SessionProvider: SessionProviderProps = ({children, initialAppState
         if (!sessionToActivate) {
             const newSession: Session = {
                 id: crypto.randomUUID(),
-                name: `Session ${new Date().toLocaleString()}`,
+                name: "New Session",
                 date: Date.now(),
                 appState: initialAppState,
             };
@@ -144,7 +144,7 @@ export const SessionProvider: SessionProviderProps = ({children, initialAppState
         setIsSessionLoading(true);
         const newSession: Session = {
             id: crypto.randomUUID(),
-            name: sessionName || `Session ${new Date().toLocaleString()}`,
+            name: sessionName || "New Session",
             date: Date.now(),
             appState: initialState,
         };
@@ -181,7 +181,7 @@ export const SessionProvider: SessionProviderProps = ({children, initialAppState
             settings: null,
             systemPrompt: '',
             userPrompt: '',
-            messages: null
+            messagesHistory: null
         };
 
         let finalName = currentSessionToUpdate.name;
@@ -212,7 +212,7 @@ export const SessionProvider: SessionProviderProps = ({children, initialAppState
             finalName = updates.trim() || `Session ${new Date().toLocaleString()}`;
             if (updateAppState !== undefined) {
                 finalAppState = updateAppState === null
-                    ? { settings: null, systemPrompt: '', userPrompt: '', messages: null }
+                    ? { settings: null, systemPrompt: '', userPrompt: '', messagesHistory: null }
                     : { ...updateAppState, settings: updateAppState.settings ?? null };
             }
 
@@ -224,7 +224,7 @@ export const SessionProvider: SessionProviderProps = ({children, initialAppState
 
         } else if (updateAppState !== undefined) {
             finalAppState = updateAppState === null
-                ? { settings: null, systemPrompt: '', userPrompt: '', messages: null }
+                ? { settings: null, systemPrompt: '', userPrompt: '', messagesHistory: null }
                 : { ...updateAppState, settings: updateAppState.settings ?? null };
         }
 
@@ -263,7 +263,7 @@ export const SessionProvider: SessionProviderProps = ({children, initialAppState
             } else {
                 const newSession: Session = {
                     id: crypto.randomUUID(),
-                    name: `Session ${new Date().toLocaleString()}`,
+                    name: "New Session",
                     date: Date.now(),
                     appState: initialAppState
                 };

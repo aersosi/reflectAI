@@ -17,7 +17,7 @@ export const AnthropicProvider: FC<AnthropicProviderProps> = ({children}) => {
     const [systemPrompt, setSystemPrompt] = useState<string | null>(null);
     const [userPrompt, setUserPrompt] = useState<string | null>(null);
 
-    const currentAppStateMessages = currentAppState?.messages ?? [];
+    const currentAppStateMessages = currentAppState?.messagesHistory ?? [];
     const {
         response: latestAnthropicResponse,
         loadingMessages,
@@ -39,13 +39,13 @@ export const AnthropicProvider: FC<AnthropicProviderProps> = ({children}) => {
         newMessage: AnthropicResponse,
         options?: { userPrompt?: string; systemPrompt?: string; }
     ) => {
-        const updatedMessages = [...(currentAppState?.messages ?? []), newMessage];
+        const updatedMessages = [...(currentAppState?.messagesHistory ?? []), newMessage];
 
         const updatedAppState: AppState = {
             settings: currentAppState?.settings ?? null,
             systemPrompt: options?.systemPrompt ?? currentAppState?.systemPrompt ?? "",
             userPrompt: options?.userPrompt ?? currentAppState?.userPrompt ?? "",
-            messages: updatedMessages
+            messagesHistory: updatedMessages
         };
 
         saveSession(undefined, updatedAppState);
