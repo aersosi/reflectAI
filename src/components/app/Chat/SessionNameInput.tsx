@@ -12,8 +12,7 @@ export function SessionNameInput() {
         currentSessionName,
         sessions,
         createSession,
-        saveSession,
-        currentAppState,
+        updateSession,
         initialAppState
     } = useSession();
 
@@ -36,7 +35,7 @@ export function SessionNameInput() {
 
     const handleKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
         if (e.key === "Enter") {
-            if (inputValue.trim()) saveSession(inputValue.trim(), currentAppState);
+            if (inputValue) updateSession("name", inputValue.trim());
             setIsEditing(false);
         } else if (e.key === "Escape") {
             setIsEditing(false);

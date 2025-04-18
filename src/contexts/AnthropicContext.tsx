@@ -1,5 +1,5 @@
 import { useSession } from "@/contexts/SessionContext";
-import { AppState, Message } from "@/definitions/session";
+import { Message } from "@/definitions/session";
 import { createContext, useContext, useState, useCallback, useEffect, ReactNode, FC } from 'react';
 import { AnthropicContextType, AnthropicResponse, MessageContentPart } from '@/definitions/api';
 import { useCallAnthropicApi } from '@/hooks/useCallAnthropicApi';
@@ -13,7 +13,7 @@ export type AnthropicProviderProps = { children: ReactNode };
 
 export const AnthropicProvider: FC<AnthropicProviderProps> = ({children}) => {
     const {models, isLoadingModels, error: modelsError} = useFetchAnthropicModels();
-    const {currentAppState, saveSession} = useSession();
+    const {currentAppState, updateSession} = useSession();
     const [systemPrompt, setSystemPrompt] = useState<string | null>(null);
     const [userPrompt, setUserPrompt] = useState<string | null>(null);
 
@@ -35,23 +35,6 @@ export const AnthropicProvider: FC<AnthropicProviderProps> = ({children}) => {
         )
     };
 
-    const appendMessageToSession = (
-        newMessage: AnthropicResponse,
-        options?: { userPrompt?: string; systemPrompt?: string; }
-    ) => {
-        const updatedMessages = [...(currentAppState?.messagesHistory ?? []), newMessage];
-
-        const updatedAppState: AppState = {
-            settings: currentAppState?.settings ?? null,
-            systemPrompt: options?.systemPrompt ?? currentAppState?.systemPrompt ?? "",
-            userPrompt: options?.userPrompt ?? currentAppState?.userPrompt ?? "",
-            messagesHistory: updatedMessages
-        };
-
-        saveSession(undefined, updatedAppState);
-    };
-
-
     const callSaveAnthropic = useCallback((userText: string, systemText?: string) => {
         if (!userText.trim()) return;
 
@@ -65,18 +48,13 @@ export const AnthropicProvider: FC<AnthropicProviderProps> = ({children}) => {
             role: "user",
             content: [{type: "text", text: userText}]
         };
-
-        appendMessageToSession(userMessage, {
-            userPrompt: userText,
-            systemPrompt: systemText,
-        });
-
-    }, [currentAppState, saveSession]);
+        updateSession("appState.messageHistory", userMessage);
+    }, [currentAppState, updateSession]);
 
     const saveAnthropicResponse = useCallback((assistantResponse: AnthropicResponse) => {
         if (!assistantResponse?.content?.[0]?.text?.trim()) return;
-        appendMessageToSession(assistantResponse);
-    }, [currentAppState, saveSession]);
+        updateSession("appState.messageHistory", assistantResponse);
+    }, [currentAppState, updateSession]);
 
 
     // Effect to add the assistant's response to the currentAppStateMessages list when it arrives

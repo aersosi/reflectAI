@@ -1,7 +1,7 @@
 import { LOCAL_STORAGE_SESSION } from "@/config/constants";
 import { createContext, useState, useContext, useEffect, useCallback, useRef, useMemo, FC, ReactNode } from 'react';
 import { useNavigate, useSearchParams, useLocation } from 'react-router-dom';
-import { SessionContextType, Session, SessionMeta, AppState, Settings } from "@/definitions/session";
+import { SessionContextType, Session, SessionMeta, AppState } from "@/definitions/session";
 import { loadDataFromStorage, saveDataToStorage } from "@/lib/utils";
 
 const SessionContext = createContext<SessionContextType | undefined>(undefined);
@@ -157,91 +157,56 @@ export const SessionProvider: SessionProviderProps = ({children, initialAppState
     }, [allSessions, navigate, initialAppState]);
 
     /**
-     * @function saveSession
-     * @description Saves updates to the currently active session. It can update the session name,
-     * specific settings, or the entire application state. Finds the current session,
-     * merges changes, updates the timestamp, and persists the updated sessions list.
-     * Wrapped in useCallback for performance optimization.
+     * @function updateSession
+     * @description ????
      */
-    const saveSession = useCallback((
-        updates?: string | { settings: Partial<Settings> },
-        updateAppState?: AppState | null
-    ) => {
-        if (!currentSessionId) return;
+    const updateSession = useCallback((path: string, value: any) => {
+        if (!currentSessionId) {
+            console.error("SaveSession Error: No current session ID.");
+            return;
+        }
 
         const sessionIndex = allSessions.findIndex(s => s.id === currentSessionId);
         if (sessionIndex === -1) {
-            console.error("SessionProvider: Current session not found in allSessions during save.");
+            console.error("SaveSession Error: Current session not found in allSessions.");
             return;
         }
 
         const currentSessionToUpdate = allSessions[sessionIndex];
+        const updatedSession = { ...currentSessionToUpdate };
 
-        const baseAppState: AppState = currentSessionToUpdate.appState ?? {
-            settings: null,
-            systemPrompt: '',
-            userPrompt: '',
-            messagesHistory: null
-        };
+        try {
+            const keys = path.split('.');
+            let currentLevel: any = updatedSession;
 
-        let finalName = currentSessionToUpdate.name;
-        let finalAppState: AppState = { ...baseAppState };
+            for (let i = 0; i < keys.length - 1; i++) {
+                const key = keys[i];
 
-        /**
-         * @function mergeSettings
-         * @description Safely merges partial settings updates into existing settings,
-         * providing default values for a complete settings object if none exist initially.
-         */
-        const mergeSettings = (existing: Settings | null, partialUpdates: Partial<Settings>): Settings | null => {
-            const base = existing ?? {
-                model: 'default-model',
-                temperature: 0.7,
-                temperatureSteps: 10,
-                maxTokens: 1000,
-                maxTokensSteps: 10,
-                apiKey: '',
-            };
+                if (typeof currentLevel[key] !== 'object' || currentLevel[key] === null) {
+                    console.error(`SaveSession Error: Invalid path segment "${key}" in path "${path}". Not an object.`);
+                    return;
+                }
 
-            return {
-                ...base,
-                ...partialUpdates
-            };
-        };
-
-        if (typeof updates === 'string') {
-            finalName = updates.trim() || `Session ${new Date().toLocaleString()}`;
-            if (updateAppState !== undefined) {
-                finalAppState = updateAppState === null
-                    ? { settings: null, systemPrompt: '', userPrompt: '', messagesHistory: null }
-                    : { ...updateAppState, settings: updateAppState.settings ?? null };
+                currentLevel[key] = { ...currentLevel[key] };
+                currentLevel = currentLevel[key];
             }
 
-        } else if (updates?.settings) {
-            finalAppState = {
-                ...finalAppState,
-                settings: mergeSettings(finalAppState.settings, updates.settings)
-            };
+            const finalKey = keys[keys.length - 1];
+            currentLevel[finalKey] = value;
 
-        } else if (updateAppState !== undefined) {
-            finalAppState = updateAppState === null
-                ? { settings: null, systemPrompt: '', userPrompt: '', messagesHistory: null }
-                : { ...updateAppState, settings: updateAppState.settings ?? null };
+            updatedSession.date = Date.now();
+
+            const updatedSessions = [
+                ...allSessions.slice(0, sessionIndex),
+                updatedSession, // Füge die aktualisierte Session ein
+                ...allSessions.slice(sessionIndex + 1)
+            ];
+
+            updateAndSaveSessions(updatedSessions);
+
+        } catch (error) {
+            console.error(`SaveSession Error: Failed to update path "${path}".`, error);
         }
-
-        const updatedSession: Session = {
-            ...currentSessionToUpdate,
-            name: finalName,
-            appState: finalAppState,
-            date: Date.now()
-        };
-
-        const updatedSessions = [
-            ...allSessions.slice(0, sessionIndex),
-            updatedSession,
-            ...allSessions.slice(sessionIndex + 1)
-        ];
-
-        updateAndSaveSessions(updatedSessions);
 
     }, [allSessions, currentSessionId, updateAndSaveSessions]);
 
@@ -293,7 +258,7 @@ export const SessionProvider: SessionProviderProps = ({children, initialAppState
         currentAppState,
         loadSession,
         createSession,
-        saveSession,
+        updateSession,
         deleteSession,
         isSessionLoading,
         initialAppState

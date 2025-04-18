@@ -15,7 +15,7 @@ export function MainSidebar() {
     const [userVariable, setUserVariable] = useState('');
     const [textareaExpanded, setTextareaExpanded] = useState(false);
     const {loadingMessages, callAnthropic} = useAnthropic();
-    const {currentAppState} = useSession();
+    const {currentAppState, updateSession} = useSession();
 
     const toggleTextareaExpanded = () => {
         setTextareaExpanded(prev => !prev);
@@ -35,6 +35,14 @@ export function MainSidebar() {
 
     const handleRunPrompt = () => callAnthropic(userVariable.trim(), systemVariable.trim());
 
+    const handleChangeSystem = (value: string) => {
+        updateSession("appState.systemPrompt", value);
+        setSystemVariable(value);
+    }
+    const handleChangeUser = (value: string) => {
+        updateSession("appState.userPrompt", value);
+        setUserVariable(value);
+    }
     const isRunButtonDisabled = loadingMessages || (!systemVariable.trim() && !userVariable.trim());
 
     useEffect(() => {
@@ -56,7 +64,8 @@ export function MainSidebar() {
             <SidebarContent className="flex grow flex-col gap-4 p-4">
                 <PromptTextarea
                     value={systemVariable}
-                    onChange={setSystemVariable}
+                    onChange={handleChangeSystem}
+
                     title="System prompt"
                     placeholder="Enter system prompt"
                     disabled={loadingMessages}
@@ -64,7 +73,7 @@ export function MainSidebar() {
                 <PromptTextarea
                     isUser={true}
                     value={userVariable}
-                    onChange={setUserVariable}
+                    onChange={handleChangeUser}
                     title="User prompt"
                     placeholder="Enter user prompt"
                     disabled={loadingMessages}
