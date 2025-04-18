@@ -51,7 +51,7 @@ export function Chat() {
 
     // Helper function to determine title based on role
     const getTitleFromRole = (role: 'assistant' | 'user'): string => {
-        return role === 'assistant' ? 'Agent' : 'User';
+        return role === 'assistant' ? 'Assistant' : 'User';
     };
 
     return (
@@ -66,7 +66,8 @@ export function Chat() {
             <div className="flex flex-col gap-4 p-4">
                 {messagesResponse && messagesResponse.map(message => (
                     <ChatCard
-                        key={message.id} // Use the unique ID from the message object
+                        key={message.id}
+                        messageId={message.id}
                         isUser={message.role === 'user'}
                         title={getTitleFromRole(message.role)}
                         message={getFirstTextMessage(message)}
@@ -76,7 +77,7 @@ export function Chat() {
                     <ChatCard
                         key="loading"
                         isUser={false} // Or a neutral style
-                        title="Agent"
+                        title="Assistant"
                         message="Thinking..." // Or a spinner component
                     />
                 )}

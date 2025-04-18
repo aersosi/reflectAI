@@ -48,12 +48,12 @@ export const AnthropicProvider: FC<AnthropicProviderProps> = ({children}) => {
             role: "user",
             content: [{type: "text", text: userText}]
         };
-        updateSession("appState.messageHistory", userMessage);
+        updateSession("appState.messagesHistory", userMessage);
     }, [currentAppState, updateSession]);
 
     const saveAnthropicResponse = useCallback((assistantResponse: AnthropicResponse) => {
         if (!assistantResponse?.content?.[0]?.text?.trim()) return;
-        updateSession("appState.messageHistory", assistantResponse);
+        updateSession("appState.messagesHistory", assistantResponse);
     }, [currentAppState, updateSession]);
 
 

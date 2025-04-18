@@ -44,8 +44,8 @@ export type SessionContextType = {
     currentAppState: AppState | null;
     loadSession: (sessionId: string) => boolean;
     updateSession: (path: string, value: any) => void;
-
     createSession: (sessionName: string, initialState: AppState) => void;
     deleteSession: (sessionId: string) => void;
+    deleteMessage: (messageID: string | undefined) => void;
     isSessionLoading: boolean;
 };

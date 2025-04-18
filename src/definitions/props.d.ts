@@ -22,6 +22,7 @@ export type PromptTextareaProps = {
 
 export type CardMessageProps = {
     className?: string,
+    messageId?: string,
     isUser?: boolean;
     title: string
     message: string

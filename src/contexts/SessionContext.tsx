@@ -48,7 +48,7 @@ export const SessionProvider: SessionProviderProps = ({children, initialAppState
 
         const navigateToSession = (session: Session) => {
             if (location.pathname === '/') {
-                navigate(`/?sessionId=${session.id}`, { replace: true });
+                navigate(`/?sessionId=${session.id}`, {replace: true});
             }
         };
 
@@ -59,7 +59,7 @@ export const SessionProvider: SessionProviderProps = ({children, initialAppState
         if (!sessionToActivate && loadedSessions.length > 0) {
             sessionToActivate = [...loadedSessions].sort((a, b) => b.date - a.date)[0];
             if (sessionToActivate) {
-                 navigateToSession(sessionToActivate);
+                navigateToSession(sessionToActivate);
             }
         }
 
@@ -192,13 +192,26 @@ export const SessionProvider: SessionProviderProps = ({children, initialAppState
             }
 
             const finalKey = keys[keys.length - 1];
-            currentLevel[finalKey] = value;
+
+            // Special case: add value as next numeric key
+            if (path === "appState.messagesHistory") {
+                const existing = currentLevel[finalKey] || {};
+                const numericKeys = Object.keys(existing).map(Number).filter(k => !isNaN(k));
+                const nextKey = numericKeys.length > 0 ? Math.max(...numericKeys) + 1 : 0;
+
+                currentLevel[finalKey] = {
+                    ...existing,
+                    [nextKey]: value,
+                };
+            } else {
+                currentLevel[finalKey] = value;
+            }
 
             updatedSession.date = Date.now();
 
             const updatedSessions = [
                 ...allSessions.slice(0, sessionIndex),
-                updatedSession, // Füge die aktualisierte Session ein
+                updatedSession,
                 ...allSessions.slice(sessionIndex + 1)
             ];
 
@@ -207,7 +220,6 @@ export const SessionProvider: SessionProviderProps = ({children, initialAppState
         } catch (error) {
             console.error(`SaveSession Error: Failed to update path "${path}".`, error);
         }
-
     }, [allSessions, currentSessionId, updateAndSaveSessions]);
 
     /**
@@ -240,6 +252,40 @@ export const SessionProvider: SessionProviderProps = ({children, initialAppState
     }, [allSessions, currentSessionId, navigate, loadSession, initialAppState]);
 
 
+    // const findNestedObj = (entireObj, keyToFind, valToFind) => {
+    //     let foundObj;
+    //     JSON.stringify(entireObj, (_, nestedValue) => {
+    //         if (nestedValue && nestedValue[keyToFind] === valToFind) {
+    //             foundObj = nestedValue;
+    //         }
+    //         return nestedValue;
+    //     });
+    //     return foundObj;
+    // };
+
+    const deleteMessage = useCallback((messageId: string): void => {
+        const updatedSessions = JSON.parse(JSON.stringify(allSessions)); // Deep clone
+        JSON.stringify(updatedSessions, function (_, value) {
+            if (
+                value &&
+                typeof value === 'object' &&
+                value["id"] === messageId
+            ) {
+                if (this && typeof this === 'object') {
+                    for (const prop in this) {
+                        if (this[prop] === value) {
+                            delete this[prop];
+                        }
+                    }
+                }
+            }
+            return value;
+        });
+
+        updateAndSaveSessions(updatedSessions);
+    }, [allSessions, updateAndSaveSessions]);
+
+
     /**
      * @description Derives a sorted list of session metadata (id, name, date)
      * from the `allSessions` state, suitable for display purposes (e.g., in a sidebar list).
@@ -260,6 +306,7 @@ export const SessionProvider: SessionProviderProps = ({children, initialAppState
         createSession,
         updateSession,
         deleteSession,
+        // deleteMessage,
         isSessionLoading,
         initialAppState
     };
