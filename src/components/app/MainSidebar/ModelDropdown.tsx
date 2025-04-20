@@ -21,7 +21,7 @@ export function ModelDropdown({data, placeholder, labelTitle, labelFor}: ModelIn
     }
 
     const handleValue = (): string => {
-        if (!currentAppState?.settings) {
+        if (!currentAppState.settings) {
             return data?.[0]?.id || '';
         }
         return currentAppState.settings.model || data?.[0]?.id || '';

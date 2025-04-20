@@ -9,17 +9,53 @@ import { Textarea } from "@/components/ui/textarea";
 import { PromptTextareaProps } from "@/definitions/props";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
+import { KeyboardEvent, useEffect, useRef, useState } from "react";
 
 export function PromptTextarea({
                                    value,
-                                   className,
                                    onChange,
+                                   onCommit,
+                                   className,
                                    isUser,
                                    isVariable,
                                    title,
                                    placeholder,
                                    disabled,
                                }: PromptTextareaProps) {
+    const [internalValue, setInternalValue] = useState(value);
+    const committedValueRef = useRef(value);
+
+    // Aktualisiere bei externem Wertwechsel
+    useEffect(() => {
+        setInternalValue(value);
+        committedValueRef.current = value;
+    }, [value]);
+
+    const handleKeyDown = (e: KeyboardEvent<HTMLTextAreaElement>) => {
+        if (!internalValue.trim()) return; // return on empty textarea
+
+        if (e.key === "Enter" && !e.shiftKey) {
+            e.preventDefault();
+            committedValueRef.current = internalValue;
+            onCommit?.(internalValue);
+        } else if (e.key === "Escape") {
+            e.preventDefault();
+            const previous = committedValueRef.current;
+            setInternalValue(previous);
+            onChange?.(previous);
+        }
+    };
+
+    const handleChange = (val: string) => {
+        setInternalValue(val);
+        onChange?.(val);
+    };
+
+    const handleBlur = () => {
+        if (!internalValue.trim()) return; // return on empty textarea
+        committedValueRef.current = internalValue;
+        onCommit?.(internalValue);
+    };
 
     const collapsibleClasses = cn(
         "transition border rounded-xl bg-card text-card-foreground shadow-sm",
@@ -39,23 +75,25 @@ export function PromptTextarea({
                     <CollapsibleTrigger className="group">
                         <Label htmlFor={title}>{title}</Label>
                         <ChevronDown
-                            className="ml-auto transition-transform duration-200 group-data-[state=open]:rotate-180" />
+                            className="ml-auto transition-transform duration-200 group-data-[state=open]:rotate-180"/>
                     </CollapsibleTrigger>
                 </SidebarGroupLabel>
                 <CollapsibleContent className="relative px-2">
-                    <hr className="mt-[2px]" />
+                    <hr className="mt-[2px]"/>
                     <Textarea
                         id={title}
                         name={title}
-                        value={value}
-                        onChange={(e) => onChange(e.target.value)}
+                        value={internalValue}
+                        onChange={(e) => handleChange(e.target.value)}
+                        onBlur={handleBlur}
+                        onKeyDown={handleKeyDown}
                         placeholder={placeholder}
                         disabled={disabled}
                         variant="no-focus"
                         className="absolute inset-0 whitespace-pre-wrap overflow-hidden break-words px-2 resize-none border-0 shadow-none"
                     />
                     <p className="pointer-events-none invisible whitespace-pre-wrap break-words pt-[5px] md:text-sm min-h-14">
-                        {value || ' '}
+                        {internalValue || ' '}
                     </p>
                 </CollapsibleContent>
             </SidebarGroup>

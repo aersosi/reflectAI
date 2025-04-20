@@ -1,4 +1,4 @@
-import { AppState, Messages, Settings } from "@/definitions/session";
+import { AppState, Message, Settings } from "@/definitions/session";
 
 const settings: Settings = {
     model: "",
@@ -11,13 +11,11 @@ const settings: Settings = {
     apiKey: "",
 };
 
-const messagesHistory: Messages = [];
+const messagesHistory: Message[] = [];
 const systemPrompt: string = "";
-const userPrompt: string = "";
 
 export const defaultAppState: AppState = {
     settings,
     systemPrompt,
-    userPrompt,
     messagesHistory,
 };

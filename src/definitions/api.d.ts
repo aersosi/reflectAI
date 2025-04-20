@@ -51,4 +51,5 @@ export type AnthropicContextType = {
     loadingMessages: boolean;
     messagesError: Error | null;
     callAnthropic: (userPrompt: string, systemPrompt?: string) => void;
+    continueCallAnthropic: (userPrompt: string, systemPrompt?: string) => void;
 }

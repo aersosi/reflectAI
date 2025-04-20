@@ -14,8 +14,8 @@ export function ApiKeyInput({className}: { className?: string }) {
 
     // Sync with context value on mount/context change
     useEffect(() => {
-        currentAppState?.settings?.apiKey && setInputValue(currentAppState.settings.apiKey);
-    }, [currentAppState?.settings?.apiKey]);
+        currentAppState.settings?.apiKey && setInputValue(currentAppState.settings.apiKey);
+    }, [currentAppState.settings?.apiKey]);
 
     const persistInput = () => {
         if (!currentAppState) return;
@@ -29,7 +29,8 @@ export function ApiKeyInput({className}: { className?: string }) {
     };
 
     const handleKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
-        if (e.key === "Enter") {
+        if (e.key === "Enter" && !e.shiftKey) {
+            e.preventDefault(); // Kein Zeilenumbruch
             persistInput();
         }
     };

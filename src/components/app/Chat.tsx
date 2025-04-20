@@ -1,19 +1,19 @@
 import { useSidebar } from "@/components/ui/sidebar";
-import { ChatCard } from "@/components/app/Chat/ChatCard"; // Correct path?
+import { ChatCard } from "@/components/app/Chat/ChatCard";
 import { Button } from "@/components/ui/button";
+import { AnthropicResponse } from "@/definitions/api";
 import { PanelLeftIcon } from "lucide-react";
 import { SessionNameInput } from "@/components/app/Chat/SessionNameInput";
-import { SessionsSheet } from "@/components/app/Sheets/SessionsSheet"; // Correct path?
-import { AnthropicResponse } from "@/definitions/api";
-import { useAnthropic } from "@/contexts/AnthropicContext"; // Import the hook
+import { SessionsSheet } from "@/components/app/Sheets/SessionsSheet";
+import { useAnthropic } from "@/contexts/AnthropicContext";
 import { useEffect, useRef } from "react";
 
 export function Chat() {
     const {toggleSidebar} = useSidebar();
     const {
-        messagesResponse, // Get the messages array from contexts
-        loadingMessages, // Maybe show a loading indicator?
-        messagesError // Maybe show an error message?
+        messagesResponse,
+        loadingMessages,
+        messagesError
     } = useAnthropic();
 
     // Ref for scrolling
@@ -63,7 +63,7 @@ export function Chat() {
                 </div>
                 <SessionsSheet/>
             </div>
-            <div className="flex flex-col gap-4 p-4">
+            <div className="flex flex-col gap-4 p-4 overflow-auto grow">
                 {messagesResponse && messagesResponse.map(message => (
                     <ChatCard
                         key={message.id}
@@ -90,6 +90,10 @@ export function Chat() {
                     />
                 )}
             </div>
+            <footer className="flex gap-4 px-4 py-2 justify-between border-t">
+                <div>All tokens: 123</div>
+                <div>All token cost: 123</div>
+            </footer>
         </main>
     );
 }

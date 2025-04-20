@@ -193,16 +193,13 @@ export const SessionProvider: SessionProviderProps = ({children, initialAppState
 
             const finalKey = keys[keys.length - 1];
 
-            // Special case: add value as next numeric key
+            // Special case: append to messagesHistory array
+            // todo: appState.messagesHistory is hardcoded, that is bad, not a smart solution and unclear to developer, when updateSession is used
             if (path === "appState.messagesHistory") {
-                const existing = currentLevel[finalKey] || {};
-                const numericKeys = Object.keys(existing).map(Number).filter(k => !isNaN(k));
-                const nextKey = numericKeys.length > 0 ? Math.max(...numericKeys) + 1 : 0;
-
-                currentLevel[finalKey] = {
-                    ...existing,
-                    [nextKey]: value,
-                };
+                const existingArray = Array.isArray(currentLevel[finalKey])
+                    ? [...currentLevel[finalKey]]
+                    : [];
+                currentLevel[finalKey] = [...existingArray, value];
             } else {
                 currentLevel[finalKey] = value;
             }
@@ -221,6 +218,7 @@ export const SessionProvider: SessionProviderProps = ({children, initialAppState
             console.error(`SaveSession Error: Failed to update path "${path}".`, error);
         }
     }, [allSessions, currentSessionId, updateAndSaveSessions]);
+
 
     /**
      * @function deleteSession
@@ -252,19 +250,9 @@ export const SessionProvider: SessionProviderProps = ({children, initialAppState
     }, [allSessions, currentSessionId, navigate, loadSession, initialAppState]);
 
 
-    // const findNestedObj = (entireObj, keyToFind, valToFind) => {
-    //     let foundObj;
-    //     JSON.stringify(entireObj, (_, nestedValue) => {
-    //         if (nestedValue && nestedValue[keyToFind] === valToFind) {
-    //             foundObj = nestedValue;
-    //         }
-    //         return nestedValue;
-    //     });
-    //     return foundObj;
-    // };
-
     const deleteMessage = useCallback((messageId: string): void => {
         const updatedSessions = JSON.parse(JSON.stringify(allSessions)); // Deep clone
+
         JSON.stringify(updatedSessions, function (_, value) {
             if (
                 value &&
@@ -272,9 +260,16 @@ export const SessionProvider: SessionProviderProps = ({children, initialAppState
                 value["id"] === messageId
             ) {
                 if (this && typeof this === 'object') {
-                    for (const prop in this) {
-                        if (this[prop] === value) {
-                            delete this[prop];
+                    if (Array.isArray(this)) {
+                        const index = this.indexOf(value);
+                        if (index > -1) {
+                            this.splice(index, 1); // ✅ remove from array
+                        }
+                    } else {
+                        for (const prop in this) {
+                            if (this[prop] === value) {
+                                delete this[prop]; // ✅ remove from object
+                            }
                         }
                     }
                 }
@@ -284,7 +279,6 @@ export const SessionProvider: SessionProviderProps = ({children, initialAppState
 
         updateAndSaveSessions(updatedSessions);
     }, [allSessions, updateAndSaveSessions]);
-
 
     /**
      * @description Derives a sorted list of session metadata (id, name, date)
@@ -306,7 +300,7 @@ export const SessionProvider: SessionProviderProps = ({children, initialAppState
         createSession,
         updateSession,
         deleteSession,
-        // deleteMessage,
+        deleteMessage,
         isSessionLoading,
         initialAppState
     };

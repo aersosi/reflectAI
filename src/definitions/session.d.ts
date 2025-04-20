@@ -18,20 +18,17 @@ export type Message = {
     }[];
 }
 
-export type Messages = Message[];
-
 export type AppState = {
     settings: Settings | null;
     systemPrompt: string | undefined;
-    userPrompt: string;
-    messagesHistory: Messages | null;
+    messagesHistory: Message[] | [];
 };
 
 export type Session = {
     id: string;
     name: string | null;
     date: number; // Unix Timestamp (ms)
-    appState: AppState | null;
+    appState: AppState;
 };
 
 export type SessionMeta = Omit<Session, 'appState'>;
@@ -41,11 +38,11 @@ export type SessionContextType = {
     currentSessionId: string | null;
     currentSessionName: string | null;
     initialAppState: AppState;
-    currentAppState: AppState | null;
+    currentAppState: AppState;
     loadSession: (sessionId: string) => boolean;
     updateSession: (path: string, value: any) => void;
     createSession: (sessionName: string, initialState: AppState) => void;
     deleteSession: (sessionId: string) => void;
-    deleteMessage: (messageID: string | undefined) => void;
+    deleteMessage: (messageId: string) => void;
     isSessionLoading: boolean;
 };

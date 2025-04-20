@@ -8,6 +8,7 @@ const anthropic = apiKey ? new Anthropic({
     dangerouslyAllowBrowser: true, // todo: Stelle sicher, dass dies in deiner Produktionsumgebung sicher ist
 }) : new Anthropic();
 
+// todo: userPrompt needs to be messagesHistory[]
 const callAnthropicApi = async (userPrompt: string, systemPrompt?: string): Promise<AnthropicResponse> => {
     try {
         const response = await anthropic.messages.create({
@@ -15,6 +16,7 @@ const callAnthropicApi = async (userPrompt: string, systemPrompt?: string): Prom
             max_tokens: 200,
             temperature: 1,
             system: systemPrompt || "",
+            // todo: instead of just calling one single message this array has to be the same arrey as messagesHistory[]
             messages: [
                 {
                     role: "user",
@@ -37,7 +39,7 @@ const callAnthropicApi = async (userPrompt: string, systemPrompt?: string): Prom
     }
 };
 
-export const useCallAnthropicApi = (userPrompt: string | null, systemPrompt: string | null) => {
+export const useCallAnthropicApi = (systemPrompt: string | null, userPrompt: string | null) => {
 
     const queryMessage = async (): Promise<AnthropicResponse> => {
         if (!systemPrompt || !userPrompt) throw new Error("System and User prompts must be provided.");

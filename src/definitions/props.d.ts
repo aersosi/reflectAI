@@ -17,6 +17,7 @@ export type PromptTextareaProps = {
     placeholder: string;
     disabled?: boolean;
     onChange: (value: string) => void;
+    onCommit?: (value: string) => void;
     className?: string;
 };
 
