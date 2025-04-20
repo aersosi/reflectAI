@@ -35,7 +35,13 @@ export function MainSidebar() {
 
     // use the userPromt loaded in useEffect to trigger Anthropic Api call
     const handleRunPrompt = () => callAnthropic(userVariable.trim(), systemVariable.trim());
-    const handleContinuePrompt = () => continueCallAnthropic(userVariable.trim(), systemVariable.trim()); // todo: delete when not needed anymore
+    const handleContinuePrompt = () => {
+
+        continueCallAnthropic(currentAppState.messagesHistory, systemVariable.trim());
+
+    }
+
+
 
     const handleChangeSystem = (value: string) => setSystemVariable(value)
     const handleCommitSystem = (value: string) => {

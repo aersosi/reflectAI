@@ -12,6 +12,7 @@ export type Settings = {
 export type Message = {
     id?: string | undefined;
     role: "user" | "assistant";
+    type: string;
     content: {
         type: string;
         text: string;

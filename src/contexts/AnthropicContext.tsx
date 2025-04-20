@@ -28,30 +28,34 @@ export const AnthropicProvider: FC<AnthropicProviderProps> = ({children}) => {
         return messages.map(
             (msg) => ({
                 id: msg.id ?? `generated-${crypto.randomUUID()}`,
-                type: "message",
+                type: msg.type,
                 role: msg.role,
                 content: msg.content as MessageContentPart[],
             })
         )
     };
 
+
+
     const callAnthropic = useCallback((userText: string, systemText?: string) => {
         // These trigger the API call via useGenerateAnthropicMessage
         setUserPrompt(userText);
         systemText && setSystemPrompt(systemText);
 
-
     }, [currentAppState]);
 
-    const continueCallAnthropic = useCallback((userText: string, systemText?: string) => {
+    const continueCallAnthropic = useCallback((userText: Message[], systemText?: string) => {
 
         // todo: here I need to collect all stuff that was before and call anthropic Api
         // all stuff: system prompt if there, user prompt, all previous entries in messagesHistory
         // setUserPrompt(userText);
         // systemText && setSystemPrompt(systemText);
         //
-        console.log(currentAppState.messagesHistory?.length)
-        console.log(currentAppState.messagesHistory)
+        // console.log(currentAppState.messagesHistory?.length)
+        // console.log(currentAppState.messagesHistory)
+
+        console.log(userText)
+        console.log(systemText)
 
 
         // todo: this block should only be saved if continuing message, not initial

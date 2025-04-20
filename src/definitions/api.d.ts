@@ -12,7 +12,7 @@ type MessageUsage = {
 
 export type AnthropicResponse = {
     id: string;
-    type: "message";
+    type: string;
     role: "assistant" | "user";
     model?: string;
     content: MessageContentPart[];
@@ -51,5 +51,5 @@ export type AnthropicContextType = {
     loadingMessages: boolean;
     messagesError: Error | null;
     callAnthropic: (userPrompt: string, systemPrompt?: string) => void;
-    continueCallAnthropic: (userPrompt: string, systemPrompt?: string) => void;
+    continueCallAnthropic: (userPrompt: Message[], systemPrompt?: string) => void;
 }
