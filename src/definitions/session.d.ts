@@ -37,7 +37,7 @@ export type SessionMeta = Omit<Session, 'appState'>;
 export type SessionContextType = {
     sessions: SessionMeta[];
     currentSessionId: string | null;
-    currentSessionName: string | null;
+    currentSessionName: string;
     initialAppState: AppState;
     currentAppState: AppState;
     loadSession: (sessionId: string) => boolean;

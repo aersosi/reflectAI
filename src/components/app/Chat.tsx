@@ -11,7 +11,7 @@ import { useEffect, useRef } from "react";
 export function Chat() {
     const {toggleSidebar} = useSidebar();
     const {
-        messagesResponse,
+        messagesHistory,
         loadingMessages,
         messagesError
     } = useAnthropic();
@@ -24,7 +24,7 @@ export function Chat() {
         if (scrollAreaRef.current) {
             scrollAreaRef.current.scrollTo({top: scrollAreaRef.current.scrollHeight, behavior: 'smooth'});
         }
-    }, [messagesResponse]);
+    }, [messagesHistory]);
 
     function CustomSidebarTrigger() {
         return <Button
@@ -64,7 +64,7 @@ export function Chat() {
                 <SessionsSheet/>
             </div>
             <div className="flex flex-col gap-4 p-4 overflow-auto grow">
-                {messagesResponse && messagesResponse.map(message => (
+                {messagesHistory && messagesHistory.map(message => (
                     <ChatCard
                         key={message.id}
                         messageId={message.id}
@@ -78,7 +78,7 @@ export function Chat() {
                         key="loading"
                         isUser={false} // Or a neutral style
                         title="Assistant"
-                        message="Thinking..." // Or a spinner component
+                        message="Thinking ..." // Or a spinner component
                     />
                 )}
                 {messagesError && (

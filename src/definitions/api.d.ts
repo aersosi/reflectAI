@@ -21,12 +21,6 @@ export type AnthropicResponse = {
     usage?: MessageUsage;
 };
 
-export type DataItem = {
-    title: string;
-    variables: string[];
-};
-
-export type DataArray = DataItem[];
 
 export type AnthropicModel = {
     display_name: string,
@@ -47,9 +41,9 @@ export type AnthropicContextType = {
     isLoadingModels: boolean;
     modelsError: Error | null;
 
-    messagesResponse: AssistantResponse[] | null;
+    messagesHistory: Message[] | null;
     loadingMessages: boolean;
     messagesError: Error | null;
-    callAnthropic: (userPrompt: string, systemPrompt?: string) => void;
-    continueCallAnthropic: (userPrompt: Message[], systemPrompt?: string) => void;
+    callAnthropic: (messagesHistory: Message[], systemPrompt: string) => Promise<void>
+
 }

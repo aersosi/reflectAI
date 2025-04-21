@@ -27,8 +27,8 @@ export const SessionProvider: SessionProviderProps = ({children, initialAppState
         return allSessions.find(s => s.id === currentSessionId);
     }, [allSessions, currentSessionId]);
 
-    const currentAppState = currentSessionData?.appState ?? null;
-    const currentSessionName = currentSessionData?.name ?? null;
+    const currentAppState = currentSessionData?.appState;
+    const currentSessionName = currentSessionData?.name;
 
     /**
      * @useEffect hook
@@ -307,7 +307,7 @@ export const SessionProvider: SessionProviderProps = ({children, initialAppState
 
     return (
         <SessionContext.Provider value={contextValue}>
-            {!isSessionLoading ? children : <div>Loading Session...</div>}
+            {!isSessionLoading ? children : <div>Loading Session ...</div>}
         </SessionContext.Provider>
     );
 };

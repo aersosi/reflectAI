@@ -1,47 +1,36 @@
+import { FollowUpTextarea } from "@/components/lib/FollowUpTextarea";
 import { useSession } from "@/contexts/SessionContext";
 import { useEffect, useState } from "react";
 import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader } from "@/components/ui/sidebar";
-import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { ChevronUpIcon, Play } from "lucide-react";
 import { SettingsSheet } from "@/components/app/Sheets/SettingsSheet";
 import { PromptVariablesSheet } from "@/components/app/Sheets/PromptVariablesSheet";
 import { PromptTextarea } from "@/components/lib/PromptTextarea";
-import { AnthropicResponse, DataArray } from "@/definitions/api";
+import { AnthropicResponse } from "@/definitions/api";
+import { DataArray } from "@/definitions/variables";
 import { useAnthropic } from "@/contexts/AnthropicContext";
 
 export function MainSidebar() {
     const [systemVariable, setSystemVariable] = useState('');
     const [userVariable, setUserVariable] = useState('');
+    const [userContinue, setUserContinue] = useState('');
     const [textareaExpanded, setTextareaExpanded] = useState(false);
-    const {loadingMessages, callAnthropic, continueCallAnthropic} = useAnthropic();
+    const {loadingMessages, callAnthropic} = useAnthropic();
     const {currentAppState, updateSession} = useSession();
 
-    const toggleTextareaExpanded = () => {
-        setTextareaExpanded(prev => !prev);
-    };
 
     const extractVariables = (str: string): string[] => {
         return str.match(/\{\{\s*([^}]+)\s*}}/g) || [];
     }
 
-    const data: DataArray = [];
+    const systemUserVariables: DataArray = [];
 
     // todo: integrate variables later into the whole flow
     const systemVars = extractVariables(systemVariable);
-    if (systemVars.length > 0) data.push({title: "System prompt", variables: systemVars});
+    if (systemVars.length > 0) systemUserVariables.push({title: "System prompt", variables: systemVars});
     const userVars = extractVariables(userVariable);
-    if (userVars.length > 0) data.push({title: "User prompt", variables: userVars});
-
-    // use the userPromt loaded in useEffect to trigger Anthropic Api call
-    const handleRunPrompt = () => callAnthropic(userVariable.trim(), systemVariable.trim());
-    const handleContinuePrompt = () => {
-
-        continueCallAnthropic(currentAppState.messagesHistory, systemVariable.trim());
-
-    }
-
-
+    if (userVars.length > 0) systemUserVariables.push({title: "User prompt", variables: userVars});
 
     const handleChangeSystem = (value: string) => setSystemVariable(value)
     const handleCommitSystem = (value: string) => {
@@ -50,28 +39,69 @@ export function MainSidebar() {
     };
 
     const handleChangeUser = (value: string) => setUserVariable(value);
+
+    // if the value passed to handleCommitUser is the same as currentAppState.messagesHistory.message.id === "user_prompt" -> return
+
     const handleCommitUser = (value: string) => {
-        const previousText = currentAppState.messagesHistory.find(message => message.id === "user-prompt")?.content[0].text ?? "";
+        const isUserPrompt = currentAppState.messagesHistory.find(
+            (msg) => msg.id === "user_prompt"
+        );
+
+        const previousText = isUserPrompt?.content?.[0]?.text ?? "";
         if (value === previousText) return;
 
         const userMessage: AnthropicResponse = {
-            id: `user-prompt`,
+            id: `user_prompt`,
             type: "message",
             role: "user",
-            content: [{ type: "text", text: value }]
+            content: [{type: "text", text: value}]
         };
         updateSession("appState.messagesHistory", userMessage);
     };
 
+    const handleChangeContinue = (value: string) => setUserContinue(value);
+
+    const handleCommitContinue = async (): Promise<AnthropicResponse | null> => {
+        const userMessage: AnthropicResponse = {
+            id: `user_${crypto.randomUUID()}`,
+            type: "message",
+            role: "user",
+            content: [{ type: "text", text: userContinue }]
+        };
+
+        updateSession("appState.messagesHistory", userMessage);
+        return userMessage;
+    };
+
+    const handleRun = async () => {
+        const newMessage = await handleCommitContinue();
+
+        const updatedMessages = newMessage
+            ? [...currentAppState.messagesHistory, newMessage]
+            : currentAppState.messagesHistory;
+
+        await callAnthropic(updatedMessages, systemVariable.trim());
+    };
+
+    const toggleTextareaExpanded = () => {
+        setTextareaExpanded(prev => !prev);
+    };
+
     const isRunButtonDisabled = loadingMessages || (!systemVariable.trim() && !userVariable.trim());
 
+    const containsAssistantId = currentAppState.messagesHistory.some((msg) =>
+        msg.id && msg.id.startsWith("assistant")
+    );
+
+
+    // load Values on Start
     useEffect(() => {
-        // load stored values into PromptTextareas
         if (currentAppState.systemPrompt) setSystemVariable(currentAppState.systemPrompt);
-        if (currentAppState.messagesHistory[0]?.id === "user-prompt") {
+        if (currentAppState.messagesHistory.length > 0) {
             setUserVariable(currentAppState.messagesHistory[0].content[0].text);
         }
     }, [currentAppState.systemPrompt, currentAppState.messagesHistory]);
+
 
     return (
         <Sidebar>
@@ -79,7 +109,7 @@ export function MainSidebar() {
                 <h1 className="font-bold transition-colors text-primary hover:text-purple-500">reflectAI</h1>
                 <div className="flex gap-6">
                     <SettingsSheet/>
-                    <PromptVariablesSheet data={data}/>
+                    <PromptVariablesSheet variables={systemUserVariables}/>
                 </div>
             </SidebarHeader>
             <SidebarContent className="flex grow flex-col gap-4 p-4">
@@ -100,40 +130,57 @@ export function MainSidebar() {
                     placeholder="Enter user prompt"
                     disabled={loadingMessages}
                 />
-                <Button onClick={handleRunPrompt} disabled={isRunButtonDisabled}
-                        size="lg" variant="outlinePrimary">
-                    <Play/> Run
-                </Button>
             </SidebarContent>
 
             {/*Footer should only be visible if there was an initial call, so there are entries in messageHistory*/}
-            {/*if (currentAppState.messagesHistory.length > 0)*/}
+            {/*if (currentAppState.messagesHistory.length > 1 || contains message.id === ""assistant)*/}
             <SidebarFooter>
-                <div className="flex gap-4 p-4 border-t-1 relative">
-                    <div className={`flex gap-4 w-full transition-[height] ${textareaExpanded ? "h-60" : "h-22"}`}>
-                        <div className="grow relative">
-                            <Textarea placeholder="Type follow up question ..."
-                                      className="absolute inset-0 resize-none"/>
-                        </div>
-                        <div className="flex flex-col-reverse gap-4 justify-between items-end">
-                            <Button
-                                onClick={handleContinuePrompt} // todo: use handleRunPrompt
-                                disabled={isRunButtonDisabled}
-                                size="lg" variant="outlinePrimary"
-                            >
-                                <Play/> Run
-                            </Button>
-                            <Button
-                                className=""
-                                variant="outline"
-                                size="iconSmall"
-                                onClick={toggleTextareaExpanded}
-                            >
-                                <ChevronUpIcon className={`transition-transform ${textareaExpanded && "rotate-180"}`}/>
-                            </Button>
+
+                {!containsAssistantId ?
+                    <Button
+                        onClick={handleRun}
+                        disabled={isRunButtonDisabled}
+                        size="lg" variant="outlinePrimary"
+                    > <Play/> Run
+                    </Button>
+                    :
+                    <div className="flex gap-4 p-4 border-t-1 relative">
+                        <div className={`flex gap-4 w-full transition-[height] ${textareaExpanded ? "h-60" : "h-22"}`}>
+                            <div className="grow relative">
+                                <FollowUpTextarea
+                                    isUser={true}
+                                    value={userContinue}
+                                    onChange={handleChangeContinue}
+                                    // onCommit={handleCommitContinue}
+                                    title="User prompt"
+                                    placeholder="Type follow up question ..."
+                                    disabled={loadingMessages}
+                                />
+
+                            </div>
+                            <div className="flex flex-col-reverse gap-4 justify-between items-end">
+                                <Button
+                                    onClick={handleRun}
+                                    disabled={isRunButtonDisabled}
+                                    size="lg" variant="outlinePrimary"
+                                >
+                                    <Play/> Run
+                                </Button>
+                                <Button
+                                    className=""
+                                    variant="outline"
+                                    size="iconSmall"
+                                    onClick={toggleTextareaExpanded}
+                                >
+                                    <ChevronUpIcon
+                                        className={`transition-transform ${textareaExpanded && "rotate-180"}`}/>
+                                </Button>
+                            </div>
                         </div>
                     </div>
-                </div>
+
+
+                }
             </SidebarFooter>
         </Sidebar>
     );
