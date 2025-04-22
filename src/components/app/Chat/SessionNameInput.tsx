@@ -12,7 +12,7 @@ export function SessionNameInput() {
         currentSessionName,
         sessions,
         createSession,
-        updateSession,
+        overwriteSession,
         initialAppState
     } = useSession();
 
@@ -36,7 +36,7 @@ export function SessionNameInput() {
     const handleKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
         if (e.key === "Enter" && !e.shiftKey) {
             e.preventDefault(); // Kein Zeilenumbruch
-            if (inputValue) updateSession("name", inputValue.trim());
+            if (inputValue) overwriteSession("name", inputValue.trim());
             setIsEditing(false);
         } else if (e.key === "Escape") {
             setIsEditing(false);

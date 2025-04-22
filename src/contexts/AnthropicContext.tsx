@@ -27,7 +27,7 @@ export const AnthropicProvider: FC<AnthropicProviderProps> = ({children}) => {
     );
 
     const {models, isLoadingModels, error: modelsError} = useFetchAnthropicModels();
-    const {currentAppState, updateSession} = useSession();
+    const {currentAppState, appendToMessagesHistory} = useSession();
     const messagesHistory = currentAppState.messagesHistory ?? [];
 
     const [loadingMessages, setLoadingMessages] = useState(false);
@@ -60,10 +60,10 @@ export const AnthropicProvider: FC<AnthropicProviderProps> = ({children}) => {
             };
         };
 
-        updateSession("appState.messagesHistory", mapAnthropicToMessagesHistory(latestAnthropicResponse));
+        appendToMessagesHistory(mapAnthropicToMessagesHistory(latestAnthropicResponse));
         console.log("Anthropic-Antwort gespeichert:", latestAnthropicResponse);
 
-    }, [updateSession]);
+    }, [appendToMessagesHistory]);
 
     const callAnthropic = useCallback(async (messagesHistory: Message[], systemPrompt: string) => {
         setLoadingMessages(true);

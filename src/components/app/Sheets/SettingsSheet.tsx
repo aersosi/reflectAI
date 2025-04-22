@@ -7,13 +7,13 @@ import { useSession } from "@/contexts/SessionContext";
 
 export const SettingsSheet = () => {
     const {anthropicModels} = useAnthropic()
-    const {currentAppState, updateSession} = useSession()
+    const {currentAppState, overwriteSession} = useSession()
 
     const handleTemperatureChange = (val: number[]) => {
-        updateSession("appState.settings.temperature", val[0]);
+        overwriteSession("appState.settings.temperature", val[0]);
     }
     const handleMaxTokensChange = (val: number[]) => {
-        updateSession("appState.settings.maxTokens", val[0]);
+        overwriteSession("appState.settings.maxTokens", val[0]);
     }
 
     const temperatureValue = currentAppState.settings?.temperature ? [currentAppState.settings.temperature] : undefined;

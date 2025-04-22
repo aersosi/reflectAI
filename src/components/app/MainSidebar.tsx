@@ -17,8 +17,7 @@ export function MainSidebar() {
     const [userContinue, setUserContinue] = useState('');
     const [textareaExpanded, setTextareaExpanded] = useState(false);
     const {loadingMessages, callAnthropic} = useAnthropic();
-    const {currentAppState, updateSession} = useSession();
-
+    const {currentAppState, overwriteSession, appendToMessagesHistory} = useSession();
 
     const extractVariables = (str: string): string[] => {
         return str.match(/\{\{\s*([^}]+)\s*}}/g) || [];
@@ -35,7 +34,7 @@ export function MainSidebar() {
     const handleChangeSystem = (value: string) => setSystemVariable(value)
     const handleCommitSystem = (value: string) => {
         if (value === currentAppState.systemPrompt) return; // is value did not change
-        updateSession("appState.systemPrompt", value);
+        overwriteSession("appState.systemPrompt", value);
     };
 
     const handleChangeUser = (value: string) => setUserVariable(value);
@@ -56,7 +55,8 @@ export function MainSidebar() {
             role: "user",
             content: [{type: "text", text: value}]
         };
-        updateSession("appState.messagesHistory", userMessage);
+        appendToMessagesHistory(userMessage);
+
     };
 
     const handleChangeContinue = (value: string) => setUserContinue(value);
@@ -66,10 +66,10 @@ export function MainSidebar() {
             id: `user_${crypto.randomUUID()}`,
             type: "message",
             role: "user",
-            content: [{ type: "text", text: userContinue }]
+            content: [{type: "text", text: userContinue}]
         };
 
-        updateSession("appState.messagesHistory", userMessage);
+        appendToMessagesHistory(userMessage);
         return userMessage;
     };
 
@@ -87,7 +87,7 @@ export function MainSidebar() {
         setTextareaExpanded(prev => !prev);
     };
 
-    const isRunButtonDisabled = loadingMessages || (!systemVariable.trim() && !userVariable.trim());
+    const isRunButtonDisabled = loadingMessages || !userVariable.trim();
 
     const containsAssistantId = currentAppState.messagesHistory.some((msg) =>
         msg.id && msg.id.startsWith("assistant")
@@ -96,6 +96,9 @@ export function MainSidebar() {
 
     // load Values on Start
     useEffect(() => {
+        console.log(userVariable.length);
+        console.log(isRunButtonDisabled);
+
         if (currentAppState.systemPrompt) setSystemVariable(currentAppState.systemPrompt);
         if (currentAppState.messagesHistory.length > 0) {
             setUserVariable(currentAppState.messagesHistory[0].content[0].text);

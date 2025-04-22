@@ -41,7 +41,8 @@ export type SessionContextType = {
     initialAppState: AppState;
     currentAppState: AppState;
     loadSession: (sessionId: string) => boolean;
-    updateSession: (path: string, value: any) => void;
+    overwriteSession: (path: string, value: any) => void;
+    appendToMessagesHistory: (value: any) => void;
     createSession: (sessionName: string, initialState: AppState) => void;
     deleteSession: (sessionId: string) => void;
     deleteMessage: (messageId: string) => void;

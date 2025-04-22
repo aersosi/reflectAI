@@ -7,7 +7,7 @@ import { Eye, EyeOff } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export function ApiKeyInput({className}: { className?: string }) {
-    const {currentAppState, updateSession, isSessionLoading} = useSession();
+    const {currentAppState, overwriteSession, isSessionLoading} = useSession();
     const [showApiKey, setShowApiKey] = useState(false);
     const [inputValue, setInputValue] = useState("");
 
@@ -20,7 +20,7 @@ export function ApiKeyInput({className}: { className?: string }) {
     const persistInput = () => {
         if (!currentAppState) return;
         if (inputValue !== currentAppState.settings?.apiKey) {
-            updateSession("appState.settings.apiKey", inputValue);
+            overwriteSession("appState.settings.apiKey", inputValue);
         }
     };
 

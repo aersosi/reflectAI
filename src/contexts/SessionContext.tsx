@@ -157,23 +157,60 @@ export const SessionProvider: SessionProviderProps = ({children, initialAppState
     }, [allSessions, navigate, initialAppState]);
 
     /**
-     * @function updateSession
-     * @description ????
+     * @function appendToMessagesHistory
+     * @description Hängt einen Wert an ein Array innerhalb der aktuellen Session an.
      */
-    const updateSession = useCallback((path: string, value: any) => {
+    const appendToMessagesHistory = useCallback((value: any) => {
         if (!currentSessionId) {
-            console.error("SaveSession Error: No current session ID.");
+            console.error("appendToMessagesHistory Error: No current session ID.");
             return;
         }
 
         const sessionIndex = allSessions.findIndex(s => s.id === currentSessionId);
         if (sessionIndex === -1) {
-            console.error("SaveSession Error: Current session not found in allSessions.");
+            console.error("appendToMessagesHistory Error: Current session not found in allSessions.");
             return;
         }
 
-        const currentSessionToUpdate = allSessions[sessionIndex];
-        const updatedSession = { ...currentSessionToUpdate };
+        const session = { ...allSessions[sessionIndex] };
+        const messages = Array.isArray(session.appState?.messagesHistory)
+            ? [...session.appState.messagesHistory]
+            : [];
+
+        session.appState = {
+            ...session.appState,
+            messagesHistory: [...messages, value]
+        };
+        session.date = Date.now();
+
+        const updatedSessions = [
+            ...allSessions.slice(0, sessionIndex),
+            session,
+            ...allSessions.slice(sessionIndex + 1)
+        ];
+
+        updateAndSaveSessions(updatedSessions);
+    }, [allSessions, currentSessionId, updateAndSaveSessions]);
+
+
+
+    /**
+     * @function overwriteSession
+     * @description Aktualisiert eine Eigenschaft innerhalb der aktuellen Session anhand eines Pfads.
+     */
+    const overwriteSession = useCallback((path: string, value: any) => {
+        if (!currentSessionId) {
+            console.error("overwriteSession Error: No current session ID.");
+            return;
+        }
+
+        const sessionIndex = allSessions.findIndex(s => s.id === currentSessionId);
+        if (sessionIndex === -1) {
+            console.error("overwriteSession Error: Current session not found in allSessions.");
+            return;
+        }
+
+        const updatedSession = { ...allSessions[sessionIndex] };
 
         try {
             const keys = path.split('.');
@@ -183,7 +220,7 @@ export const SessionProvider: SessionProviderProps = ({children, initialAppState
                 const key = keys[i];
 
                 if (typeof currentLevel[key] !== 'object' || currentLevel[key] === null) {
-                    console.error(`SaveSession Error: Invalid path segment "${key}" in path "${path}". Not an object.`);
+                    console.error(`overwriteSession Error: Invalid path segment "${key}" in path "${path}". Not an object.`);
                     return;
                 }
 
@@ -192,17 +229,7 @@ export const SessionProvider: SessionProviderProps = ({children, initialAppState
             }
 
             const finalKey = keys[keys.length - 1];
-
-            // Special case: append to messagesHistory array
-            // todo: appState.messagesHistory is hardcoded, that is bad, not a smart solution and unclear to developer, when updateSession is used
-            if (path === "appState.messagesHistory") {
-                const existingArray = Array.isArray(currentLevel[finalKey])
-                    ? [...currentLevel[finalKey]]
-                    : [];
-                currentLevel[finalKey] = [...existingArray, value];
-            } else {
-                currentLevel[finalKey] = value;
-            }
+            currentLevel[finalKey] = value;
 
             updatedSession.date = Date.now();
 
@@ -215,9 +242,10 @@ export const SessionProvider: SessionProviderProps = ({children, initialAppState
             updateAndSaveSessions(updatedSessions);
 
         } catch (error) {
-            console.error(`SaveSession Error: Failed to update path "${path}".`, error);
+            console.error(`overwriteSession Error: Failed to update path "${path}".`, error);
         }
     }, [allSessions, currentSessionId, updateAndSaveSessions]);
+
 
 
     /**
@@ -298,7 +326,8 @@ export const SessionProvider: SessionProviderProps = ({children, initialAppState
         currentAppState,
         loadSession,
         createSession,
-        updateSession,
+        overwriteSession,
+        appendToMessagesHistory,
         deleteSession,
         deleteMessage,
         isSessionLoading,
