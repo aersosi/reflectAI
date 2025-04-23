@@ -42,7 +42,6 @@ export function MainSidebar() {
         if (value === currentSystemPrompt) return; // value unchanged -> don't add to messagesHistory
         overwriteSession("appState.systemPrompt", value);
     };
-
     const updateHistoryUser = (value: string) => {
         const previousText = localHistory
             .find(msg => msg.id === "user_prompt")
@@ -58,7 +57,6 @@ export function MainSidebar() {
         setLocalHistory(prev => [...prev, userMessage]);
         appendToMessagesHistory(userMessage);
     };
-
     const updateHistoryContinue = () => {
         if (continueValue.length === 0) return;
 

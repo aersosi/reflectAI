@@ -76,6 +76,7 @@ export const SessionProvider: SessionProviderProps = ({children, initialAppState
         }
 
     }, [searchParams, allSessions, currentSessionId, isSessionLoading]);
+
     useEffect(() => {
         if (isInitialized.current) saveDataToStorage<Session>(allSessions, LOCAL_STORAGE_SESSION);
     }, [allSessions]);
@@ -118,37 +119,27 @@ export const SessionProvider: SessionProviderProps = ({children, initialAppState
         setIsSessionLoading(false);
     }, [allSessions, navigate, initialAppState]);
 
-    const appendToMessagesHistory = useCallback((response: AnthropicResponse) => {
-        if (!currentSessionId) {
-            console.error("appendToMessagesHistory Error: No current session ID.");
-            return;
-        }
-
-        const sessionIndex = allSessions.findIndex(s => s.id === currentSessionId);
-        if (sessionIndex === -1) {
-            console.error("appendToMessagesHistory Error: Current session not found in allSessions.");
-            return;
-        }
-
-        const session = { ...allSessions[sessionIndex] };
-        const messages = Array.isArray(session.appState?.messagesHistory)
-            ? [...session.appState.messagesHistory]
-            : [];
-
-        session.appState = {
-            ...session.appState,
-            messagesHistory: [...messages, response]
-        };
-        session.date = Date.now();
-
-        const updatedSessions = [
-            ...allSessions.slice(0, sessionIndex),
-            session,
-            ...allSessions.slice(sessionIndex + 1)
-        ];
-
-        updateAndSaveSessions(updatedSessions);
-    }, [allSessions, currentSessionId, updateAndSaveSessions]);
+    const appendToMessagesHistory = useCallback((response) => {
+        setAllSessions(prevSessions => {
+            const sessionIndex = prevSessions.findIndex(s => s.id === currentSessionId);
+            if (sessionIndex === -1) {
+                console.error("appendToMessagesHistory Error: Current session not found.");
+                return prevSessions;
+            }
+            const session = { ...prevSessions[sessionIndex] };
+            const messages = Array.isArray(session.appState?.messagesHistory) ? [...session.appState.messagesHistory] : [];
+            session.appState = {
+                ...session.appState,
+                messagesHistory: [...messages, response]
+            };
+            session.date = Date.now();
+            return [
+                ...prevSessions.slice(0, sessionIndex),
+                session,
+                ...prevSessions.slice(sessionIndex + 1)
+            ];
+        });
+    }, [currentSessionId]);
 
     const overwriteSession = useCallback((path: string, value: any) => {
         if (!currentSessionId) {
