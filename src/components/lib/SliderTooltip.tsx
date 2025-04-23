@@ -1,43 +1,40 @@
+import { useSession } from "@/contexts/SessionContext";
 import * as SliderPrimitive from "@radix-ui/react-slider";
 import { cn } from "@/lib/utils";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Label } from "@/components/ui/label";
 import { SliderProps } from "@/definitions/props";
-import React, { useState } from "react";
+import { useState, forwardRef, ComponentRef, useCallback, useEffect } from "react";
 
-export const SliderTooltip = React.forwardRef<React.ComponentRef<typeof SliderPrimitive.Root>, SliderProps>(
+export const SliderTooltip = forwardRef<ComponentRef<typeof SliderPrimitive.Root>, SliderProps>(
     ({className, showTooltip = false, hasMarks = false, labelTitle, labelFor, ...props}, ref) => {
-
-        // Calculate the initial value based on props
-        let calculatedInitialValue: number[];
-        if (props.defaultValue) {
-            // Ensure defaultValue is always treated as an array
-            calculatedInitialValue = Array.isArray(props.defaultValue)
-                ? [...props.defaultValue]
-                : [props.defaultValue];
-        } else if (props.max !== undefined) { // Check if max prop exists
-            calculatedInitialValue = [props.max]; // Default to max value
-        } else {
-            calculatedInitialValue = [0]; // Fallback if no defaultValue and no max
-        }
-
-        const [value, setValue] = React.useState<number[]>(calculatedInitialValue);
+        const {currentAppState, isSessionLoading} = useSession();
         const [showTooltipState, setShowTooltipState] = useState(false);
+
+        const [currentValue, setCurrentValue] = useState<number[]>(() => {
+            if (props.defaultValue) {
+                return Array.isArray(props.defaultValue) ? [...props.defaultValue] : [props.defaultValue];
+            } else if (props.max !== undefined) {
+                return [props.max]; // Default to max if no defaultValue provided
+            } else {
+                return [0]; // Fallback
+            }
+        });
 
         // Calculate spacing for marks (if needed)
         const space = Math.floor(props.max && props.step ? (props.max / props.step) : 0);
 
-        // --- Tooltip visibility handlers ---
+        // Tooltip visibility handlers
         const handlePointerDown = () => {
             setShowTooltipState(true);
         };
 
         // Using useCallback for stable function reference in useEffect dependency array
-        const handlePointerUp = React.useCallback(() => {
+        const handlePointerUp = useCallback(() => {
             setShowTooltipState(false);
         }, []);
 
-        React.useEffect(() => {
+        useEffect(() => {
             // Using document to catch pointer up even if it happens outside the slider thumb
             document.addEventListener("pointerup", handlePointerUp);
             return () => {
@@ -45,24 +42,24 @@ export const SliderTooltip = React.forwardRef<React.ComponentRef<typeof SliderPr
             };
         }, [handlePointerUp]);
 
-
         const handleValueChange = (val: number[]) => {
-            setValue(val);
+            setCurrentValue(val);
             props.onValueChange?.(val);
         }
+
 
         return (
             <div className="grid gap-6 py-2">
                 {
                     labelFor && labelTitle &&
                     <Label htmlFor={labelFor}
-                           className="flex justify-between pl-0.5 text-muted-foreground"> {/* Use flex for better alignment */}
-                        <span>{labelTitle}</span><span>{value[0]}</span>
+                           className="flex justify-between pl-0.5 text-muted-foreground">
+                        <span>{labelTitle}</span><span>{currentValue[0]}</span>
                     </Label>
                 }
 
                 <SliderPrimitive.Root
-                    defaultValue={calculatedInitialValue}
+                    defaultValue={currentValue}
                     ref={ref}
                     className={cn(
                         "relative flex w-full touch-none select-none items-center",
@@ -70,6 +67,7 @@ export const SliderTooltip = React.forwardRef<React.ComponentRef<typeof SliderPr
                     )}
                     onValueChange={handleValueChange}
                     onPointerDown={handlePointerDown}
+                    disabled={isSessionLoading || !currentAppState}
                     {...props} // Pass all other slider props (max, min, step, disabled etc.)
                 >
 
@@ -94,7 +92,7 @@ export const SliderTooltip = React.forwardRef<React.ComponentRef<typeof SliderPr
                                 />
                             </TooltipTrigger>
                             <TooltipContent>
-                                <p>{value[0]}</p>
+                                <p>{currentValue[0]}</p>
                             </TooltipContent>
                         </Tooltip>
                     </TooltipProvider>
@@ -104,4 +102,4 @@ export const SliderTooltip = React.forwardRef<React.ComponentRef<typeof SliderPr
     }
 );
 
-SliderTooltip.displayName = "SliderTooltip" // Add display name for better debugging
+SliderTooltip.displayName = "SliderTooltip"

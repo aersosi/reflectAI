@@ -1,4 +1,4 @@
-import * as React from "react";
+import { ComponentPropsWithoutRef, PropsWithChildren } from "react";
 import * as SliderPrimitive from "@radix-ui/react-slider";
 import { AnthropicModel } from "@/definitions/session";
 
@@ -16,18 +16,20 @@ export type PromptTextareaProps = {
     isVariable?: boolean;
     placeholder: string;
     disabled?: boolean;
-    onVariableChange: (value: string) => void;
+    onChange?: (value: string) => void;
+    onCommit?: (value: string) => void;
     className?: string;
 };
 
 export type CardMessageProps = {
     className?: string,
+    messageId?: string,
     isUser?: boolean;
     title: string
     message: string
 };
 
-export type SliderProps = React.ComponentPropsWithoutRef<typeof SliderPrimitive.Root> & {
+export type SliderProps = ComponentPropsWithoutRef<typeof SliderPrimitive.Root> & {
     showTooltip?: boolean;
     hasMarks?: boolean;
     labelTitle?: string;
@@ -35,11 +37,7 @@ export type SliderProps = React.ComponentPropsWithoutRef<typeof SliderPrimitive.
     labelFor?: string;
 };
 
-export type PromptVariablesSheetProps = {
-    data: DataArray;
-};
-
-export type SheetWrapperProps = React.PropsWithChildren & {
+export type SheetWrapperProps = PropsWithChildren & {
     title: string;
     side?: "top" | "right" | "bottom" | "left" | undefined;
     icon?: "settings" | "braces" | "list";

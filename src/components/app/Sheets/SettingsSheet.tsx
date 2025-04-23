@@ -7,10 +7,17 @@ import { useSession } from "@/contexts/SessionContext";
 
 export const SettingsSheet = () => {
     const {anthropicModels} = useAnthropic()
-    const {currentSession} = useSession()
+    const {currentAppState, overwriteSession} = useSession()
 
-    // if (isLoadingModels) return <div>Loading Anthropic models...</div>;
-    // if (modelsError) return <div>An error occurred fetching models: {modelsError.message}</div>;
+    const handleTemperatureChange = (val: number[]) => {
+        overwriteSession("appState.settings.temperature", val[0]);
+    }
+    const handleMaxTokensChange = (val: number[]) => {
+        overwriteSession("appState.settings.maxTokens", val[0]);
+    }
+
+    const temperatureValue = currentAppState.settings?.temperature ? [currentAppState.settings.temperature] : undefined;
+    const maxTokensValue = currentAppState.settings?.maxTokens ? [currentAppState.settings.maxTokens] : undefined;
 
     return (
         <SheetWrapper
@@ -31,19 +38,24 @@ export const SettingsSheet = () => {
                     >
                     </ModelDropdown> : <p>Loading Anthropic Models ...</p>
                 }
+
                 <SliderTooltip
                     id="SliderTemperature"
-                    max={currentSession?.settings?.temperature}
-                    step={currentSession?.settings?.temperatureSteps}
-                    hasMarks={true}
+                    defaultValue={temperatureValue}
+                    max={currentAppState.settings?.temperatureMax}
+                    step={currentAppState.settings?.temperatureSteps}
+                    onValueCommit={handleTemperatureChange}
                     showTooltip={true}
                     labelFor="SliderTemperature"
                     labelTitle="Temperature"
+                    hasMarks={true}
                 />
                 <SliderTooltip
                     id="SliderMaxTokens"
-                    max={currentSession?.settings?.maxTokens}
-                    step={currentSession?.settings?.maxTokensSteps}
+                    defaultValue={maxTokensValue}
+                    max={currentAppState.settings?.maxTokensMax}
+                    step={currentAppState.settings?.maxTokensSteps}
+                    onValueCommit={handleMaxTokensChange}
                     showTooltip={true}
                     labelFor="SliderMaxTokens"
                     labelTitle="Max tokens"

@@ -1,28 +1,27 @@
 import { Input } from "@/components/ui/input";
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, KeyboardEvent } from "react";
 import { Button } from "@/components/ui/button";
 import { useSession } from "@/contexts/SessionContext";
 
 export function SessionNameInput() {
-    const [isEditing, setIsEditing] = useState(false);
-    const [tempName, setTempName] = useState("");
     const inputRef = useRef<HTMLInputElement>(null);
+    const [isEditing, setIsEditing] = useState(false);
+    const [inputValue, setInputValue] = useState("");
 
     const {
         currentSessionName,
         sessions,
         createSession,
-        saveSession,
-        currentSession,
-        initialSession
+        overwriteSession,
+        initialAppState
     } = useSession();
 
     // Automatisch neue Session erstellen beim ersten Laden
     useEffect(() => {
         if (sessions.length === 0) {
-            createSession("New Session", initialSession);
+            createSession("New Session", initialAppState);
         }
-    }, [createSession, initialSession, sessions.length]);
+    }, [createSession, initialAppState, sessions.length]);
 
     // Focus handling beim Editieren
     useEffect(() => {
@@ -30,17 +29,14 @@ export function SessionNameInput() {
     }, [isEditing]);
 
     const startEditing = () => {
-
-        console.log("initialSession", initialSession.settings?.temperature)
-        console.log("currentSession", currentSession)
-
-        setTempName(currentSessionName || "");
         setIsEditing(true);
+        setInputValue(currentSessionName || "");
     };
 
-    const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-        if (e.key === "Enter") {
-            if (tempName.trim()) saveSession(tempName.trim(), currentSession);
+    const handleKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
+        if (e.key === "Enter" && !e.shiftKey) {
+            e.preventDefault(); // Kein Zeilenumbruch
+            if (inputValue) overwriteSession("name", inputValue.trim());
             setIsEditing(false);
         } else if (e.key === "Escape") {
             setIsEditing(false);
@@ -48,7 +44,7 @@ export function SessionNameInput() {
     };
 
     const handleCreateNewSession = () => {
-        createSession("New Session", initialSession);
+        createSession("New Session", initialAppState);
     };
 
     return (
@@ -56,8 +52,8 @@ export function SessionNameInput() {
             {isEditing ? (
                 <Input
                     className="grow"
-                    value={tempName}
-                    onChange={(e) => setTempName(e.target.value)}
+                    value={inputValue}
+                    onChange={(e) => setInputValue(e.target.value)}
                     onKeyDown={handleKeyDown}
                     onBlur={() => setIsEditing(false)}
                     ref={inputRef}
