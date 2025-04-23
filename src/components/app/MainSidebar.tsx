@@ -1,5 +1,7 @@
+import { PromptVariablesSheet } from "@/components/app/Sheets/PromptVariablesSheet";
 import { ContinueTextarea } from "@/components/lib/ContinueTextarea";
 import { useSession } from "@/contexts/SessionContext";
+import { DataArray } from "@/definitions/variables";
 import { useEffect, useState } from "react";
 import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader } from "@/components/ui/sidebar";
 import { Button } from "@/components/ui/button";
@@ -20,17 +22,17 @@ export function MainSidebar() {
     const currentSystemPrompt = currentAppState.systemPrompt;
     const [textareaExpanded, setTextareaExpanded] = useState(false);
 
-    // const extractVariables = (str: string): string[] => {
-    //     return str.match(/\{\{\s*([^}]+)\s*}}/g) || [];
-    // }
+    const extractVariables = (str: string): string[] => {
+        return str.match(/\{\{\s*([^}]+)\s*}}/g) || [];
+    }
 
-    // const systemUserArr: DataArray = [];
+    const systemUserArr: DataArray = [];
 
     // todo: integrate variables later into the whole flow
-    // const systemVars = extractVariables(systemValue);
-    // if (systemVars.length > 0) systemUserArr.push({title: "System prompt", variables: systemVars});
-    // const userVars = extractVariables(userValue);
-    // if (userVars.length > 0) systemUserArr.push({title: "User prompt", variables: userVars});
+    const systemVars = extractVariables(systemValue);
+    if (systemVars.length > 0) systemUserArr.push({title: "System prompt", variables: systemVars});
+    const userVars = extractVariables(userValue);
+    if (userVars.length > 0) systemUserArr.push({title: "User prompt", variables: userVars});
 
     const handleChangeSystem = (value: string) => setSystemValue(value);
     const handleChangeUser = (value: string) => setUserValue(value);
@@ -105,7 +107,7 @@ export function MainSidebar() {
                 <h1 className="font-bold transition-colors text-primary hover:text-purple-500">reflectAI</h1>
                 <div className="flex gap-6">
                     <SettingsSheet/>
-                    {/*<PromptVariablesSheet variables={systemUserArr}/>*/}
+                    <PromptVariablesSheet variables={systemUserArr}/>
                 </div>
             </SidebarHeader>
             <SidebarContent className="flex grow flex-col gap-4 p-4">
