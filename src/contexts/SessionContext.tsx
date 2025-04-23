@@ -54,7 +54,6 @@ export const SessionProvider: SessionProviderProps = ({children, initialAppState
                 appState: initialAppState,
             };
             sessionsToSave = [newSession];
-            saveDataToStorage<Session>(sessionsToSave, LOCAL_STORAGE_SESSION);
             sessionToActivate = newSession;
             navigateToSession(newSession);
         }
@@ -65,7 +64,6 @@ export const SessionProvider: SessionProviderProps = ({children, initialAppState
         isInitialized.current = true;
 
     }, [initialAppState, navigate, searchParams, location.pathname]);
-
     useEffect(() => {
         if (!isInitialized.current || isSessionLoading) return;
         const sessionIdFromUrl = searchParams.get('sessionId');
@@ -78,6 +76,9 @@ export const SessionProvider: SessionProviderProps = ({children, initialAppState
         }
 
     }, [searchParams, allSessions, currentSessionId, isSessionLoading]);
+    useEffect(() => {
+        if (isInitialized.current) saveDataToStorage<Session>(allSessions, LOCAL_STORAGE_SESSION);
+    }, [allSessions]);
 
     const navigateToSession = (session: Session) => {
         if (location.pathname === '/') {
@@ -87,7 +88,6 @@ export const SessionProvider: SessionProviderProps = ({children, initialAppState
 
     const updateAndSaveSessions = (newSessions: Session[]) => {
         setAllSessions(newSessions);
-        saveDataToStorage<Session>(newSessions, LOCAL_STORAGE_SESSION);
     }
 
     const loadSession = useCallback((sessionId: string): boolean => {

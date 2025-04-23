@@ -27,8 +27,6 @@ export const AnthropicProvider: FC<AnthropicProviderProps> = ({children}) => {
     );
 
     const {models, isLoadingModels, error: modelsError} = useFetchAnthropicModels();
-    const {overwriteSession, currentMessagesHistory, appendToMessagesHistory} = useSession();
-
     const [loadingMessages, setLoadingMessages] = useState(false);
     const [messagesError, setMessagesError] = useState<Error | null>(null);
 
@@ -53,28 +51,12 @@ export const AnthropicProvider: FC<AnthropicProviderProps> = ({children}) => {
         };
     };
 
-    const saveAnthropicResponse = useCallback((latestAnthropicResponse: AnthropicResponse) => {
-        if (!latestAnthropicResponse?.content?.[0]?.text?.trim()) {
-            console.warn("Leere Anthropic-Antwort erhalten, wird nicht gespeichert.");
-            return;
-        }
-
-        // const updated = [...currentMessagesHistory, mapToCurrentMessagesHistory(latestAnthropicResponse)]
-        // overwriteSession("appState.messagesHistory", updated);
-
-        appendToMessagesHistory(mapToCurrentMessagesHistory(latestAnthropicResponse));
-        // console.log("Anthropic-Antwort gespeichert:", latestAnthropicResponse);
-
-    }, [appendToMessagesHistory]);
-
-
     const callAnthropic = useCallback(async (currentMessagesHistory: Message[], systemPrompt: string | undefined) => {
         setLoadingMessages(true);
         setMessagesError(null);
 
         try {
             const formattedMessages = formatMessagesForAnthropic(currentMessagesHistory);
-
             const response = await anthropic.messages.create({
                 model: "claude-3-haiku-20240307", // TODO: Modell eventuell konfigurierbar machen
                 max_tokens: 200,
@@ -89,15 +71,14 @@ export const AnthropicProvider: FC<AnthropicProviderProps> = ({children}) => {
                 throw new Error("Ungültige Antwortstruktur von Anthropic erhalten");
             }
 
-            saveAnthropicResponse(response as AnthropicResponse);
-
+            return mapToCurrentMessagesHistory(response as AnthropicResponse)
         } catch (error) {
             console.error("Fehler beim Generieren der Anthropic-Nachricht:", error);
             setMessagesError(error instanceof Error ? error : new Error('Ein unbekannter Fehler ist aufgetreten'));
         } finally {
             setLoadingMessages(false);
         }
-    }, [anthropic, formatMessagesForAnthropic, saveAnthropicResponse]);
+    }, [anthropic, formatMessagesForAnthropic]);
 
     // --- Kontextwert zusammenstellen ---
     const contextValue: AnthropicContextType = {

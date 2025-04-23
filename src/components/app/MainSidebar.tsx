@@ -5,11 +5,9 @@ import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader } from "@/compone
 import { Button } from "@/components/ui/button";
 import { ChevronUpIcon, Play } from "lucide-react";
 import { SettingsSheet } from "@/components/app/Sheets/SettingsSheet";
-import { PromptVariablesSheet } from "@/components/app/Sheets/PromptVariablesSheet";
 import { PromptTextarea } from "@/components/lib/PromptTextarea";
 import { AnthropicResponse } from "@/definitions/api";
 import { Message } from "@/definitions/session";
-import { DataArray } from "@/definitions/variables";
 import { useAnthropic } from "@/contexts/AnthropicContext";
 
 export function MainSidebar() {
@@ -24,30 +22,28 @@ export function MainSidebar() {
     const currentSystemPrompt = currentAppState.systemPrompt;
     const [textareaExpanded, setTextareaExpanded] = useState(false);
 
-    const extractVariables = (str: string): string[] => {
-        return str.match(/\{\{\s*([^}]+)\s*}}/g) || [];
-    }
+    // const extractVariables = (str: string): string[] => {
+    //     return str.match(/\{\{\s*([^}]+)\s*}}/g) || [];
+    // }
 
-    const systemUserArr: DataArray = [];
+    // const systemUserArr: DataArray = [];
 
     // todo: integrate variables later into the whole flow
-    const systemValues = extractVariables(systemValue);
-    if (systemValues.length > 0) systemUserArr.push({title: "System prompt", variables: systemValues});
-    const userValues = extractVariables(userValue);
-    if (userValues.length > 0) systemUserArr.push({title: "User prompt", variables: userValues});
+    // const systemVars = extractVariables(systemValue);
+    // if (systemVars.length > 0) systemUserArr.push({title: "System prompt", variables: systemVars});
+    // const userVars = extractVariables(userValue);
+    // if (userVars.length > 0) systemUserArr.push({title: "User prompt", variables: userVars});
 
-
-    const handleChangeSystem = (value: string) => setSystemValue(value)
+    const handleChangeSystem = (value: string) => setSystemValue(value);
     const handleChangeUser = (value: string) => setUserValue(value);
     const handleChangeContinue = (value: string) => setContinueValue(value);
 
-
-    const handleCommitSystem = (value: string) => {
+    const updateHistorySystem = (value: string) => {
         if (value === currentSystemPrompt) return; // value unchanged -> don't add to messagesHistory
         overwriteSession("appState.systemPrompt", value);
     };
 
-    const handleCommitUser = (value: string) => {
+    const updateHistoryUser = (value: string) => {
         const previousText = localHistory
             .find(msg => msg.id === "user_prompt")
             ?.content?.[0]?.text;
@@ -63,12 +59,8 @@ export function MainSidebar() {
         appendToMessagesHistory(userMessage);
     };
 
-    const handleRun = async () => {
-        callAnthropic(localHistory, currentSystemPrompt);
-    };
-
-    const handleRunContinue = async () => {
-        if (continueValue.length == 0) return
+    const updateHistoryContinue = () => {
+        if (continueValue.length === 0) return;
 
         const userMessage: AnthropicResponse = {
             id: `continue_${crypto.randomUUID()}`,
@@ -76,24 +68,29 @@ export function MainSidebar() {
             role: "user",
             content: [{type: "text", text: continueValue}],
         };
-
-        const updatedHistory = [...localHistory, userMessage];
-        setLocalHistory(updatedHistory);
         appendToMessagesHistory(userMessage);
-        await callAnthropic(updatedHistory, currentSystemPrompt);
     };
 
+    const handleRunContinue = async () => {
+        updateHistoryContinue();
+        const anthropicReturn = await callAnthropic(currentMessagesHistory, currentSystemPrompt);
+        appendToMessagesHistory(anthropicReturn);
+    };
+
+    const handleRun = async () => {
+        const anthropicReturn = await callAnthropic(currentMessagesHistory, currentSystemPrompt);
+        appendToMessagesHistory(anthropicReturn);
+    };
 
     const toggleTextareaExpanded = () => {
         setTextareaExpanded(prev => !prev);
     };
 
     const isRunButtonDisabled = loadingMessages || !userValue.trim();
+    const isContinueRunDisabled = loadingMessages || (!userValue.trim() && !continueValue.trim());
 
-    const containsAssistantId = localHistory.some((msg) =>
-        msg.id && msg.id.startsWith("assistant")
-    );
     const isUserPrompt = currentMessagesHistory.find(msg => msg.id === "user_prompt");
+    const containsAssistantId = currentMessagesHistory.some(item => item.id && item.id.startsWith("assistant"));
 
     // load Values on Start
     useEffect(() => {
@@ -111,14 +108,14 @@ export function MainSidebar() {
                 <h1 className="font-bold transition-colors text-primary hover:text-purple-500">reflectAI</h1>
                 <div className="flex gap-6">
                     <SettingsSheet/>
-                    <PromptVariablesSheet variables={systemUserArr}/>
+                    {/*<PromptVariablesSheet variables={systemUserArr}/>*/}
                 </div>
             </SidebarHeader>
             <SidebarContent className="flex grow flex-col gap-4 p-4">
                 <PromptTextarea
                     value={systemValue}
                     onChange={handleChangeSystem}
-                    onCommit={handleCommitSystem}
+                    onCommit={updateHistorySystem}
                     title="System prompt"
                     placeholder="Enter system prompt"
                     disabled={loadingMessages}
@@ -127,7 +124,7 @@ export function MainSidebar() {
                     isUser={true}
                     value={userValue}
                     onChange={handleChangeUser}
-                    onCommit={handleCommitUser}
+                    onCommit={updateHistoryUser}
                     title="User prompt"
                     placeholder="Enter user prompt"
                     disabled={loadingMessages}
@@ -150,7 +147,6 @@ export function MainSidebar() {
                                     isUser={true}
                                     value={continueValue}
                                     onChange={handleChangeContinue}
-                                    // onCommit={handleCommitContinue}
                                     title="User prompt"
                                     placeholder="Type follow up question ..."
                                     disabled={loadingMessages}
@@ -160,7 +156,7 @@ export function MainSidebar() {
                             <div className="flex flex-col-reverse gap-4 justify-between items-end">
                                 <Button
                                     onClick={handleRunContinue}
-                                    disabled={isRunButtonDisabled}
+                                    disabled={isContinueRunDisabled}
                                     size="lg" variant="outlinePrimary"
                                 >
                                     <Play/> Run
