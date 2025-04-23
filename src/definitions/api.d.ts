@@ -12,7 +12,7 @@ type MessageUsage = {
 
 export type AnthropicResponse = {
     id: string;
-    type: "message";
+    type: string;
     role: "assistant" | "user";
     model?: string;
     content: MessageContentPart[];
@@ -21,12 +21,6 @@ export type AnthropicResponse = {
     usage?: MessageUsage;
 };
 
-export type DataItem = {
-    title: string;
-    variables: string[];
-};
-
-export type DataArray = DataItem[];
 
 export type AnthropicModel = {
     display_name: string,
@@ -47,8 +41,7 @@ export type AnthropicContextType = {
     isLoadingModels: boolean;
     modelsError: Error | null;
 
-    messagesResponse: AssistantResponse[] | null;
     loadingMessages: boolean;
     messagesError: Error | null;
-    callAnthropic: (userPrompt: string, systemPrompt?: string) => void;
+    callAnthropic: (currentMessagesHistory: Message[], systemPrompt: string | undefined) => Promise<void>
 }

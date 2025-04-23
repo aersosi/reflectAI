@@ -16,12 +16,14 @@ export type PromptTextareaProps = {
     isVariable?: boolean;
     placeholder: string;
     disabled?: boolean;
-    onChange: (value: string) => void;
+    onChange?: (value: string) => void;
+    onCommit?: (value: string) => void;
     className?: string;
 };
 
 export type CardMessageProps = {
     className?: string,
+    messageId?: string,
     isUser?: boolean;
     title: string
     message: string
@@ -33,10 +35,6 @@ export type SliderProps = ComponentPropsWithoutRef<typeof SliderPrimitive.Root> 
     labelTitle?: string;
     labelValue?: number;
     labelFor?: string;
-};
-
-export type PromptVariablesSheetProps = {
-    data: DataArray;
 };
 
 export type SheetWrapperProps = PropsWithChildren & {

@@ -12,26 +12,24 @@ export type Settings = {
 export type Message = {
     id?: string | undefined;
     role: "user" | "assistant";
+    type: string;
     content: {
         type: string;
         text: string;
     }[];
 }
 
-export type Messages = Message[];
-
 export type AppState = {
     settings: Settings | null;
     systemPrompt: string | undefined;
-    userPrompt: string;
-    messages: Messages | null;
+    messagesHistory: Message[] | [];
 };
 
 export type Session = {
     id: string;
-    name: string;
+    name: string | null;
     date: number; // Unix Timestamp (ms)
-    appState: AppState | null;
+    appState: AppState;
 };
 
 export type SessionMeta = Omit<Session, 'appState'>;
@@ -39,15 +37,15 @@ export type SessionMeta = Omit<Session, 'appState'>;
 export type SessionContextType = {
     sessions: SessionMeta[];
     currentSessionId: string | null;
-    currentSessionName: string | null;
+    currentSessionName: string;
     initialAppState: AppState;
-    currentAppState: AppState | null;
+    currentAppState: AppState;
+    currentMessagesHistory: Message[] | [];
     loadSession: (sessionId: string) => boolean;
-    saveSession: (
-        updates?: string | { settings: Partial<Settings> },
-        updatedState?: AppState | null
-    ) => void;
+    overwriteSession: (path: string, value: any) => void;
+    appendToMessagesHistory: (value: any) => void;
     createSession: (sessionName: string, initialState: AppState) => void;
     deleteSession: (sessionId: string) => void;
+    deleteMessage: (messageId: string) => void;
     isSessionLoading: boolean;
 };

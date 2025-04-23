@@ -1,4 +1,4 @@
-import { AppState, Messages, Settings } from "@/definitions/session";
+import { AppState, Message, Settings } from "@/definitions/session";
 
 const settings: Settings = {
     model: "",
@@ -10,37 +10,12 @@ const settings: Settings = {
     maxTokensSteps: 4,
     apiKey: "",
 };
-//
-// const messages: Messages = [
-//     {
-//         "role": "user",
-//         "content": [
-//             {
-//                 "type": "text",
-//                 "text": ""
-//             }
-//         ]
-//     },
-//     {
-//         "role": "assistant",
-//         "content": [
-//             {
-//                 "type": "text",
-//                 "text": ""
-//             }
-//         ]
-//     }
-// ];
 
-const messages: Messages = [];
-
-
+const messagesHistory: Message[] = [];
 const systemPrompt: string = "";
-const userPrompt: string = "";
 
 export const defaultAppState: AppState = {
     settings,
     systemPrompt,
-    userPrompt,
-    messages,
+    messagesHistory,
 };

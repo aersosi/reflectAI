@@ -7,25 +7,20 @@ import { Eye, EyeOff } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export function ApiKeyInput({className}: { className?: string }) {
+    const {currentAppState, overwriteSession, isSessionLoading} = useSession();
     const [showApiKey, setShowApiKey] = useState(false);
-    const {currentAppState, saveSession, isSessionLoading} = useSession();
     const [inputValue, setInputValue] = useState("");
 
 
     // Sync with context value on mount/context change
     useEffect(() => {
-        currentAppState?.settings?.apiKey && setInputValue(currentAppState.settings.apiKey);
-    }, [currentAppState?.settings?.apiKey]);
+        currentAppState.settings?.apiKey && setInputValue(currentAppState.settings.apiKey);
+    }, [currentAppState.settings?.apiKey]);
 
     const persistInput = () => {
         if (!currentAppState) return;
         if (inputValue !== currentAppState.settings?.apiKey) {
-            saveSession({
-                settings: {
-                    ...currentAppState.settings,
-                    apiKey: inputValue,
-                },
-            });
+            overwriteSession("appState.settings.apiKey", inputValue);
         }
     };
 
@@ -34,7 +29,8 @@ export function ApiKeyInput({className}: { className?: string }) {
     };
 
     const handleKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
-        if (e.key === "Enter") {
+        if (e.key === "Enter" && !e.shiftKey) {
+            e.preventDefault(); // Kein Zeilenumbruch
             persistInput();
         }
     };
@@ -51,7 +47,7 @@ export function ApiKeyInput({className}: { className?: string }) {
                 Note: Using at own risk
             </p>
 
-            // todo: apply this pattern (value, onChange, Keydown, Blur) to all inputs
+            {/*todo: apply this pattern (value, onChange, Keydown, Blur) to all inputs*/}
             <Input
                 type={inputType}
                 id="ApiKey"

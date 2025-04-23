@@ -1,20 +1,18 @@
 import { useSidebar } from "@/components/ui/sidebar";
-import { ChatCard } from "@/components/app/Chat/ChatCard"; // Correct path?
+import { ChatCard } from "@/components/app/Chat/ChatCard";
 import { Button } from "@/components/ui/button";
+import { useSession } from "@/contexts/SessionContext";
+import { Message } from "@/definitions/session";
 import { PanelLeftIcon } from "lucide-react";
 import { SessionNameInput } from "@/components/app/Chat/SessionNameInput";
-import { SessionsSheet } from "@/components/app/Sheets/SessionsSheet"; // Correct path?
-import { AnthropicResponse } from "@/definitions/api";
-import { useAnthropic } from "@/contexts/AnthropicContext"; // Import the hook
+import { SessionsSheet } from "@/components/app/Sheets/SessionsSheet";
+import { useAnthropic } from "@/contexts/AnthropicContext";
 import { useEffect, useRef } from "react";
 
 export function Chat() {
     const {toggleSidebar} = useSidebar();
-    const {
-        messagesResponse, // Get the messages array from contexts
-        loadingMessages, // Maybe show a loading indicator?
-        messagesError // Maybe show an error message?
-    } = useAnthropic();
+    const {loadingMessages, messagesError} = useAnthropic();
+    const {currentMessagesHistory} = useSession();
 
     // Ref for scrolling
     const scrollAreaRef = useRef<HTMLDivElement>(null);
@@ -24,7 +22,7 @@ export function Chat() {
         if (scrollAreaRef.current) {
             scrollAreaRef.current.scrollTo({top: scrollAreaRef.current.scrollHeight, behavior: 'smooth'});
         }
-    }, [messagesResponse]);
+    }, [currentMessagesHistory]);
 
     function CustomSidebarTrigger() {
         return <Button
@@ -40,33 +38,34 @@ export function Chat() {
     }
 
     // Helper function to get the first text part of content
-    const getFirstTextMessage = (message: AnthropicResponse): string => {
+    const getFirstTextMessage = (message: Message): string => {
         // Ensure content exists and is an array before finding
         if (message.content && Array.isArray(message.content)) {
             const textContent = message.content.find(part => part.type === 'text');
             return textContent?.text || ''; // Return text or empty string
         }
-        return ''; // Return empty string if content is missing or not an array
+        return 'Error: content is missing or not an array';
     };
 
     // Helper function to determine title based on role
     const getTitleFromRole = (role: 'assistant' | 'user'): string => {
-        return role === 'assistant' ? 'Agent' : 'User';
+        return role === 'assistant' ? 'Assistant' : 'User';
     };
 
     return (
-        <main className="flex flex-col grow h-full overflow-hidden"> {/* Ensure main takes height */}
-            <div className="flex gap-4 p-4 justify-between border-b shrink-0"> {/* Header doesn't shrink */}
+        <main className="flex flex-col grow h-full overflow-hidden">
+            <div className="flex gap-4 p-4 justify-between border-b shrink-0">
                 <div className="flex gap-4 items-center grow">
                     <CustomSidebarTrigger/>
                     <SessionNameInput/>
                 </div>
                 <SessionsSheet/>
             </div>
-            <div className="flex flex-col gap-4 p-4">
-                {messagesResponse && messagesResponse.map(message => (
+            <div className="flex flex-col gap-4 p-4 overflow-auto grow">
+                {currentMessagesHistory && currentMessagesHistory.map(message => (
                     <ChatCard
-                        key={message.id} // Use the unique ID from the message object
+                        key={message.id}
+                        messageId={message.id}
                         isUser={message.role === 'user'}
                         title={getTitleFromRole(message.role)}
                         message={getFirstTextMessage(message)}
@@ -76,8 +75,8 @@ export function Chat() {
                     <ChatCard
                         key="loading"
                         isUser={false} // Or a neutral style
-                        title="Agent"
-                        message="Thinking..." // Or a spinner component
+                        title="Assistant"
+                        message="Thinking ..." // Or a spinner component
                     />
                 )}
                 {messagesError && (
@@ -89,6 +88,11 @@ export function Chat() {
                     />
                 )}
             </div>
+            <footer className="flex gap-4 px-4 py-2 justify-between border-t">
+                <div>{currentMessagesHistory.length}</div>
+                <div>All tokens: 123</div>
+                <div>All token cost: 123</div>
+            </footer>
         </main>
     );
 }

@@ -14,27 +14,21 @@ import { AnthropicModel } from "@/definitions/api";
 
 export function ModelDropdown({data, placeholder, labelTitle, labelFor}: ModelInputProps) {
     const [isOpen, setIsOpen] = useState(false);
-    const {currentAppState, saveSession, isSessionLoading} = useSession();
+    const {currentAppState, overwriteSession, isSessionLoading} = useSession();
 
     const handleEscapeKeydown = () => {
         setIsOpen(false);
     }
 
     const handleValue = (): string => {
-        if (!currentAppState?.settings) {
+        if (!currentAppState.settings) {
             return data?.[0]?.id || '';
         }
         return currentAppState.settings.model || data?.[0]?.id || '';
     };
 
     const handleChange = (value: string) => {
-        if (!currentAppState) return;
-        saveSession({
-            settings: {
-                ...currentAppState?.settings,
-                model: value,
-            },
-        });
+        if (value) overwriteSession("appState.settings.model", value);
     }
 
     return (
