@@ -7,7 +7,6 @@ import { ChevronUpIcon, Play } from "lucide-react";
 import { SettingsSheet } from "@/components/app/Sheets/SettingsSheet";
 import { PromptTextarea } from "@/components/lib/PromptTextarea";
 import { AnthropicResponse } from "@/definitions/api";
-import { Message } from "@/definitions/session";
 import { useAnthropic } from "@/contexts/AnthropicContext";
 
 export function MainSidebar() {
@@ -17,7 +16,6 @@ export function MainSidebar() {
     const [systemValue, setSystemValue] = useState('');
     const [userValue, setUserValue] = useState('');
     const [continueValue, setContinueValue] = useState('');
-    const [localHistory, setLocalHistory] = useState<Message[]>(currentMessagesHistory);
 
     const currentSystemPrompt = currentAppState.systemPrompt;
     const [textareaExpanded, setTextareaExpanded] = useState(false);
@@ -43,7 +41,7 @@ export function MainSidebar() {
         overwriteSession("appState.systemPrompt", value);
     };
     const updateHistoryUser = (value: string) => {
-        const previousText = localHistory
+        const previousText = currentMessagesHistory
             .find(msg => msg.id === "user_prompt")
             ?.content?.[0]?.text;
         if (value === previousText || !value.trim()) return; // value unchanged -> don't add to messagesHistory
@@ -54,7 +52,6 @@ export function MainSidebar() {
             role: "user",
             content: [{type: "text", text: value}]
         };
-        setLocalHistory(prev => [...prev, userMessage]);
         appendToMessagesHistory(userMessage);
     };
     const updateHistoryContinue = () => {
@@ -100,8 +97,7 @@ export function MainSidebar() {
             const userText = isUserPrompt.content?.[0]?.text;
             if (userText) setUserValue(userText);
         }
-        setLocalHistory(currentMessagesHistory);
-    }, [currentSystemPrompt, localHistory, currentMessagesHistory]);
+    }, [currentSystemPrompt, isUserPrompt, currentMessagesHistory]);
 
     return (
         <Sidebar>
