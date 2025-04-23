@@ -41,9 +41,7 @@ export type AnthropicContextType = {
     isLoadingModels: boolean;
     modelsError: Error | null;
 
-    messagesHistory: Message[] | null;
     loadingMessages: boolean;
     messagesError: Error | null;
-    callAnthropic: (messagesHistory: Message[], systemPrompt: string) => Promise<void>
-
+    callAnthropic: (currentMessagesHistory: Message[], systemPrompt: string | undefined) => Promise<void>
 }

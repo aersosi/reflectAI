@@ -25,10 +25,10 @@ export function PromptTextarea({
     const [internalValue, setInternalValue] = useState(value);
     const committedValueRef = useRef(value);
 
-    // Aktualisiere bei externem Wertwechsel
+    // Bei external control: synchronisiere state mit prop
     useEffect(() => {
-        setInternalValue(value);
-        committedValueRef.current = value;
+            setInternalValue(value!);
+            committedValueRef.current = value!;
     }, [value]);
 
     const handleKeyDown = (e: KeyboardEvent<HTMLTextAreaElement>) => {
@@ -52,7 +52,8 @@ export function PromptTextarea({
     };
 
     const handleBlur = () => {
-        if (!internalValue.trim()) return; // return on empty textarea
+        if (!internalValue.trim()) return;
+        if (internalValue === committedValueRef.current) return;
         committedValueRef.current = internalValue;
         onCommit?.(internalValue);
     };

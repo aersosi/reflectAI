@@ -11,8 +11,14 @@ import { cn } from "@/lib/utils";
 import { Trash2 } from "lucide-react";
 
 export function ChatCard({className, messageId ,isUser, title, message}: CardMessageProps) {
-    const {deleteMessage} = useSession();
+    const {currentAppState, deleteMessage} = useSession();
 
+    // edit this message function -> delete message from chat/history and push it into textfield
+    // const messageType = (msg: string, value:string):boolean => {
+    //     currentAppState.messagesHistory.some((msg) =>
+    //         msg.id && msg.id.startsWith("assistant")
+    //     );
+    // }
 
     const roleMargin = isUser ? "xl:ml-56" : "xl:mr-56";
     const roleColor =

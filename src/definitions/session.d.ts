@@ -40,6 +40,7 @@ export type SessionContextType = {
     currentSessionName: string;
     initialAppState: AppState;
     currentAppState: AppState;
+    currentMessagesHistory: Message[] | [];
     loadSession: (sessionId: string) => boolean;
     overwriteSession: (path: string, value: any) => void;
     appendToMessagesHistory: (value: any) => void;

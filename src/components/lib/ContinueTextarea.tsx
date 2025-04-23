@@ -2,7 +2,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { PromptTextareaProps } from "@/definitions/props";
 import { KeyboardEvent, useEffect, useRef, useState } from "react";
 
-export function FollowUpTextarea({
+export function ContinueTextarea({
                                      value,
                                      onChange,
                                      onCommit,

@@ -9,7 +9,7 @@ export const PromptVariablesSheet = ({ variables }: {variables: DataArray}) => {
                       saveButton={true} disabled={variables.length === 0}>
             {variables.map((vars: DataItem, index: number) => (
                 vars.variables.map((singleVar: string) => (
-                    <PromptTextarea
+                <PromptTextarea
                         isUser={vars.title.toLowerCase().includes("user")}
                         isVariable={true}
                         key={`${singleVar}-${index}`}

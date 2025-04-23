@@ -1,4 +1,4 @@
-import { FollowUpTextarea } from "@/components/lib/FollowUpTextarea";
+import { ContinueTextarea } from "@/components/lib/ContinueTextarea";
 import { useSession } from "@/contexts/SessionContext";
 import { useEffect, useState } from "react";
 import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader } from "@/components/ui/sidebar";
@@ -8,46 +8,50 @@ import { SettingsSheet } from "@/components/app/Sheets/SettingsSheet";
 import { PromptVariablesSheet } from "@/components/app/Sheets/PromptVariablesSheet";
 import { PromptTextarea } from "@/components/lib/PromptTextarea";
 import { AnthropicResponse } from "@/definitions/api";
+import { Message } from "@/definitions/session";
 import { DataArray } from "@/definitions/variables";
 import { useAnthropic } from "@/contexts/AnthropicContext";
 
 export function MainSidebar() {
-    const [systemVariable, setSystemVariable] = useState('');
-    const [userVariable, setUserVariable] = useState('');
-    const [userContinue, setUserContinue] = useState('');
-    const [textareaExpanded, setTextareaExpanded] = useState(false);
     const {loadingMessages, callAnthropic} = useAnthropic();
-    const {currentAppState, overwriteSession, appendToMessagesHistory} = useSession();
+    const {currentAppState, currentMessagesHistory, overwriteSession, appendToMessagesHistory} = useSession();
+
+    const [systemValue, setSystemValue] = useState('');
+    const [userValue, setUserValue] = useState('');
+    const [continueValue, setContinueValue] = useState('');
+    const [localHistory, setLocalHistory] = useState<Message[]>(currentMessagesHistory);
+
+    const currentSystemPrompt = currentAppState.systemPrompt;
+    const [textareaExpanded, setTextareaExpanded] = useState(false);
 
     const extractVariables = (str: string): string[] => {
         return str.match(/\{\{\s*([^}]+)\s*}}/g) || [];
     }
 
-    const systemUserVariables: DataArray = [];
+    const systemUserArr: DataArray = [];
 
     // todo: integrate variables later into the whole flow
-    const systemVars = extractVariables(systemVariable);
-    if (systemVars.length > 0) systemUserVariables.push({title: "System prompt", variables: systemVars});
-    const userVars = extractVariables(userVariable);
-    if (userVars.length > 0) systemUserVariables.push({title: "User prompt", variables: userVars});
+    const systemValues = extractVariables(systemValue);
+    if (systemValues.length > 0) systemUserArr.push({title: "System prompt", variables: systemValues});
+    const userValues = extractVariables(userValue);
+    if (userValues.length > 0) systemUserArr.push({title: "User prompt", variables: userValues});
 
-    const handleChangeSystem = (value: string) => setSystemVariable(value)
+
+    const handleChangeSystem = (value: string) => setSystemValue(value)
+    const handleChangeUser = (value: string) => setUserValue(value);
+    const handleChangeContinue = (value: string) => setContinueValue(value);
+
+
     const handleCommitSystem = (value: string) => {
-        if (value === currentAppState.systemPrompt) return; // is value did not change
+        if (value === currentSystemPrompt) return; // value unchanged -> don't add to messagesHistory
         overwriteSession("appState.systemPrompt", value);
     };
 
-    const handleChangeUser = (value: string) => setUserVariable(value);
-
-    // if the value passed to handleCommitUser is the same as currentAppState.messagesHistory.message.id === "user_prompt" -> return
-
     const handleCommitUser = (value: string) => {
-        const isUserPrompt = currentAppState.messagesHistory.find(
-            (msg) => msg.id === "user_prompt"
-        );
-
-        const previousText = isUserPrompt?.content?.[0]?.text ?? "";
-        if (value === previousText) return;
+        const previousText = localHistory
+            .find(msg => msg.id === "user_prompt")
+            ?.content?.[0]?.text;
+        if (value === previousText || !value.trim()) return; // value unchanged -> don't add to messagesHistory
 
         const userMessage: AnthropicResponse = {
             id: `user_prompt`,
@@ -55,56 +59,51 @@ export function MainSidebar() {
             role: "user",
             content: [{type: "text", text: value}]
         };
+        setLocalHistory(prev => [...prev, userMessage]);
         appendToMessagesHistory(userMessage);
-
-    };
-
-    const handleChangeContinue = (value: string) => setUserContinue(value);
-
-    const handleCommitContinue = async (): Promise<AnthropicResponse | null> => {
-        const userMessage: AnthropicResponse = {
-            id: `user_${crypto.randomUUID()}`,
-            type: "message",
-            role: "user",
-            content: [{type: "text", text: userContinue}]
-        };
-
-        appendToMessagesHistory(userMessage);
-        return userMessage;
     };
 
     const handleRun = async () => {
-        const newMessage = await handleCommitContinue();
-
-        const updatedMessages = newMessage
-            ? [...currentAppState.messagesHistory, newMessage]
-            : currentAppState.messagesHistory;
-
-        await callAnthropic(updatedMessages, systemVariable.trim());
+        callAnthropic(localHistory, currentSystemPrompt);
     };
+
+    const handleRunContinue = async () => {
+        if (continueValue.length == 0) return
+
+        const userMessage: AnthropicResponse = {
+            id: `continue_${crypto.randomUUID()}`,
+            type: "message",
+            role: "user",
+            content: [{type: "text", text: continueValue}],
+        };
+
+        const updatedHistory = [...localHistory, userMessage];
+        setLocalHistory(updatedHistory);
+        appendToMessagesHistory(userMessage);
+        await callAnthropic(updatedHistory, currentSystemPrompt);
+    };
+
 
     const toggleTextareaExpanded = () => {
         setTextareaExpanded(prev => !prev);
     };
 
-    const isRunButtonDisabled = loadingMessages || !userVariable.trim();
+    const isRunButtonDisabled = loadingMessages || !userValue.trim();
 
-    const containsAssistantId = currentAppState.messagesHistory.some((msg) =>
+    const containsAssistantId = localHistory.some((msg) =>
         msg.id && msg.id.startsWith("assistant")
     );
-
+    const isUserPrompt = currentMessagesHistory.find(msg => msg.id === "user_prompt");
 
     // load Values on Start
     useEffect(() => {
-        console.log(userVariable.length);
-        console.log(isRunButtonDisabled);
-
-        if (currentAppState.systemPrompt) setSystemVariable(currentAppState.systemPrompt);
-        if (currentAppState.messagesHistory.length > 0) {
-            setUserVariable(currentAppState.messagesHistory[0].content[0].text);
+        setSystemValue(currentSystemPrompt || "");
+        if (isUserPrompt) {
+            const userText = isUserPrompt.content?.[0]?.text;
+            if (userText) setUserValue(userText);
         }
-    }, [currentAppState.systemPrompt, currentAppState.messagesHistory]);
-
+        setLocalHistory(currentMessagesHistory);
+    }, [currentSystemPrompt, localHistory, currentMessagesHistory]);
 
     return (
         <Sidebar>
@@ -112,12 +111,12 @@ export function MainSidebar() {
                 <h1 className="font-bold transition-colors text-primary hover:text-purple-500">reflectAI</h1>
                 <div className="flex gap-6">
                     <SettingsSheet/>
-                    <PromptVariablesSheet variables={systemUserVariables}/>
+                    <PromptVariablesSheet variables={systemUserArr}/>
                 </div>
             </SidebarHeader>
             <SidebarContent className="flex grow flex-col gap-4 p-4">
                 <PromptTextarea
-                    value={systemVariable}
+                    value={systemValue}
                     onChange={handleChangeSystem}
                     onCommit={handleCommitSystem}
                     title="System prompt"
@@ -126,7 +125,7 @@ export function MainSidebar() {
                 />
                 <PromptTextarea
                     isUser={true}
-                    value={userVariable}
+                    value={userValue}
                     onChange={handleChangeUser}
                     onCommit={handleCommitUser}
                     title="User prompt"
@@ -135,10 +134,7 @@ export function MainSidebar() {
                 />
             </SidebarContent>
 
-            {/*Footer should only be visible if there was an initial call, so there are entries in messageHistory*/}
-            {/*if (currentAppState.messagesHistory.length > 1 || contains message.id === ""assistant)*/}
             <SidebarFooter>
-
                 {!containsAssistantId ?
                     <Button
                         onClick={handleRun}
@@ -150,9 +146,9 @@ export function MainSidebar() {
                     <div className="flex gap-4 p-4 border-t-1 relative">
                         <div className={`flex gap-4 w-full transition-[height] ${textareaExpanded ? "h-60" : "h-22"}`}>
                             <div className="grow relative">
-                                <FollowUpTextarea
+                                <ContinueTextarea
                                     isUser={true}
-                                    value={userContinue}
+                                    value={continueValue}
                                     onChange={handleChangeContinue}
                                     // onCommit={handleCommitContinue}
                                     title="User prompt"
@@ -163,7 +159,7 @@ export function MainSidebar() {
                             </div>
                             <div className="flex flex-col-reverse gap-4 justify-between items-end">
                                 <Button
-                                    onClick={handleRun}
+                                    onClick={handleRunContinue}
                                     disabled={isRunButtonDisabled}
                                     size="lg" variant="outlinePrimary"
                                 >

@@ -5,7 +5,7 @@ import {
     useCallback,
     ReactNode,
     FC,
-    useMemo
+    useMemo, useEffect
 } from 'react';
 import Anthropic from '@anthropic-ai/sdk';
 import { MessageParam } from "@anthropic-ai/sdk/resources"; // Beibehalten für die Formatierung
@@ -27,8 +27,7 @@ export const AnthropicProvider: FC<AnthropicProviderProps> = ({children}) => {
     );
 
     const {models, isLoadingModels, error: modelsError} = useFetchAnthropicModels();
-    const {currentAppState, appendToMessagesHistory} = useSession();
-    const messagesHistory = currentAppState.messagesHistory ?? [];
+    const {overwriteSession, currentMessagesHistory, appendToMessagesHistory} = useSession();
 
     const [loadingMessages, setLoadingMessages] = useState(false);
     const [messagesError, setMessagesError] = useState<Error | null>(null);
@@ -42,35 +41,39 @@ export const AnthropicProvider: FC<AnthropicProviderProps> = ({children}) => {
         }));
     }, []);
 
+    const mapToCurrentMessagesHistory = (source: AnthropicResponse) => {
+        return {
+            id: `assistant_${crypto.randomUUID()}`,
+            type: "message",
+            role: "assistant",
+            content: source.content.map((block) => ({
+                type: "text",
+                text: block.text
+            }))
+        };
+    };
+
     const saveAnthropicResponse = useCallback((latestAnthropicResponse: AnthropicResponse) => {
         if (!latestAnthropicResponse?.content?.[0]?.text?.trim()) {
             console.warn("Leere Anthropic-Antwort erhalten, wird nicht gespeichert.");
             return;
         }
 
-        const mapAnthropicToMessagesHistory = (source: AnthropicResponse) => {
-            return {
-                id: `assistant_${crypto.randomUUID()}`,
-                type: "message",
-                role: "assistant",
-                content: source.content.map((block) => ({
-                    type: "text",
-                    text: block.text
-                }))
-            };
-        };
+        // const updated = [...currentMessagesHistory, mapToCurrentMessagesHistory(latestAnthropicResponse)]
+        // overwriteSession("appState.messagesHistory", updated);
 
-        appendToMessagesHistory(mapAnthropicToMessagesHistory(latestAnthropicResponse));
-        console.log("Anthropic-Antwort gespeichert:", latestAnthropicResponse);
+        appendToMessagesHistory(mapToCurrentMessagesHistory(latestAnthropicResponse));
+        // console.log("Anthropic-Antwort gespeichert:", latestAnthropicResponse);
 
     }, [appendToMessagesHistory]);
 
-    const callAnthropic = useCallback(async (messagesHistory: Message[], systemPrompt: string) => {
+
+    const callAnthropic = useCallback(async (currentMessagesHistory: Message[], systemPrompt: string | undefined) => {
         setLoadingMessages(true);
         setMessagesError(null);
 
         try {
-            const formattedMessages = formatMessagesForAnthropic(messagesHistory);
+            const formattedMessages = formatMessagesForAnthropic(currentMessagesHistory);
 
             const response = await anthropic.messages.create({
                 model: "claude-3-haiku-20240307", // TODO: Modell eventuell konfigurierbar machen
@@ -102,7 +105,6 @@ export const AnthropicProvider: FC<AnthropicProviderProps> = ({children}) => {
         isLoadingModels: isLoadingModels,
         modelsError: modelsError ? modelsError : null,
 
-        messagesHistory: messagesHistory,
         loadingMessages: loadingMessages,
         messagesError: messagesError,
 

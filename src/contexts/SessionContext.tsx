@@ -1,4 +1,5 @@
 import { LOCAL_STORAGE_SESSION } from "@/config/constants";
+import { AnthropicResponse } from "@/definitions/api";
 import { createContext, useState, useContext, useEffect, useCallback, useRef, useMemo, FC, ReactNode } from 'react';
 import { useNavigate, useSearchParams, useLocation } from 'react-router-dom';
 import { SessionContextType, Session, SessionMeta, AppState } from "@/definitions/session";
@@ -17,26 +18,14 @@ export const SessionProvider: SessionProviderProps = ({children, initialAppState
     const [searchParams] = useSearchParams();
     const location = useLocation();
 
-    /**
-     * @function useMemo callback
-     * @description Finds and returns the full session object corresponding to the
-     * currentSessionId from the allSessions array. Memoized to avoid
-     * recalculation unless dependencies change.
-     */
     const currentSessionData = useMemo(() => {
         return allSessions.find(s => s.id === currentSessionId);
     }, [allSessions, currentSessionId]);
 
     const currentAppState = currentSessionData?.appState;
     const currentSessionName = currentSessionData?.name;
+    const currentMessagesHistory = currentAppState?.messagesHistory;
 
-    /**
-     * @useEffect hook
-     * @description Handles the initial setup and loading of sessions when the component mounts
-     * or key dependencies change. It loads sessions from storage, determines the session
-     * to activate (from URL or most recent), creates a new session if needed, updates the URL,
-     * and manages the initial loading state.
-     */
     useEffect(() => {
         if (isInitialized.current) return;
         setIsSessionLoading(true);
@@ -45,12 +34,6 @@ export const SessionProvider: SessionProviderProps = ({children, initialAppState
         const sessionIdFromUrl = searchParams.get('sessionId');
         let sessionToActivate: Session | undefined = undefined;
         let sessionsToSave = [...loadedSessions];
-
-        const navigateToSession = (session: Session) => {
-            if (location.pathname === '/') {
-                navigate(`/?sessionId=${session.id}`, {replace: true});
-            }
-        };
 
         if (sessionIdFromUrl) {
             sessionToActivate = loadedSessions.find(s => s.id === sessionIdFromUrl);
@@ -83,19 +66,11 @@ export const SessionProvider: SessionProviderProps = ({children, initialAppState
 
     }, [initialAppState, navigate, searchParams, location.pathname]);
 
-
-    /**
-     * @useEffect hook
-     * @description Synchronizes the currentSessionId state with the sessionId found in the
-     * URL's query parameters after the initial setup is complete and the component
-     * is not in a loading state. This handles browser navigation (back/forward)
-     * or manual URL changes affecting the sessionId.
-     */
     useEffect(() => {
         if (!isInitialized.current || isSessionLoading) return;
         const sessionIdFromUrl = searchParams.get('sessionId');
 
-        if (sessionIdFromUrl && sessionIdFromUrl !== currentSessionId) {
+        if (sessionIdFromUrl !== currentSessionId) {
             const sessionExists = allSessions.some(s => s.id === sessionIdFromUrl);
             if (sessionExists) setCurrentSessionId(sessionIdFromUrl);
         } else if (!sessionIdFromUrl && currentSessionId) {
@@ -104,23 +79,17 @@ export const SessionProvider: SessionProviderProps = ({children, initialAppState
 
     }, [searchParams, allSessions, currentSessionId, isSessionLoading]);
 
-    /**
-     * @function updateAndSaveSessions
-     * @description Updates the `allSessions` state with the provided array of sessions
-     * and simultaneously persists these changes to local storage.
-     */
+    const navigateToSession = (session: Session) => {
+        if (location.pathname === '/') {
+            navigate(`/?sessionId=${session.id}`, {replace: true});
+        }
+    };
+
     const updateAndSaveSessions = (newSessions: Session[]) => {
         setAllSessions(newSessions);
         saveDataToStorage<Session>(newSessions, LOCAL_STORAGE_SESSION);
     }
 
-    /**
-     * @function loadSession
-     * @description Attempts to load and activate a session specified by its ID.
-     * Updates the current session ID state, navigates to the corresponding URL,
-     * manages loading state, and returns true on success, false otherwise.
-     * Wrapped in useCallback for performance optimization.
-     */
     const loadSession = useCallback((sessionId: string): boolean => {
         const session = allSessions.find(s => s.id === sessionId);
         if (session && sessionId !== currentSessionId) {
@@ -133,13 +102,6 @@ export const SessionProvider: SessionProviderProps = ({children, initialAppState
         return false;
     }, [allSessions, navigate, currentSessionId]);
 
-    /**
-     * @function createSession
-     * @description Creates a new session with a specified name and initial state.
-     * Generates a unique ID, adds the session to the list, saves it,
-     * sets it as the current session, updates the URL, and manages loading state.
-     * Wrapped in useCallback for performance optimization.
-     */
     const createSession = useCallback((sessionName: string, initialState: AppState) => {
         setIsSessionLoading(true);
         const newSession: Session = {
@@ -156,11 +118,7 @@ export const SessionProvider: SessionProviderProps = ({children, initialAppState
         setIsSessionLoading(false);
     }, [allSessions, navigate, initialAppState]);
 
-    /**
-     * @function appendToMessagesHistory
-     * @description Hängt einen Wert an ein Array innerhalb der aktuellen Session an.
-     */
-    const appendToMessagesHistory = useCallback((value: any) => {
+    const appendToMessagesHistory = useCallback((response: AnthropicResponse) => {
         if (!currentSessionId) {
             console.error("appendToMessagesHistory Error: No current session ID.");
             return;
@@ -179,7 +137,7 @@ export const SessionProvider: SessionProviderProps = ({children, initialAppState
 
         session.appState = {
             ...session.appState,
-            messagesHistory: [...messages, value]
+            messagesHistory: [...messages, response]
         };
         session.date = Date.now();
 
@@ -192,12 +150,6 @@ export const SessionProvider: SessionProviderProps = ({children, initialAppState
         updateAndSaveSessions(updatedSessions);
     }, [allSessions, currentSessionId, updateAndSaveSessions]);
 
-
-
-    /**
-     * @function overwriteSession
-     * @description Aktualisiert eine Eigenschaft innerhalb der aktuellen Session anhand eines Pfads.
-     */
     const overwriteSession = useCallback((path: string, value: any) => {
         if (!currentSessionId) {
             console.error("overwriteSession Error: No current session ID.");
@@ -246,15 +198,6 @@ export const SessionProvider: SessionProviderProps = ({children, initialAppState
         }
     }, [allSessions, currentSessionId, updateAndSaveSessions]);
 
-
-
-    /**
-     * @function deleteSession
-     * @description Deletes a session specified by its ID. Removes the session from the list
-     * and saves the updated list. If the deleted session was the currently active one,
-     * it activates the most recent remaining session or creates a new one if none are left.
-     * Wrapped in useCallback for performance optimization.
-     */
     const deleteSession = useCallback((sessionId: string) => {
         const updatedSessions = allSessions.filter(s => s.id !== sessionId);
         updateAndSaveSessions(updatedSessions);
@@ -276,7 +219,6 @@ export const SessionProvider: SessionProviderProps = ({children, initialAppState
             }
         }
     }, [allSessions, currentSessionId, navigate, loadSession, initialAppState]);
-
 
     const deleteMessage = useCallback((messageId: string): void => {
         const updatedSessions = JSON.parse(JSON.stringify(allSessions)); // Deep clone
@@ -308,11 +250,6 @@ export const SessionProvider: SessionProviderProps = ({children, initialAppState
         updateAndSaveSessions(updatedSessions);
     }, [allSessions, updateAndSaveSessions]);
 
-    /**
-     * @description Derives a sorted list of session metadata (id, name, date)
-     * from the `allSessions` state, suitable for display purposes (e.g., in a sidebar list).
-     * The map function extracts the required metadata from each full session object.
-     */
     const sessionMetas: SessionMeta[] = allSessions.map(({id, name, date}) => ({
         id,
         name,
@@ -324,6 +261,7 @@ export const SessionProvider: SessionProviderProps = ({children, initialAppState
         currentSessionId,
         currentSessionName,
         currentAppState,
+        currentMessagesHistory,
         loadSession,
         createSession,
         overwriteSession,
@@ -341,12 +279,6 @@ export const SessionProvider: SessionProviderProps = ({children, initialAppState
     );
 };
 
-/**
- * @function useSession
- * @description Custom hook to easily consume the SessionContext within components.
- * It retrieves the context value and throws an error if used outside of a SessionProvider,
- * ensuring proper usage.
- */
 export const useSession = (): SessionContextType => {
     const context = useContext(SessionContext);
     if (context === undefined) throw new Error('useSession must be used within a SessionProvider');
