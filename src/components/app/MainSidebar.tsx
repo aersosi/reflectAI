@@ -66,12 +66,15 @@ export function MainSidebar() {
             role: "user",
             content: [{type: "text", text: continueValue}],
         };
+
+        const updatedHistory = [...currentMessagesHistory, userMessage];
         appendToMessagesHistory(userMessage);
+        return updatedHistory
     };
 
     const handleRunContinue = async () => {
-        updateHistoryContinue();
-        const anthropicReturn = await callAnthropic(currentMessagesHistory, currentSystemPrompt);
+        const updatedHistory = updateHistoryContinue();
+        const anthropicReturn = await callAnthropic(updatedHistory, currentSystemPrompt);
         appendToMessagesHistory(anthropicReturn);
     };
 
