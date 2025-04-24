@@ -126,7 +126,7 @@ export const SessionProvider: SessionProviderProps = ({children, initialAppState
         setAllSessions(prevSessions => {
             const sessionIndex = prevSessions.findIndex(s => s.id === currentSessionId);
             if (sessionIndex === -1) {
-                console.error("appendToMessagesHistory Error: Current session not found.");
+                console.error("appendToMessagesHistory Error: Current session not found in allSessions.");
                 return prevSessions;
             }
             const session = { ...prevSessions[sessionIndex] };
@@ -136,11 +136,12 @@ export const SessionProvider: SessionProviderProps = ({children, initialAppState
                 messagesHistory: [...messages, response]
             };
             session.date = Date.now();
-            return [
+            const updatedSessions = [
                 ...prevSessions.slice(0, sessionIndex),
                 session,
                 ...prevSessions.slice(sessionIndex + 1)
             ];
+            return updatedSessions;
         });
     }, [currentSessionId]);
 
