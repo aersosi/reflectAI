@@ -1,5 +1,6 @@
 import { LOCAL_STORAGE_SESSION } from "@/config/constants";
 import { AnthropicResponse } from "@/definitions/api";
+import { VariablesHistory, VariablesHistory2 } from "@/definitions/variables";
 import { createContext, useState, useContext, useEffect, useCallback, useRef, useMemo, FC, ReactNode } from 'react';
 import { useNavigate, useSearchParams, useLocation } from 'react-router-dom';
 import { SessionContextType, Session, SessionMeta, AppState } from "@/definitions/session";
@@ -78,6 +79,12 @@ export const SessionProvider: SessionProviderProps = ({children, initialAppState
 
     }, [searchParams, allSessions, currentSessionId, isSessionLoading]);
 
+    useEffect(() => {
+        if (isInitialized.current) {
+            saveDataToStorage<Session>(allSessions, LOCAL_STORAGE_SESSION);
+        }
+    }, [allSessions]);
+
     const navigateToSession = (session: Session) => {
         if (location.pathname === '/') {
             navigate(`/?sessionId=${session.id}`, {replace: true});
@@ -87,12 +94,6 @@ export const SessionProvider: SessionProviderProps = ({children, initialAppState
     const updateAndSaveSessions = (newSessions: Session[]) => {
         setAllSessions(newSessions);
     }
-
-    useEffect(() => {
-        if (isInitialized.current) {
-            saveDataToStorage<Session>(allSessions, LOCAL_STORAGE_SESSION);
-        }
-    }, [allSessions]);
 
     const loadSession = useCallback((sessionId: string): boolean => {
         const session = allSessions.find(s => s.id === sessionId);
@@ -144,6 +145,13 @@ export const SessionProvider: SessionProviderProps = ({children, initialAppState
             return updatedSessions;
         });
     }, [currentSessionId]);
+
+
+    const appendToVariablesHistory = useCallback( (variablesHistory: VariablesHistory2) => {
+        console.log(variablesHistory)
+        }, []
+    );
+
 
     const overwriteSession = useCallback((path: string, value: any) => {
         setAllSessions(prevSessions => {
@@ -256,6 +264,7 @@ export const SessionProvider: SessionProviderProps = ({children, initialAppState
         createSession,
         overwriteSession,
         appendToMessagesHistory,
+        appendToVariablesHistory,
         deleteSession,
         deleteMessage,
         isSessionLoading,

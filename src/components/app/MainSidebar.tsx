@@ -1,7 +1,8 @@
 import { PromptVariablesSheet } from "@/components/app/Sheets/PromptVariablesSheet";
 import { ContinueTextarea } from "@/components/lib/ContinueTextarea";
+import { defaultAppState } from "@/config/initialSession";
 import { useSession } from "@/contexts/SessionContext";
-import { DataArray } from "@/definitions/variables";
+import { VariablesHistory, VariablesHistory2 } from "@/definitions/variables";
 import { useEffect, useState } from "react";
 import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader } from "@/components/ui/sidebar";
 import { Button } from "@/components/ui/button";
@@ -13,7 +14,13 @@ import { useAnthropic } from "@/contexts/AnthropicContext";
 
 export function MainSidebar() {
     const {loadingMessages, callAnthropic} = useAnthropic();
-    const {currentAppState, currentMessagesHistory, overwriteSession, appendToMessagesHistory} = useSession();
+    const {
+        currentAppState,
+        currentMessagesHistory,
+        overwriteSession,
+        appendToMessagesHistory,
+        appendToVariablesHistory
+    } = useSession();
 
     const [systemValue, setSystemValue] = useState('');
     const [userValue, setUserValue] = useState('');
@@ -26,13 +33,56 @@ export function MainSidebar() {
         return str.match(/\{\{\s*([^}]+)\s*}}/g) || [];
     }
 
-    const systemUserArr: DataArray = [];
+    const systemUserArr: VariablesHistory = [];
 
-    // todo: integrate variables later into the whole flow
     const systemVars = extractVariables(systemValue);
     if (systemVars.length > 0) systemUserArr.push({title: "System prompt", variables: systemVars});
     const userVars = extractVariables(userValue);
     if (userVars.length > 0) systemUserArr.push({title: "User prompt", variables: userVars});
+
+
+
+
+
+    const extractVariables2 = (str: string): string[] => {
+        return str.match(/\{\{\s*([^}]+)\s*}}/g) || [];
+    }
+
+    // let varHistory: {} = {};
+    // const systemVars = extractVariables(systemValue);
+    // if (systemVars.length > 0) varHistory.push({title: "System prompt", variables: systemVars});
+    // const userVars = extractVariables(userValue);
+    // if (userVars.length > 0) varHistory.push({title: "User prompt", variables: userVars});
+
+    const variablesHistory2: VariablesHistory2 = {
+        systemVariables: {
+            parentId: "system_123456",
+            title: "System prompt",
+            variables: {
+                id: "systemVar_123456",
+                name: "{{ text1 }}",
+                text: "Lorem ipsum dolor sit"
+            }
+        },
+        userVariables: {
+            parentId: "user_123456",
+            title: "User prompt",
+            variables: {
+                id: "userVar_123456",
+                name: "{{ text2 }}",
+                text: "Lorem ipsum dolor sit"
+            }
+        },
+    }
+
+
+    useEffect(() => {
+        console.log(systemUserArr);
+        console.log(extractVariables(systemValue));
+        console.log(extractVariables(userValue));
+
+
+    }, [systemValue, userValue]);
 
     const handleChangeSystem = (value: string) => setSystemValue(value);
     const handleChangeUser = (value: string) => setUserValue(value);

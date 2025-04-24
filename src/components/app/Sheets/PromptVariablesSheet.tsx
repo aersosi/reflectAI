@@ -1,13 +1,13 @@
 import { PromptTextarea } from "@/components/lib/PromptTextarea";
 import { SheetWrapper } from "@/components/lib/SheetWrapper";
-import { DataArray, DataItem } from "@/definitions/variables";
+import { VariablesHistory, VariableHistoryItem } from "@/definitions/variables";
 
-export const PromptVariablesSheet = ({ variables }: {variables: DataArray}) => {
+export const PromptVariablesSheet = ({ variables }: {variables: VariablesHistory}) => {
     return (
         <SheetWrapper key="SessionVariables" title="Chat Variables" side="right" icon="braces"
                       isWide={true}
                       saveButton={true} disabled={variables.length === 0}>
-            {variables.map((vars: DataItem, index: number) => (
+            {variables.map((vars: VariableHistoryItem, index: number) => (
                 vars.variables.map((singleVar: string) => (
                 <PromptTextarea
                         isUser={vars.title.toLowerCase().includes("user")}
