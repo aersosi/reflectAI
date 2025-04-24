@@ -5,11 +5,10 @@ import {
     useCallback,
     ReactNode,
     FC,
-    useMemo, useEffect
+    useMemo
 } from 'react';
 import Anthropic from '@anthropic-ai/sdk';
 import { MessageParam } from "@anthropic-ai/sdk/resources"; // Beibehalten für die Formatierung
-import { useSession } from "@/contexts/SessionContext";
 import { Message } from "@/definitions/session";
 import { AnthropicContextType, AnthropicResponse } from '@/definitions/api';
 import { useFetchAnthropicModels } from '@/hooks/useFetchAnthropicModels'; // Dieser Hook bleibt bestehen
