@@ -31,41 +31,39 @@ export function MainSidebar() {
     const [textareaExpanded, setTextareaExpanded] = useState(false);
 
     const extractVariables = (str: string, id: string): { id: string; variable: string }[] => {
-        const matches = str.match(/\{\{\s*[^}]+\s*}}/g);
+        const matches = str.match(/\{\{\s*[^}]+\s*}}/g) || [];
         return matches.map((variable) => ({
-            id: `${id}${crypto.randomUUID()}`,
+            id: id,
             variable: variable.trim()
         }));
     };
 
-    const systemVars = extractVariables(systemValue, `systemVar_`);
-    const userVars = extractVariables(userValue, `userVar_`);
+    const systemVars = extractVariables(systemValue, `systemVar_${crypto.randomUUID()}`);
+    const userVars = extractVariables(userValue, `userVar_${crypto.randomUUID()}`);
 
-    let systemArr: VariablesHistory;
-    let userArr: VariablesHistory;
-
-    if (systemVars.length > 0) {
-        systemArr = {
-            parentId: `systemVars`,
+    const systemArr: VariablesHistory = [];
+    const userArr: VariablesHistory = [];
+    if (systemVars.length > 0) systemArr.push(
+        {
+            id: `systemVars`,
             title: "System prompt",
             variables: systemVars
         }
-    }
-
-    if (userVars.length > 0) {
-        userArr = {
-            parentId: `userVars`,
+    )
+    if (userVars.length > 0) userArr.push(
+        {
+            id: `userVars`,
             title: "User prompt",
             variables: userVars
         }
-    }
+    );
 
     useEffect(() => {
-        // console.log("systemVars", systemVars);
+        console.log("systemVars", systemVars);
         console.log("userVars", userVars);
         console.log("===========")
-        // console.log("systemArr", systemArr);
-        console.log("userArr", userArr ? userArr : "");
+        console.log("systemArr", systemArr);
+        console.log("userArr", userArr);
     }, [systemValue, userValue]);
 
     const handleChangeSystem = (value: string) => setSystemValue(value);
@@ -136,7 +134,7 @@ export function MainSidebar() {
                 <h1 className="font-bold transition-colors text-primary hover:text-purple-500">reflectAI</h1>
                 <div className="flex gap-6">
                     <SettingsSheet/>
-                    {/*<PromptVariablesSheet systemVariables={systemArr} userVariables={userArr}/>*/}
+                    <PromptVariablesSheet systemVariables={systemArr} userVariables={userArr}/>
                 </div>
             </SidebarHeader>
             <SidebarContent className="flex grow flex-col gap-4 p-4">
