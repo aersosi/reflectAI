@@ -12,6 +12,11 @@ export type Settings = {
     apiKey: string;
 }
 
+export type SystemPrompt = {
+    id: string,
+    text: string,
+}
+
 export type Message = {
     id?: string | undefined;
     role: "user" | "assistant";
@@ -24,7 +29,7 @@ export type Message = {
 
 export type AppState = {
     settings: Settings | null;
-    systemPrompt: string | undefined;
+    systemPrompt: SystemPrompt;
     messagesHistory: Message[] | [];
     variablesHistory2: VariablesHistory2;
 };

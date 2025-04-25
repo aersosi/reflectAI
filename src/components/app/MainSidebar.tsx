@@ -2,6 +2,7 @@ import { PromptVariablesSheet } from "@/components/app/Sheets/PromptVariablesShe
 import { ContinueTextarea } from "@/components/lib/ContinueTextarea";
 import { defaultAppState } from "@/config/initialSession";
 import { useSession } from "@/contexts/SessionContext";
+import { SystemPrompt } from "@/definitions/session";
 import { VariablesHistory, VariablesHistory2 } from "@/definitions/variables";
 import { useEffect, useState } from "react";
 import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader } from "@/components/ui/sidebar";
@@ -26,19 +27,19 @@ export function MainSidebar() {
     const [userValue, setUserValue] = useState('');
     const [continueValue, setContinueValue] = useState('');
 
-    const currentSystemPrompt = currentAppState.systemPrompt;
+    const currentSystemPrompt = currentAppState.systemPrompt.text;
     const [textareaExpanded, setTextareaExpanded] = useState(false);
 
-    const extractVariables = (str: string): string[] => {
-        return str.match(/\{\{\s*([^}]+)\s*}}/g) || [];
-    }
-
-    const systemUserArr: VariablesHistory = [];
-
-    const systemVars = extractVariables(systemValue);
-    if (systemVars.length > 0) systemUserArr.push({title: "System prompt", variables: systemVars});
-    const userVars = extractVariables(userValue);
-    if (userVars.length > 0) systemUserArr.push({title: "User prompt", variables: userVars});
+    // const extractVariables = (str: string): string[] => {
+    //     return str.match(/\{\{\s*([^}]+)\s*}}/g) || [];
+    // }
+    //
+    // const systemUserArr: VariablesHistory = [];
+    //
+    // const systemVars = extractVariables(systemValue);
+    // if (systemVars.length > 0) systemUserArr.push({title: "System prompt", variables: systemVars});
+    // const userVars = extractVariables(userValue);
+    // if (userVars.length > 0) systemUserArr.push({title: "User prompt", variables: userVars});
 
 
     useEffect(() => {
@@ -51,9 +52,17 @@ export function MainSidebar() {
     const handleChangeUser = (value: string) => setUserValue(value);
     const handleChangeContinue = (value: string) => setContinueValue(value);
 
+
+
     const updateHistorySystem = (value: string) => {
         if (value === currentSystemPrompt) return; // value unchanged -> don't add to messagesHistory
-        overwriteSession("appState.systemPrompt", value);
+
+        const newSystemPrompt: SystemPrompt = {
+            id: "system_prompt",
+            text: value,
+        };
+
+        overwriteSession("appState.systemPrompt", newSystemPrompt);
     };
 
     const updateHistory = (value: string, id: string) => {
@@ -95,7 +104,7 @@ export function MainSidebar() {
 
     // load Values on Start
     useEffect(() => {
-        setSystemValue(currentSystemPrompt || "");
+        setSystemValue(currentSystemPrompt);
         if (isUserPrompt) {
             const userText = isUserPrompt.content?.[0]?.text;
             if (userText) setUserValue(userText);
@@ -108,7 +117,7 @@ export function MainSidebar() {
                 <h1 className="font-bold transition-colors text-primary hover:text-purple-500">reflectAI</h1>
                 <div className="flex gap-6">
                     <SettingsSheet/>
-                    <PromptVariablesSheet variables={systemUserArr}/>
+                    {/*<PromptVariablesSheet variables={systemUserArr}/>*/}
                 </div>
             </SidebarHeader>
             <SidebarContent className="flex grow flex-col gap-4 p-4">
