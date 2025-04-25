@@ -56,35 +56,14 @@ export function MainSidebar() {
         overwriteSession("appState.systemPrompt", value);
     };
 
-
-    const updateHistoryUser = (userValue: string) => {
-        if (userValue.length === 0) return;
-
-        const previousText = currentMessagesHistory
-            .find(msg => msg.id === "user_prompt")
-            ?.content?.[0]?.text;
-
-        if (userValue === previousText || !userValue.trim()) return; // value unchanged -> don't add to messagesHistory
+    const updateHistory = (value: string, id: string) => {
+        if (value.length === 0) return;
 
         const userMessage: AnthropicResponse = {
-            id: `user_prompt`,
+            id: id,
             type: "message",
             role: "user",
-            content: [{type: "text", text: userValue}]
-        };
-
-        appendToMessagesHistory(userMessage);
-        return userMessage
-    };
-
-    const updateHistoryContinue = (continueValue: string) => {
-        if (continueValue.length === 0) return;
-
-        const userMessage: AnthropicResponse = {
-            id: `continue_${crypto.randomUUID()}`,
-            type: "message",
-            role: "user",
-            content: [{type: "text", text: continueValue}],
+            content: [{type: "text", text: value}],
         };
 
         appendToMessagesHistory(userMessage);
@@ -92,8 +71,8 @@ export function MainSidebar() {
     };
 
     const handleRunContinue = async () => {
-        const updatedHistoryUser = updateHistoryUser(userValue);
-        const updatedHistoryContinue = updateHistoryContinue(continueValue);
+        const updatedHistoryUser = updateHistory(userValue, `user_prompt`);
+        const updatedHistoryContinue = updateHistory(continueValue, `continue_${crypto.randomUUID()}`);
 
         const updatedHistory = [];
         updatedHistory.push(...currentMessagesHistory);

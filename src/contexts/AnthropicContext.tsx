@@ -8,10 +8,10 @@ import {
     useMemo
 } from 'react';
 import Anthropic from '@anthropic-ai/sdk';
-import { MessageParam } from "@anthropic-ai/sdk/resources"; // Beibehalten für die Formatierung
+import { MessageParam } from "@anthropic-ai/sdk/resources";
 import { Message } from "@/definitions/session";
 import { AnthropicContextType, AnthropicResponse } from '@/definitions/api';
-import { useFetchAnthropicModels } from '@/hooks/useFetchAnthropicModels'; // Dieser Hook bleibt bestehen
+import { useFetchAnthropicModels } from '@/hooks/useFetchAnthropicModels';
 
 const apiKey = import.meta.env.VITE_ANTHROPIC_API_KEY;
 const AnthropicContext = createContext<AnthropicContextType | undefined>(undefined);
