@@ -41,47 +41,10 @@ export function MainSidebar() {
     if (userVars.length > 0) systemUserArr.push({title: "User prompt", variables: userVars});
 
 
-
-
-
-    const extractVariables2 = (str: string): string[] => {
-        return str.match(/\{\{\s*([^}]+)\s*}}/g) || [];
-    }
-
-    // let varHistory: {} = {};
-    // const systemVars = extractVariables(systemValue);
-    // if (systemVars.length > 0) varHistory.push({title: "System prompt", variables: systemVars});
-    // const userVars = extractVariables(userValue);
-    // if (userVars.length > 0) varHistory.push({title: "User prompt", variables: userVars});
-
-    const variablesHistory2: VariablesHistory2 = {
-        systemVariables: {
-            parentId: "system_123456",
-            title: "System prompt",
-            variables: {
-                id: "systemVar_123456",
-                name: "{{ text1 }}",
-                text: "Lorem ipsum dolor sit"
-            }
-        },
-        userVariables: {
-            parentId: "user_123456",
-            title: "User prompt",
-            variables: {
-                id: "userVar_123456",
-                name: "{{ text2 }}",
-                text: "Lorem ipsum dolor sit"
-            }
-        },
-    }
-
-
     useEffect(() => {
-        console.log(systemUserArr);
-        console.log(extractVariables(systemValue));
-        console.log(extractVariables(userValue));
-
-
+        // console.log(systemUserArr);
+        // console.log(extractVariables(systemValue));
+        // console.log(extractVariables(userValue));
     }, [systemValue, userValue]);
 
     const handleChangeSystem = (value: string) => setSystemValue(value);
@@ -92,21 +55,29 @@ export function MainSidebar() {
         if (value === currentSystemPrompt) return; // value unchanged -> don't add to messagesHistory
         overwriteSession("appState.systemPrompt", value);
     };
-    const updateHistoryUser = (value: string) => {
+
+
+    const updateHistoryUser = (userValue: string) => {
+        if (userValue.length === 0) return;
+
         const previousText = currentMessagesHistory
             .find(msg => msg.id === "user_prompt")
             ?.content?.[0]?.text;
-        if (value === previousText || !value.trim()) return; // value unchanged -> don't add to messagesHistory
+
+        if (userValue === previousText || !userValue.trim()) return; // value unchanged -> don't add to messagesHistory
 
         const userMessage: AnthropicResponse = {
             id: `user_prompt`,
             type: "message",
             role: "user",
-            content: [{type: "text", text: value}]
+            content: [{type: "text", text: userValue}]
         };
+
         appendToMessagesHistory(userMessage);
+        return userMessage
     };
-    const updateHistoryContinue = () => {
+
+    const updateHistoryContinue = (continueValue: string) => {
         if (continueValue.length === 0) return;
 
         const userMessage: AnthropicResponse = {
@@ -116,19 +87,20 @@ export function MainSidebar() {
             content: [{type: "text", text: continueValue}],
         };
 
-        const updatedHistory = [...currentMessagesHistory, userMessage];
         appendToMessagesHistory(userMessage);
-        return updatedHistory
+        return userMessage
     };
 
     const handleRunContinue = async () => {
-        const updatedHistory = updateHistoryContinue();
-        const anthropicReturn = await callAnthropic(updatedHistory, currentSystemPrompt);
-        appendToMessagesHistory(anthropicReturn);
-    };
+        const updatedHistoryUser = updateHistoryUser(userValue);
+        const updatedHistoryContinue = updateHistoryContinue(continueValue);
 
-    const handleRun = async () => {
-        const anthropicReturn = await callAnthropic(currentMessagesHistory, currentSystemPrompt);
+        const updatedHistory = [];
+        updatedHistory.push(...currentMessagesHistory);
+        if (updatedHistoryUser) updatedHistory.push(updatedHistoryUser);
+        if (updatedHistoryContinue) updatedHistory.push(updatedHistoryContinue);
+
+        const anthropicReturn = await callAnthropic(updatedHistory, currentSystemPrompt);
         appendToMessagesHistory(anthropicReturn);
     };
 
@@ -173,7 +145,7 @@ export function MainSidebar() {
                     isUser={true}
                     value={userValue}
                     onChange={handleChangeUser}
-                    onCommit={updateHistoryUser}
+                    // onCommit={updateHistoryUser}
                     title="User prompt"
                     placeholder="Enter user prompt"
                     disabled={loadingMessages}
@@ -183,7 +155,7 @@ export function MainSidebar() {
             <SidebarFooter>
                 {!containsAssistantId ?
                     <Button
-                        onClick={handleRun}
+                        onClick={handleRunContinue}
                         disabled={isRunButtonDisabled}
                         size="lg" variant="outlinePrimary"
                     > <Play/> Run

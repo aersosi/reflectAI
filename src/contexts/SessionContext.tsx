@@ -3,7 +3,7 @@ import { AnthropicResponse } from "@/definitions/api";
 import { VariablesHistory, VariablesHistory2 } from "@/definitions/variables";
 import { createContext, useState, useContext, useEffect, useCallback, useRef, useMemo, FC, ReactNode } from 'react';
 import { useNavigate, useSearchParams, useLocation } from 'react-router-dom';
-import { SessionContextType, Session, SessionMeta, AppState } from "@/definitions/session";
+import { SessionContextType, Session, SessionMeta, AppState, Message } from "@/definitions/session";
 import { loadDataFromStorage, saveDataToStorage } from "@/lib/utils";
 
 const SessionContext = createContext<SessionContextType | undefined>(undefined);
@@ -123,28 +123,53 @@ export const SessionProvider: SessionProviderProps = ({children, initialAppState
         setIsSessionLoading(false);
     }, [allSessions, navigate, initialAppState]);
 
-    const appendToMessagesHistory = useCallback((response: AnthropicResponse) => {
+    const appendToMessagesHistory = useCallback((newMessage: Message) => {
         setAllSessions(prevSessions => {
             const sessionIndex = prevSessions.findIndex(s => s.id === currentSessionId);
             if (sessionIndex === -1) {
                 console.error("appendToMessagesHistory Error: Current session not found in allSessions.");
                 return prevSessions;
             }
-            const session = { ...prevSessions[sessionIndex] };
-            const messages = Array.isArray(session.appState?.messagesHistory) ? [...session.appState.messagesHistory] : [];
-            session.appState = {
-                ...session.appState,
-                messagesHistory: [...messages, response]
+
+            const prevSession = prevSessions[sessionIndex];
+            const prevMessages = Array.isArray(prevSession.appState?.messagesHistory)
+                ? prevSession.appState.messagesHistory
+                : [];
+
+            // Message has same id?
+            const existingIndex = prevMessages.findIndex(msg => msg.id === newMessage.id);
+            let updatedMessages;
+
+            if (existingIndex !== -1) {
+                // overwrite
+                updatedMessages = [
+                    ...prevMessages.slice(0, existingIndex),
+                    newMessage,
+                    ...prevMessages.slice(existingIndex + 1)
+                ];
+            } else {
+                // append
+                updatedMessages = [...prevMessages, newMessage];
+            }
+
+            const updatedSession = {
+                ...prevSession,
+                appState: {
+                    ...prevSession.appState,
+                    messagesHistory: updatedMessages
+                },
+                date: Date.now()
             };
-            session.date = Date.now();
-            const updatedSessions = [
+
+            return [
                 ...prevSessions.slice(0, sessionIndex),
-                session,
+                updatedSession,
                 ...prevSessions.slice(sessionIndex + 1)
             ];
-            return updatedSessions;
         });
     }, [currentSessionId]);
+
+
 
 
     const appendToVariablesHistory = useCallback( (variablesHistory: VariablesHistory2) => {

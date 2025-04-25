@@ -57,10 +57,10 @@ export const AnthropicProvider: FC<AnthropicProviderProps> = ({children}) => {
         try {
             const formattedMessages = formatMessagesForAnthropic(currentMessagesHistory);
             const response = await anthropic.messages.create({
-                model: "claude-3-haiku-20240307", // TODO: Modell eventuell konfigurierbar machen
+                model: "claude-3-haiku-20240307", // TODO: Modell konfigurierbar machen
                 max_tokens: 200,
                 temperature: 1,
-                system: systemPrompt,
+                system: systemPrompt ? systemPrompt : "",
                 messages: formattedMessages
             });
 
