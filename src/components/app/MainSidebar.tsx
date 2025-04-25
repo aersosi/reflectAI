@@ -30,28 +30,47 @@ export function MainSidebar() {
     const currentSystemPrompt = currentAppState.systemPrompt.text;
     const [textareaExpanded, setTextareaExpanded] = useState(false);
 
-    // const extractVariables = (str: string): string[] => {
-    //     return str.match(/\{\{\s*([^}]+)\s*}}/g) || [];
-    // }
-    //
-    // const systemUserArr: VariablesHistory = [];
-    //
-    // const systemVars = extractVariables(systemValue);
-    // if (systemVars.length > 0) systemUserArr.push({title: "System prompt", variables: systemVars});
-    // const userVars = extractVariables(userValue);
-    // if (userVars.length > 0) systemUserArr.push({title: "User prompt", variables: userVars});
+    const extractVariables = (str: string, id: string): { id: string; variable: string }[] => {
+        const matches = str.match(/\{\{\s*[^}]+\s*}}/g);
+        return matches.map((variable) => ({
+            id: `${id}${crypto.randomUUID()}`,
+            variable: variable.trim()
+        }));
+    };
 
+    const systemVars = extractVariables(systemValue, `systemVar_`);
+    const userVars = extractVariables(userValue, `userVar_`);
+
+    let systemArr: VariablesHistory;
+    let userArr: VariablesHistory;
+
+    if (systemVars.length > 0) {
+        systemArr = {
+            parentId: `systemVars`,
+            title: "System prompt",
+            variables: systemVars
+        }
+    }
+
+    if (userVars.length > 0) {
+        userArr = {
+            parentId: `userVars`,
+            title: "User prompt",
+            variables: userVars
+        }
+    }
 
     useEffect(() => {
-        // console.log(systemUserArr);
-        // console.log(extractVariables(systemValue));
-        // console.log(extractVariables(userValue));
+        // console.log("systemVars", systemVars);
+        console.log("userVars", userVars);
+        console.log("===========")
+        // console.log("systemArr", systemArr);
+        console.log("userArr", userArr ? userArr : "");
     }, [systemValue, userValue]);
 
     const handleChangeSystem = (value: string) => setSystemValue(value);
     const handleChangeUser = (value: string) => setUserValue(value);
     const handleChangeContinue = (value: string) => setContinueValue(value);
-
 
 
     const updateHistorySystem = (value: string) => {
@@ -117,11 +136,12 @@ export function MainSidebar() {
                 <h1 className="font-bold transition-colors text-primary hover:text-purple-500">reflectAI</h1>
                 <div className="flex gap-6">
                     <SettingsSheet/>
-                    {/*<PromptVariablesSheet variables={systemUserArr}/>*/}
+                    {/*<PromptVariablesSheet systemVariables={systemArr} userVariables={userArr}/>*/}
                 </div>
             </SidebarHeader>
             <SidebarContent className="flex grow flex-col gap-4 p-4">
                 <PromptTextarea
+                    isVariable={true}
                     value={systemValue}
                     onChange={handleChangeSystem}
                     onCommit={updateHistorySystem}
@@ -130,10 +150,13 @@ export function MainSidebar() {
                     disabled={loadingMessages}
                 />
                 <PromptTextarea
+                    isVariable={true}
                     isUser={true}
                     value={userValue}
                     onChange={handleChangeUser}
-                    // onCommit={updateHistoryUser}
+                    onCommit={(value) => {
+                        updateHistory(value, `user_prompt`)
+                    }}
                     title="User prompt"
                     placeholder="Enter user prompt"
                     disabled={loadingMessages}

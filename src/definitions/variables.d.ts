@@ -1,6 +1,7 @@
 export type VariableHistoryItem = {
+    id: string;
     title: string;
-    variables: string[];
+    variables: {id: string, variable: string};
 };
 
 export type VariablesHistory = VariableHistoryItem[];
@@ -15,7 +16,7 @@ export type Variable = {
 export type VariableGroup = {
     parentId: string;
     title: string;
-    variables: Variable;
+    variables: Variable[];
 };
 
 export type VariablesHistory2 = {
