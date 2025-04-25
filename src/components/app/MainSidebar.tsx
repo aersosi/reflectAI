@@ -33,26 +33,26 @@ export function MainSidebar() {
     const extractVariables = (str: string, id: string): { id: string; variable: string }[] => {
         const matches = str.match(/\{\{\s*[^}]+\s*}}/g) || [];
         return matches.map((variable) => ({
-            id: id,
+            id: `${id}${crypto.randomUUID()}`,
             variable: variable.trim()
         }));
     };
 
-    const systemVars = extractVariables(systemValue, `systemVar_${crypto.randomUUID()}`);
-    const userVars = extractVariables(userValue, `userVar_${crypto.randomUUID()}`);
+    const systemVars = extractVariables(systemValue, `systemVar_`);
+    const userVars = extractVariables(userValue, `userVar_`);
 
     const systemArr: VariablesHistory = [];
     const userArr: VariablesHistory = [];
     if (systemVars.length > 0) systemArr.push(
         {
-            id: `systemVars`,
+            parentId: `systemVars`,
             title: "System prompt",
             variables: systemVars
         }
     )
     if (userVars.length > 0) userArr.push(
         {
-            id: `userVars`,
+            parentId: `userVars`,
             title: "User prompt",
             variables: userVars
         }
