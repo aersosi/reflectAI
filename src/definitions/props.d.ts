@@ -39,6 +39,7 @@ export type SliderProps = ComponentPropsWithoutRef<typeof SliderPrimitive.Root> 
 
 export type SheetWrapperProps = PropsWithChildren & {
     title: string;
+    open?: boolean;
     side?: "top" | "right" | "bottom" | "left" | undefined;
     icon?: "settings" | "braces" | "list";
     isWide?: boolean;

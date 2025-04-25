@@ -1,11 +1,11 @@
 import { PromptTextarea } from "@/components/lib/PromptTextarea";
 import { SheetWrapper } from "@/components/lib/SheetWrapper";
-import { VariablesHistory, VariableHistoryItem } from "@/definitions/variables";
+import { VariableGroup } from "@/definitions/variables";
 import { useEffect, useState } from "react";
 
 export const PromptVariablesSheet = ({systemVariables, userVariables}: {
-    systemVariables: VariablesHistory,
-    userVariables: VariablesHistory
+    systemVariables: VariableGroup,
+    userVariables: VariableGroup
 }) => {
     const [systemVar, setSystemVar] = useState('');
     const [userVar, setUserVar] = useState('');
@@ -15,45 +15,40 @@ export const PromptVariablesSheet = ({systemVariables, userVariables}: {
     useEffect(() => {
         console.log("systemVar", systemVar)
         console.log("userVar", userVar)
-    },[systemVar, userVar])
+    }, [systemVar, userVar])
 
     return (
-        <SheetWrapper key="SessionVariables" title="Chat Variables" side="right" icon="braces"
+        <SheetWrapper key="SessionVariables"
+                      title="Chat Variables"
+                      side="right"
+                      icon="braces"
                       isWide={true}
-                      disabled={systemVariables.length === 0 && userVariables.length === 0}>
-
-            {systemVariables.map((vars: VariableHistoryItem, index: number) => (
-                vars.variables.map((singleVar: string) => (
-                    <PromptTextarea
-                        // value={systemValue}
-                        onChange={handleChangeSystem}
-                        onCommit={handleChangeSystem}
-                        isUser={false}
-                        isVariable={true}
-                        key={`${singleVar}-${index}`}
-                        title={`${vars.title.replace(" prompt", ":")} ${singleVar}`}
-                        placeholder={singleVar}
-                    />
-                ))
+                      disabled={systemVariables.variables.length === 0 && userVariables.variables.length === 0}
+        >
+            {systemVariables.variables.map((variable) => (
+                <PromptTextarea
+                    value={systemVar}
+                    onChange={handleChangeSystem}
+                    onCommit={handleChangeSystem}
+                    isUser={false}
+                    isVariable={true}
+                    key={`${variable.id}`}
+                    title={`${systemVariables.title.replace("prompt", "variable")}: ${variable.name}`}
+                    placeholder={variable.name}
+                />
             ))}
-
-
-            {userVariables.map((vars: VariableHistoryItem, index: number) => (
-                vars.variables.map((singleVar: string) => (
-                    <PromptTextarea
-                        // value={userValue}
-                        onChange={handleChangeUser}
-                        onCommit={handleChangeUser}
-                        isUser={true}
-                        isVariable={true}
-                        key={`${singleVar}-${index}`}
-                        title={`${vars.title.replace(" prompt", ":")} ${singleVar}`}
-                        placeholder={singleVar}
-                    />
-                ))
+            {userVariables.variables.map((variable) => (
+                <PromptTextarea
+                    value={systemVar}
+                    onChange={handleChangeUser}
+                    onCommit={handleChangeUser}
+                    isUser={true}
+                    isVariable={true}
+                    key={`${variable.id}`}
+                    title={`${userVariables.title.replace("prompt", "variable")}: ${variable.name}`}
+                    placeholder={variable.name}
+                />
             ))}
-
-
         </SheetWrapper>
     );
 };

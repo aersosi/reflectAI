@@ -1,5 +1,5 @@
 import { AppState, Message, Settings, SystemPrompt } from "@/definitions/session";
-import { VariablesHistory2 } from "@/definitions/variables";
+import { VariablesHistory } from "@/definitions/variables";
 
 const settings: Settings = {
     model: "",
@@ -18,61 +18,22 @@ const systemPrompt: SystemPrompt = {
     text: "",
 };
 
-export const variablesHistory2: VariablesHistory2 = {
+export const variablesHistory: VariablesHistory = {
     systemVariables: {
-        parentId: "system_prompt",
+        id: "system_variables",
         title: "System prompt",
-        variables: [
-            {
-                id: "systemVar_1",
-                name: "{{ text 1 }}",
-                text: "Lorem ipsum dolor sit"
-            },
-            {
-                id: "systemVar_2",
-                name: "{{ text 2 }}",
-                text: "Lorem ipsum dolor sit"
-            },
-        ]
+        variables: []
     },
     userVariables: {
-        parentId: "user_123456",
+        id: "user_variables",
         title: "User prompt",
-        variables: [
-            {
-                id: "userVar_1",
-                name: "{{ text 1 }}",
-                text: "Lorem ipsum dolor sit"
-            },
-            {
-                id: "userVar_2",
-                name: "{{ text 2 }}",
-                text: "Lorem ipsum dolor sit"
-            },
-        ]
+        variables: []
     },
 }
-
-// [
-// {
-//     "id": "userVars",
-//     "title": "User prompt",
-//     "variables": [
-//         {
-//             "id": "userVar_90791434-db40-4734-989f-af776b2dd396",
-//             "variable": "{{ User 1 }}"
-//         },
-//         {
-//             "id": "userVar_e4664eae-aacb-4f10-92dd-dd241b7fd0e5",
-//             "variable": "{{ User 2 }}"
-//         }
-//     ]
-// }
-// ]
 
 export const defaultAppState: AppState = {
     settings,
     systemPrompt,
     messagesHistory,
-    variablesHistory2,
+    variablesHistory,
 };

@@ -1,9 +1,10 @@
 import { PromptVariablesSheet } from "@/components/app/Sheets/PromptVariablesSheet";
 import { ContinueTextarea } from "@/components/lib/ContinueTextarea";
 import { defaultAppState } from "@/config/initialSession";
+import { nanoid } from 'nanoid';
 import { useSession } from "@/contexts/SessionContext";
 import { SystemPrompt } from "@/definitions/session";
-import { VariablesHistory, VariablesHistory2 } from "@/definitions/variables";
+import { VariableGroup, VariablesHistory, VariablesHistory2 } from "@/definitions/variables";
 import { useEffect, useState } from "react";
 import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader } from "@/components/ui/sidebar";
 import { Button } from "@/components/ui/button";
@@ -30,46 +31,46 @@ export function MainSidebar() {
     const currentSystemPrompt = currentAppState.systemPrompt.text;
     const [textareaExpanded, setTextareaExpanded] = useState(false);
 
-    const extractVariables = (str: string, id: string): { id: string; variable: string }[] => {
+    const extractVariables = (str: string, idPrefix: string):
+        { id: string; name: string; text: string }[] => {
         const matches = str.match(/\{\{\s*[^}]+\s*}}/g) || [];
         return matches.map((variable) => ({
-            id: `${id}${crypto.randomUUID()}`,
-            variable: variable.trim()
+            id: `${idPrefix}${nanoid(6)}`,
+            name: variable.trim(),
+            text: ""
         }));
     };
 
-    const systemVars = extractVariables(systemValue, `systemVar_`);
-    const userVars = extractVariables(userValue, `userVar_`);
+    const systemVars: VariableGroup = {
+        id: "system_variables",
+        title: "System prompt",
+        variables: extractVariables(systemValue, `systemVar_`)
+    };
+    const userVars: VariableGroup = {
+        id: "user_variables",
+        title: "User prompt",
+        variables: extractVariables(userValue, `userVar_`)
+    };
 
-    const systemArr: VariablesHistory = [];
-    const userArr: VariablesHistory = [];
-    if (systemVars.length > 0) systemArr.push(
-        {
-            parentId: `systemVars`,
-            title: "System prompt",
-            variables: systemVars
-        }
-    )
-    if (userVars.length > 0) userArr.push(
-        {
-            parentId: `userVars`,
-            title: "User prompt",
-            variables: userVars
-        }
-    );
+    // let variablesObj:  = {
+    //     "systemVariables": systemVars,
+    //     "userVariables": userVars,
+    // };
 
     useEffect(() => {
-        console.log("systemVars", systemVars);
-        console.log("userVars", userVars);
-        console.log("===========")
-        console.log("systemArr", systemArr);
-        console.log("userArr", userArr);
+        // console.log("systemVars", systemVars);
+        // console.log("userVars", userVars);
+        // console.log("===========")
+        // console.log("variablesObj", variablesObj);
+
+        overwriteSession("appState.variablesHistory.systemVariables", systemVars);
+        overwriteSession("appState.variablesHistory.userVariables", userVars);
+
     }, [systemValue, userValue]);
 
     const handleChangeSystem = (value: string) => setSystemValue(value);
     const handleChangeUser = (value: string) => setUserValue(value);
     const handleChangeContinue = (value: string) => setContinueValue(value);
-
 
     const updateHistorySystem = (value: string) => {
         if (value === currentSystemPrompt) return; // value unchanged -> don't add to messagesHistory
@@ -134,7 +135,7 @@ export function MainSidebar() {
                 <h1 className="font-bold transition-colors text-primary hover:text-purple-500">reflectAI</h1>
                 <div className="flex gap-6">
                     <SettingsSheet/>
-                    <PromptVariablesSheet systemVariables={systemArr} userVariables={userArr}/>
+                    <PromptVariablesSheet systemVariables={systemVars} userVariables={userVars}/>
                 </div>
             </SidebarHeader>
             <SidebarContent className="flex grow flex-col gap-4 p-4">

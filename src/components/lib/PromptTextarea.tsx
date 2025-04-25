@@ -67,12 +67,13 @@ export function PromptTextarea({
     const systemColors = !isUser && isVariable && "[&_label]:text-primary";
     const userColors = isUser && isVariable && cn(purpleRing, "[&_label]:text-purple-500");
     const userRingColor = isUser && purpleRing;
+    const userRingColorTrigger = isUser && "focus-visible:ring-purple-500/90 focus-visible:border-purple-500/90";
 
     return (
         <Collapsible defaultOpen className={cn(collapsibleClasses, systemColors, userColors, userRingColor, className)}>
             <SidebarGroup>
                 <SidebarGroupLabel asChild>
-                    <CollapsibleTrigger className="group">
+                    <CollapsibleTrigger className={cn("group", userRingColorTrigger)}>
                         <Label htmlFor={title}>{title}</Label>
                         <ChevronDown
                             className="ml-auto transition-transform duration-200 group-data-[state=open]:rotate-180"/>

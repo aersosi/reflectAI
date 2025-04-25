@@ -1,6 +1,7 @@
 import { LOCAL_STORAGE_SESSION } from "@/config/constants";
 import { AnthropicResponse } from "@/definitions/api";
 import { VariablesHistory, VariablesHistory2 } from "@/definitions/variables";
+import { nanoid } from "nanoid";
 import { createContext, useState, useContext, useEffect, useCallback, useRef, useMemo, FC, ReactNode } from 'react';
 import { useNavigate, useSearchParams, useLocation } from 'react-router-dom';
 import { SessionContextType, Session, SessionMeta, AppState, Message } from "@/definitions/session";
@@ -49,7 +50,7 @@ export const SessionProvider: SessionProviderProps = ({children, initialAppState
 
         if (!sessionToActivate) {
             const newSession: Session = {
-                id: crypto.randomUUID(),
+                id: `session_${nanoid(12)}`,
                 name: "New Session",
                 date: Date.now(),
                 appState: initialAppState,
@@ -110,7 +111,7 @@ export const SessionProvider: SessionProviderProps = ({children, initialAppState
     const createSession = useCallback((sessionName: string, initialState: AppState) => {
         setIsSessionLoading(true);
         const newSession: Session = {
-            id: crypto.randomUUID(),
+            id: `session_${nanoid(12)}`,
             name: sessionName || "New Session",
             date: Date.now(),
             appState: initialState,
@@ -169,9 +170,6 @@ export const SessionProvider: SessionProviderProps = ({children, initialAppState
         });
     }, [currentSessionId]);
 
-
-
-
     const appendToVariablesHistory = useCallback( (variablesHistory: VariablesHistory2) => {
         console.log(variablesHistory)
         }, []
@@ -229,7 +227,7 @@ export const SessionProvider: SessionProviderProps = ({children, initialAppState
                 loadSession(latestSession.id);
             } else {
                 const newSession: Session = {
-                    id: crypto.randomUUID(),
+                    id: `session_${nanoid(12)}`,
                     name: "New Session",
                     date: Date.now(),
                     appState: initialAppState

@@ -1,3 +1,4 @@
+import { nanoid } from "nanoid";
 import {
     createContext,
     useContext,
@@ -40,7 +41,7 @@ export const AnthropicProvider: FC<AnthropicProviderProps> = ({children}) => {
 
     const mapToCurrentMessagesHistory = (source: AnthropicResponse) => {
         return {
-            id: `assistant_${crypto.randomUUID()}`,
+            id: `assistant_${nanoid(6)}`,
             type: "message",
             role: "assistant",
             content: source.content.map((block) => ({

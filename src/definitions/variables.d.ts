@@ -1,12 +1,3 @@
-export type VariableHistoryItem = {
-    id: string;
-    title: string;
-    variables: {id: string, variable: string};
-};
-
-export type VariablesHistory = VariableHistoryItem[];
-
-
 export type Variable = {
     id: string;
     name: string;
@@ -14,19 +5,19 @@ export type Variable = {
 };
 
 export type VariableGroup = {
-    parentId: string;
+    id: "system_variables" | "user_variables";
     title: string;
     variables: Variable[];
 };
 
-export type VariablesHistory2 = {
+export type VariablesHistory = {
     systemVariables: VariableGroup;
     userVariables: VariableGroup;
 };
 
 // export const variablesHistory2: VariablesHistory2 = {
 //     systemVariables: {
-//         parentId: "system_123456",
+//         id: "system_123456",
 //         title: "System prompt",
 //         variables: {
 //             id: "systemVar_123456",
@@ -35,7 +26,7 @@ export type VariablesHistory2 = {
 //         }
 //     },
 //     userVariables: {
-//         parentId: "user_123456",
+//         id: "user_123456",
 //         title: "User prompt",
 //         variables: {
 //             id: "userVar_123456",

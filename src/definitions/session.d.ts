@@ -31,7 +31,7 @@ export type AppState = {
     settings: Settings | null;
     systemPrompt: SystemPrompt;
     messagesHistory: Message[] | [];
-    variablesHistory2: VariablesHistory2;
+    variablesHistory: VariablesHistory2;
 };
 
 export type Session = {
