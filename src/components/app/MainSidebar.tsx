@@ -31,38 +31,32 @@ export function MainSidebar() {
     const currentSystemPrompt = currentAppState.systemPrompt.text;
     const [textareaExpanded, setTextareaExpanded] = useState(false);
 
-    const extractVariables = (str: string, idPrefix: string):
-        { id: string; name: string; text: string }[] => {
+    const extractVariables = (str: string, idPrefix: string): { id: string; name: string; text: string }[] => {
         const matches = str.match(/\{\{\s*[^}]+\s*}}/g) || [];
-        return matches.map((variable) => ({
-            id: `${idPrefix}${nanoid(6)}`,
-            name: variable.trim(),
-            text: ""
-        }));
+
+        return matches.map((variable, index) => {
+            const cleanVar = variable.replace(/^{{\s*|\s*}}$/g, "").trim();
+
+            return {
+                id: `${idPrefix}_${cleanVar}_${index}`,
+                name: variable.trim(),
+                text: ""
+            };
+        });
     };
 
     const systemVars: VariableGroup = {
         id: "system_variables",
         title: "System prompt",
-        variables: extractVariables(systemValue, `systemVar_`)
+        variables: extractVariables(systemValue, `systemVar`)
     };
     const userVars: VariableGroup = {
         id: "user_variables",
         title: "User prompt",
-        variables: extractVariables(userValue, `userVar_`)
+        variables: extractVariables(userValue, `userVar`)
     };
 
-    // let variablesObj:  = {
-    //     "systemVariables": systemVars,
-    //     "userVariables": userVars,
-    // };
-
     useEffect(() => {
-        // console.log("systemVars", systemVars);
-        // console.log("userVars", userVars);
-        // console.log("===========")
-        // console.log("variablesObj", variablesObj);
-
         overwriteSession("appState.variablesHistory.systemVariables", systemVars);
         overwriteSession("appState.variablesHistory.userVariables", userVars);
 
