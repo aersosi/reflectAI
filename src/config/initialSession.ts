@@ -1,4 +1,5 @@
-import { AppState, Message, Settings } from "@/definitions/session";
+import { AppState, Message, Settings, SystemPrompt } from "@/definitions/session";
+import { VariablesHistory } from "@/definitions/variables";
 
 const settings: Settings = {
     model: "",
@@ -12,10 +13,27 @@ const settings: Settings = {
 };
 
 const messagesHistory: Message[] = [];
-const systemPrompt: string = "";
+const systemPrompt: SystemPrompt = {
+    id: "system_prompt",
+    text: "",
+};
+
+export const variablesHistory: VariablesHistory = {
+    systemVariables: {
+        id: "system_variables",
+        title: "System prompt",
+        variables: []
+    },
+    userVariables: {
+        id: "user_variables",
+        title: "User prompt",
+        variables: []
+    },
+}
 
 export const defaultAppState: AppState = {
     settings,
     systemPrompt,
     messagesHistory,
+    variablesHistory,
 };

@@ -13,7 +13,7 @@ import { Braces, List, Settings, Smile } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { SheetWrapperProps } from "@/definitions/props";
 
-export function SheetWrapper({title, side, icon, isWide, saveButton, disabled, children}: SheetWrapperProps) {
+export function SheetWrapper({open, title, side, icon, isWide, saveButton, disabled, children}: SheetWrapperProps) {
     // Todo: on sheet close: -> check if changes:
     //  -> no: exit without saving
     //  -> yes: -> ask: "do you want to save?"
@@ -32,7 +32,7 @@ export function SheetWrapper({title, side, icon, isWide, saveButton, disabled, c
     }
 
     return (
-        <Sheet>
+        <Sheet open={open}>
             <SheetTrigger asChild>
                 <Button variant="outline" size="iconSmall" disabled={disabled}>
                     {triggerIcon}

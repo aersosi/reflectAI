@@ -1,3 +1,4 @@
+import { nanoid } from "nanoid";
 import {
     createContext,
     useContext,
@@ -8,10 +9,10 @@ import {
     useMemo
 } from 'react';
 import Anthropic from '@anthropic-ai/sdk';
-import { MessageParam } from "@anthropic-ai/sdk/resources"; // Beibehalten für die Formatierung
+import { MessageParam } from "@anthropic-ai/sdk/resources";
 import { Message } from "@/definitions/session";
 import { AnthropicContextType, AnthropicResponse } from '@/definitions/api';
-import { useFetchAnthropicModels } from '@/hooks/useFetchAnthropicModels'; // Dieser Hook bleibt bestehen
+import { useFetchAnthropicModels } from '@/hooks/useFetchAnthropicModels';
 
 const apiKey = import.meta.env.VITE_ANTHROPIC_API_KEY;
 const AnthropicContext = createContext<AnthropicContextType | undefined>(undefined);
@@ -40,7 +41,7 @@ export const AnthropicProvider: FC<AnthropicProviderProps> = ({children}) => {
 
     const mapToCurrentMessagesHistory = (source: AnthropicResponse) => {
         return {
-            id: `assistant_${crypto.randomUUID()}`,
+            id: `assistant_${nanoid(6)}`,
             type: "message",
             role: "assistant",
             content: source.content.map((block) => ({
@@ -57,10 +58,10 @@ export const AnthropicProvider: FC<AnthropicProviderProps> = ({children}) => {
         try {
             const formattedMessages = formatMessagesForAnthropic(currentMessagesHistory);
             const response = await anthropic.messages.create({
-                model: "claude-3-haiku-20240307", // TODO: Modell eventuell konfigurierbar machen
+                model: "claude-3-haiku-20240307", // TODO: Modell konfigurierbar machen
                 max_tokens: 200,
                 temperature: 1,
-                system: systemPrompt,
+                system: systemPrompt ? systemPrompt : "",
                 messages: formattedMessages
             });
 

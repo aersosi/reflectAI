@@ -1,3 +1,6 @@
+import { variablesHistory2 } from "@/config/initialSession";
+import { VariablesHistory, VariablesHistory2 } from "@/definitions/variables";
+
 export type Settings = {
     model: string;
     temperature?: number | undefined;
@@ -7,6 +10,11 @@ export type Settings = {
     maxTokensMax?: number | undefined;
     maxTokensSteps: number;
     apiKey: string;
+}
+
+export type SystemPrompt = {
+    id: string,
+    text: string,
 }
 
 export type Message = {
@@ -21,8 +29,9 @@ export type Message = {
 
 export type AppState = {
     settings: Settings | null;
-    systemPrompt: string | undefined;
+    systemPrompt: SystemPrompt;
     messagesHistory: Message[] | [];
+    variablesHistory: VariablesHistory2;
 };
 
 export type Session = {
@@ -44,6 +53,7 @@ export type SessionContextType = {
     loadSession: (sessionId: string) => boolean;
     overwriteSession: (path: string, value: any) => void;
     appendToMessagesHistory: (value: any) => void;
+    appendToVariablesHistory: (variablesHistory: VariablesHistory) => void;
     createSession: (sessionName: string, initialState: AppState) => void;
     deleteSession: (sessionId: string) => void;
     deleteMessage: (messageId: string) => void;

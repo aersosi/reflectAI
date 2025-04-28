@@ -1,8 +1,10 @@
 import { LOCAL_STORAGE_SESSION } from "@/config/constants";
 import { AnthropicResponse } from "@/definitions/api";
+import { VariablesHistory, VariablesHistory2 } from "@/definitions/variables";
+import { nanoid } from "nanoid";
 import { createContext, useState, useContext, useEffect, useCallback, useRef, useMemo, FC, ReactNode } from 'react';
 import { useNavigate, useSearchParams, useLocation } from 'react-router-dom';
-import { SessionContextType, Session, SessionMeta, AppState } from "@/definitions/session";
+import { SessionContextType, Session, SessionMeta, AppState, Message } from "@/definitions/session";
 import { loadDataFromStorage, saveDataToStorage } from "@/lib/utils";
 
 const SessionContext = createContext<SessionContextType | undefined>(undefined);
@@ -48,7 +50,7 @@ export const SessionProvider: SessionProviderProps = ({children, initialAppState
 
         if (!sessionToActivate) {
             const newSession: Session = {
-                id: crypto.randomUUID(),
+                id: `session_${nanoid(12)}`,
                 name: "New Session",
                 date: Date.now(),
                 appState: initialAppState,
@@ -78,6 +80,12 @@ export const SessionProvider: SessionProviderProps = ({children, initialAppState
 
     }, [searchParams, allSessions, currentSessionId, isSessionLoading]);
 
+    useEffect(() => {
+        if (isInitialized.current) {
+            saveDataToStorage<Session>(allSessions, LOCAL_STORAGE_SESSION);
+        }
+    }, [allSessions]);
+
     const navigateToSession = (session: Session) => {
         if (location.pathname === '/') {
             navigate(`/?sessionId=${session.id}`, {replace: true});
@@ -87,12 +95,6 @@ export const SessionProvider: SessionProviderProps = ({children, initialAppState
     const updateAndSaveSessions = (newSessions: Session[]) => {
         setAllSessions(newSessions);
     }
-
-    useEffect(() => {
-        if (isInitialized.current) {
-            saveDataToStorage<Session>(allSessions, LOCAL_STORAGE_SESSION);
-        }
-    }, [allSessions]);
 
     const loadSession = useCallback((sessionId: string): boolean => {
         const session = allSessions.find(s => s.id === sessionId);
@@ -109,7 +111,7 @@ export const SessionProvider: SessionProviderProps = ({children, initialAppState
     const createSession = useCallback((sessionName: string, initialState: AppState) => {
         setIsSessionLoading(true);
         const newSession: Session = {
-            id: crypto.randomUUID(),
+            id: `session_${nanoid(12)}`,
             name: sessionName || "New Session",
             date: Date.now(),
             appState: initialState,
@@ -122,28 +124,57 @@ export const SessionProvider: SessionProviderProps = ({children, initialAppState
         setIsSessionLoading(false);
     }, [allSessions, navigate, initialAppState]);
 
-    const appendToMessagesHistory = useCallback((response: AnthropicResponse) => {
+    const appendToMessagesHistory = useCallback((newMessage: Message) => {
         setAllSessions(prevSessions => {
             const sessionIndex = prevSessions.findIndex(s => s.id === currentSessionId);
             if (sessionIndex === -1) {
                 console.error("appendToMessagesHistory Error: Current session not found in allSessions.");
                 return prevSessions;
             }
-            const session = { ...prevSessions[sessionIndex] };
-            const messages = Array.isArray(session.appState?.messagesHistory) ? [...session.appState.messagesHistory] : [];
-            session.appState = {
-                ...session.appState,
-                messagesHistory: [...messages, response]
+
+            const prevSession = prevSessions[sessionIndex];
+            const prevMessages = Array.isArray(prevSession.appState?.messagesHistory)
+                ? prevSession.appState.messagesHistory
+                : [];
+
+            // Message has same id?
+            const existingIndex = prevMessages.findIndex(msg => msg.id === newMessage.id);
+            let updatedMessages;
+
+            if (existingIndex !== -1) {
+                // overwrite
+                updatedMessages = [
+                    ...prevMessages.slice(0, existingIndex),
+                    newMessage,
+                    ...prevMessages.slice(existingIndex + 1)
+                ];
+            } else {
+                // append
+                updatedMessages = [...prevMessages, newMessage];
+            }
+
+            const updatedSession = {
+                ...prevSession,
+                appState: {
+                    ...prevSession.appState,
+                    messagesHistory: updatedMessages
+                },
+                date: Date.now()
             };
-            session.date = Date.now();
-            const updatedSessions = [
+
+            return [
                 ...prevSessions.slice(0, sessionIndex),
-                session,
+                updatedSession,
                 ...prevSessions.slice(sessionIndex + 1)
             ];
-            return updatedSessions;
         });
     }, [currentSessionId]);
+
+    const appendToVariablesHistory = useCallback( (variablesHistory: VariablesHistory2) => {
+        console.log(variablesHistory)
+        }, []
+    );
+
 
     const overwriteSession = useCallback((path: string, value: any) => {
         setAllSessions(prevSessions => {
@@ -196,7 +227,7 @@ export const SessionProvider: SessionProviderProps = ({children, initialAppState
                 loadSession(latestSession.id);
             } else {
                 const newSession: Session = {
-                    id: crypto.randomUUID(),
+                    id: `session_${nanoid(12)}`,
                     name: "New Session",
                     date: Date.now(),
                     appState: initialAppState
@@ -256,6 +287,7 @@ export const SessionProvider: SessionProviderProps = ({children, initialAppState
         createSession,
         overwriteSession,
         appendToMessagesHistory,
+        appendToVariablesHistory,
         deleteSession,
         deleteMessage,
         isSessionLoading,

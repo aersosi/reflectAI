@@ -1,7 +1,10 @@
 import { PromptVariablesSheet } from "@/components/app/Sheets/PromptVariablesSheet";
 import { ContinueTextarea } from "@/components/lib/ContinueTextarea";
+import { defaultAppState } from "@/config/initialSession";
+import { nanoid } from 'nanoid';
 import { useSession } from "@/contexts/SessionContext";
-import { DataArray } from "@/definitions/variables";
+import { SystemPrompt } from "@/definitions/session";
+import { VariableGroup, VariablesHistory, VariablesHistory2 } from "@/definitions/variables";
 import { useEffect, useState } from "react";
 import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader } from "@/components/ui/sidebar";
 import { Button } from "@/components/ui/button";
@@ -13,26 +16,51 @@ import { useAnthropic } from "@/contexts/AnthropicContext";
 
 export function MainSidebar() {
     const {loadingMessages, callAnthropic} = useAnthropic();
-    const {currentAppState, currentMessagesHistory, overwriteSession, appendToMessagesHistory} = useSession();
+    const {
+        currentAppState,
+        currentMessagesHistory,
+        overwriteSession,
+        appendToMessagesHistory,
+        appendToVariablesHistory
+    } = useSession();
 
     const [systemValue, setSystemValue] = useState('');
     const [userValue, setUserValue] = useState('');
     const [continueValue, setContinueValue] = useState('');
 
-    const currentSystemPrompt = currentAppState.systemPrompt;
+    const currentSystemPrompt = currentAppState.systemPrompt.text;
     const [textareaExpanded, setTextareaExpanded] = useState(false);
 
-    const extractVariables = (str: string): string[] => {
-        return str.match(/\{\{\s*([^}]+)\s*}}/g) || [];
-    }
+    const extractVariables = (str: string, idPrefix: string): { id: string; name: string; text: string }[] => {
+        const matches = str.match(/\{\{\s*[^}]+\s*}}/g) || [];
 
-    const systemUserArr: DataArray = [];
+        return matches.map((variable, index) => {
+            const cleanVar = variable.replace(/^{{\s*|\s*}}$/g, "").trim();
 
-    // todo: integrate variables later into the whole flow
-    const systemVars = extractVariables(systemValue);
-    if (systemVars.length > 0) systemUserArr.push({title: "System prompt", variables: systemVars});
-    const userVars = extractVariables(userValue);
-    if (userVars.length > 0) systemUserArr.push({title: "User prompt", variables: userVars});
+            return {
+                id: `${idPrefix}_${cleanVar}_${index}`,
+                name: variable.trim(),
+                text: ""
+            };
+        });
+    };
+
+    const systemVars: VariableGroup = {
+        id: "system_variables",
+        title: "System prompt",
+        variables: extractVariables(systemValue, `systemVar`)
+    };
+    const userVars: VariableGroup = {
+        id: "user_variables",
+        title: "User prompt",
+        variables: extractVariables(userValue, `userVar`)
+    };
+
+    useEffect(() => {
+        overwriteSession("appState.variablesHistory.systemVariables", systemVars);
+        overwriteSession("appState.variablesHistory.userVariables", userVars);
+
+    }, [systemValue, userValue]);
 
     const handleChangeSystem = (value: string) => setSystemValue(value);
     const handleChangeUser = (value: string) => setUserValue(value);
@@ -40,45 +68,39 @@ export function MainSidebar() {
 
     const updateHistorySystem = (value: string) => {
         if (value === currentSystemPrompt) return; // value unchanged -> don't add to messagesHistory
-        overwriteSession("appState.systemPrompt", value);
-    };
-    const updateHistoryUser = (value: string) => {
-        const previousText = currentMessagesHistory
-            .find(msg => msg.id === "user_prompt")
-            ?.content?.[0]?.text;
-        if (value === previousText || !value.trim()) return; // value unchanged -> don't add to messagesHistory
 
-        const userMessage: AnthropicResponse = {
-            id: `user_prompt`,
-            type: "message",
-            role: "user",
-            content: [{type: "text", text: value}]
-        };
-        appendToMessagesHistory(userMessage);
-    };
-    const updateHistoryContinue = () => {
-        if (continueValue.length === 0) return;
-
-        const userMessage: AnthropicResponse = {
-            id: `continue_${crypto.randomUUID()}`,
-            type: "message",
-            role: "user",
-            content: [{type: "text", text: continueValue}],
+        const newSystemPrompt: SystemPrompt = {
+            id: "system_prompt",
+            text: value,
         };
 
-        const updatedHistory = [...currentMessagesHistory, userMessage];
+        overwriteSession("appState.systemPrompt", newSystemPrompt);
+    };
+
+    const updateHistory = (value: string, id: string) => {
+        if (value.length === 0) return;
+
+        const userMessage: AnthropicResponse = {
+            id: id,
+            type: "message",
+            role: "user",
+            content: [{type: "text", text: value}],
+        };
+
         appendToMessagesHistory(userMessage);
-        return updatedHistory
+        return userMessage
     };
 
     const handleRunContinue = async () => {
-        const updatedHistory = updateHistoryContinue();
-        const anthropicReturn = await callAnthropic(updatedHistory, currentSystemPrompt);
-        appendToMessagesHistory(anthropicReturn);
-    };
+        const updatedHistoryUser = updateHistory(userValue, `user_prompt`);
+        const updatedHistoryContinue = updateHistory(continueValue, `continue_${crypto.randomUUID()}`);
 
-    const handleRun = async () => {
-        const anthropicReturn = await callAnthropic(currentMessagesHistory, currentSystemPrompt);
+        const updatedHistory = [];
+        updatedHistory.push(...currentMessagesHistory);
+        if (updatedHistoryUser) updatedHistory.push(updatedHistoryUser);
+        if (updatedHistoryContinue) updatedHistory.push(updatedHistoryContinue);
+
+        const anthropicReturn = await callAnthropic(updatedHistory, currentSystemPrompt);
         appendToMessagesHistory(anthropicReturn);
     };
 
@@ -94,7 +116,7 @@ export function MainSidebar() {
 
     // load Values on Start
     useEffect(() => {
-        setSystemValue(currentSystemPrompt || "");
+        setSystemValue(currentSystemPrompt);
         if (isUserPrompt) {
             const userText = isUserPrompt.content?.[0]?.text;
             if (userText) setUserValue(userText);
@@ -107,11 +129,12 @@ export function MainSidebar() {
                 <h1 className="font-bold transition-colors text-primary hover:text-purple-500">reflectAI</h1>
                 <div className="flex gap-6">
                     <SettingsSheet/>
-                    <PromptVariablesSheet variables={systemUserArr}/>
+                    <PromptVariablesSheet systemVariables={systemVars} userVariables={userVars}/>
                 </div>
             </SidebarHeader>
             <SidebarContent className="flex grow flex-col gap-4 p-4">
                 <PromptTextarea
+                    isVariable={true}
                     value={systemValue}
                     onChange={handleChangeSystem}
                     onCommit={updateHistorySystem}
@@ -120,10 +143,13 @@ export function MainSidebar() {
                     disabled={loadingMessages}
                 />
                 <PromptTextarea
+                    isVariable={true}
                     isUser={true}
                     value={userValue}
                     onChange={handleChangeUser}
-                    onCommit={updateHistoryUser}
+                    onCommit={(value) => {
+                        updateHistory(value, `user_prompt`)
+                    }}
                     title="User prompt"
                     placeholder="Enter user prompt"
                     disabled={loadingMessages}
@@ -133,7 +159,7 @@ export function MainSidebar() {
             <SidebarFooter>
                 {!containsAssistantId ?
                     <Button
-                        onClick={handleRun}
+                        onClick={handleRunContinue}
                         disabled={isRunButtonDisabled}
                         size="lg" variant="outlinePrimary"
                     > <Play/> Run
