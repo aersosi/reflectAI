@@ -1,5 +1,4 @@
-import { variablesHistory2 } from "@/config/initialSession";
-import { VariablesHistory, VariablesHistory2 } from "@/definitions/variables";
+import { VariablesHistory } from "@/definitions/variables";
 
 export type Settings = {
     model: string;
@@ -31,7 +30,7 @@ export type AppState = {
     settings: Settings | null;
     systemPrompt: SystemPrompt;
     messagesHistory: Message[] | [];
-    variablesHistory: VariablesHistory2;
+    variablesHistory: VariablesHistory;
 };
 
 export type Session = {

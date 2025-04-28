@@ -1,9 +1,8 @@
 import { PromptTextarea } from "@/components/lib/PromptTextarea";
-import { SheetWrapper } from "@/components/lib/SheetWrapper";
 import { VariableGroup } from "@/definitions/variables";
 import { useEffect, useState } from "react";
 
-export const PromptVariablesSheet = ({systemVariables, userVariables}: {
+export const PromptVariables = ({systemVariables, userVariables}: {
     systemVariables: VariableGroup,
     userVariables: VariableGroup
 }) => {
@@ -18,13 +17,7 @@ export const PromptVariablesSheet = ({systemVariables, userVariables}: {
     }, [systemVar, userVar])
 
     return (
-        <SheetWrapper key="SessionVariables"
-                      title="Chat Variables"
-                      side="right"
-                      icon="braces"
-                      isWide={true}
-                      disabled={systemVariables.variables.length === 0 && userVariables.variables.length === 0}
-        >
+        <>
             {systemVariables.variables.map((variable) => (
                 <PromptTextarea
                     value={systemVar}
@@ -49,6 +42,6 @@ export const PromptVariablesSheet = ({systemVariables, userVariables}: {
                     placeholder={variable.name}
                 />
             ))}
-        </SheetWrapper>
+        </>
     );
 };

@@ -1,13 +1,12 @@
-import { MainSidebar } from "@/components/app/MainSidebar";
-import { SidebarProvider } from "@/components/ui/sidebar";
-import { Chat } from "@/components/app/Chat";
+import { Sidebars } from "@/components/app/sidebars/Sidebars";
+import { Chat } from "@/components/app/Chat/Chat";
 
 function App() {
     return (
-        <SidebarProvider className="h-full">
-            <MainSidebar/>
-            <Chat/>
-        </SidebarProvider>
+            <div className="flex">
+                <Sidebars/>
+                <Chat/>
+            </div>
     )
 }
 

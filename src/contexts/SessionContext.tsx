@@ -1,6 +1,6 @@
 import { LOCAL_STORAGE_SESSION } from "@/config/constants";
 import { AnthropicResponse } from "@/definitions/api";
-import { VariablesHistory, VariablesHistory2 } from "@/definitions/variables";
+import { VariablesHistory } from "@/definitions/variables";
 import { nanoid } from "nanoid";
 import { createContext, useState, useContext, useEffect, useCallback, useRef, useMemo, FC, ReactNode } from 'react';
 import { useNavigate, useSearchParams, useLocation } from 'react-router-dom';
@@ -170,7 +170,7 @@ export const SessionProvider: SessionProviderProps = ({children, initialAppState
         });
     }, [currentSessionId]);
 
-    const appendToVariablesHistory = useCallback( (variablesHistory: VariablesHistory2) => {
+    const appendToVariablesHistory = useCallback( (variablesHistory: VariablesHistory) => {
         console.log(variablesHistory)
         }, []
     );

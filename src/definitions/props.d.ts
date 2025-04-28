@@ -1,4 +1,4 @@
-import { ComponentPropsWithoutRef, PropsWithChildren } from "react";
+import { ComponentPropsWithoutRef, Dispatch, PropsWithChildren, ReactNode, SetStateAction } from "react";
 import * as SliderPrimitive from "@radix-ui/react-slider";
 import { AnthropicModel } from "@/definitions/session";
 
@@ -45,4 +45,12 @@ export type SheetWrapperProps = PropsWithChildren & {
     isWide?: boolean;
     saveButton?: boolean;
     disabled?: boolean;
+}
+
+export type SidebarWrapperProps = {
+    isExpanded: boolean;
+    setIsExpanded: Dispatch<SetStateAction<boolean>>;
+    title: string;
+    children: ReactNode;
+    className?: string;
 }

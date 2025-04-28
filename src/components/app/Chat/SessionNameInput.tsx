@@ -68,7 +68,7 @@ export function SessionNameInput() {
                         {currentSessionName || "New Session"}
                     </h2>
                     <Button
-                        size="sm"
+                        size="xs"
                         onClick={handleCreateNewSession}
                         variant="outlinePrimary"
                     >
