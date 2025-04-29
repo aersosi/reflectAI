@@ -42,7 +42,6 @@ export const AnthropicProvider: FC<AnthropicProviderProps> = ({children}) => {
     const mapToCurrentMessagesHistory = (source: AnthropicResponse) => {
         return {
             id: `assistant_${nanoid(6)}`,
-            type: "message",
             role: "assistant",
             content: source.content.map((block) => ({
                 type: "text",

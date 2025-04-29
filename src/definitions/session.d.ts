@@ -11,24 +11,33 @@ export type Settings = {
     apiKey: string;
 }
 
-export type SystemPrompt = {
+export type SystemMessage = {
     id: string,
     text: string,
+}
+
+export type UserMessage = {
+    id?: string;
+    role: "user";
+    content: {
+        type: "text";
+        text: string;
+    }[];
 }
 
 export type Message = {
     id?: string | undefined;
     role: "user" | "assistant";
-    type: string;
     content: {
-        type: string;
+        type: "text";
         text: string;
     }[];
 }
 
 export type AppState = {
     settings: Settings | null;
-    systemPrompt: SystemPrompt;
+    systemPrompt: SystemMessage;
+    userPrompt: UserMessage;
     messagesHistory: Message[] | [];
     variablesHistory: VariablesHistory;
 };

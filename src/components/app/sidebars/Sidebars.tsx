@@ -2,9 +2,10 @@ import { PromptVariables } from "@/components/app/Sheets/PromptVariables";
 import { SidebarWrapper } from "@/components/app/sidebars/SidebarWrapper";
 import { ContinueTextarea } from "@/components/lib/ContinueTextarea";
 import { useSession } from "@/contexts/SessionContext";
-import { SystemPrompt } from "@/definitions/session";
+import { SystemMessage, UserMessage } from "@/definitions/session";
 import { VariableGroup } from "@/definitions/variables";
-import { useCallback, useEffect, useState } from "react";
+import { Message } from "@/definitions/session";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Play } from "lucide-react";
 import { SettingsSheet } from "@/components/app/Sheets/SettingsSheet";
@@ -26,7 +27,62 @@ export function Sidebars() {
     const [userValue, setUserValue] = useState('');
     const [continueValue, setContinueValue] = useState('');
 
-    const currentSystemPrompt = currentAppState.systemPrompt.text;
+    const currentSystemPrompt = currentAppState.systemPrompt
+    const currentUserPrompt = currentAppState.userPrompt
+    const currentSystemPromptText = currentSystemPrompt.text;
+    const currentUserPromptText = currentUserPrompt.content[0].text;
+
+    const updateHistorySystem = (value: string) => {
+        const systemMessage: SystemMessage = {
+            id: "system_Prompt",
+            text: value,
+        };
+        if (value !== currentUserPromptText) overwriteSession("appState.systemPrompt", systemMessage);
+    };
+
+    const updateHistoryUser = (value: string) => {
+        const userMessage: UserMessage = {
+            id: "user_prompt",
+            role: "user",
+            content: [{type: "text", text: value}],
+        };
+        if (value !== currentUserPromptText) overwriteSession("appState.userPrompt", userMessage);
+        return userMessage;
+    };
+
+
+    const updateHistoryContinue = (value: string) => {
+        const continueMessage: Message = {
+            id: `continue_${crypto.randomUUID()}`,
+            role: "user",
+            content: [{type: "text", text: value}],
+        };
+        if (value.length > 0) appendToMessagesHistory(continueMessage);
+        return continueMessage
+    };
+
+    // load Values on Start
+    useEffect(() => {
+        setSystemValue(currentSystemPromptText);
+        setUserValue(currentUserPromptText);
+    }, [currentSystemPromptText, currentUserPromptText]);
+
+    const handleRunContinue = async () => {
+        const updatedHistoryUser = updateHistoryUser(userValue);
+        const updatedHistoryContinue = updateHistoryContinue(continueValue);
+
+        const updatedHistory = [];
+        updatedHistory.push(...currentMessagesHistory); // can be empty in the beginning
+        if (updatedHistoryUser) updatedHistory.push(updatedHistoryUser); // it's impo
+        if (updatedHistoryContinue) updatedHistory.push(updatedHistoryContinue);
+
+        if (updatedHistory.length === 0) {
+            console.warn("No messages to send to Anthropic");
+            return;
+        }
+        const anthropicReturn = await callAnthropic(updatedHistory, currentSystemPromptText);
+        appendToMessagesHistory(anthropicReturn);
+    };
 
     const extractVariables = (str: string, idPrefix: string): { id: string; name: string; text: string }[] => {
         const matches = str.match(/\{\{\s*[^}]+\s*}}/g) || [];
@@ -58,62 +114,8 @@ export function Sidebars() {
         overwriteSession("appState.variablesHistory.userVariables", userVariables);
     }, [systemValue, userValue]);
 
-    const handleChangeSystem = (value: string) => setSystemValue(value);
-    const handleChangeUser = (value: string) => setUserValue(value);
-    const handleChangeContinue = (value: string) => setContinueValue(value);
-
-    const updateHistorySystem = (value: string) => {
-        if (value === currentSystemPrompt) return; // value unchanged -> don't add to messagesHistory
-
-        const newSystemPrompt: SystemPrompt = {
-            id: "system_prompt",
-            text: value,
-        };
-
-        overwriteSession("appState.systemPrompt", newSystemPrompt);
-    };
-
-    const updateHistory = (value: string, id: string) => {
-        if (value.length === 0) return;
-
-        const userMessage: AnthropicResponse = {
-            id: id,
-            type: "message",
-            role: "user",
-            content: [{type: "text", text: value}],
-        };
-
-        appendToMessagesHistory(userMessage);
-        return userMessage
-    };
-
-    const handleRunContinue = async () => {
-        const updatedHistoryUser = updateHistory(userValue, `user_prompt`);
-        const updatedHistoryContinue = updateHistory(continueValue, `continue_${crypto.randomUUID()}`);
-
-        const updatedHistory = [];
-        updatedHistory.push(...currentMessagesHistory);
-        if (updatedHistoryUser) updatedHistory.push(updatedHistoryUser);
-        if (updatedHistoryContinue) updatedHistory.push(updatedHistoryContinue);
-
-        const anthropicReturn = await callAnthropic(updatedHistory, currentSystemPrompt);
-        appendToMessagesHistory(anthropicReturn);
-    };
-
     const isRunButtonDisabled = loadingMessages || !userValue.trim();
-    const isContinueRunDisabled = loadingMessages || (!userValue.trim() && !continueValue.trim());
-
-    const isUserPrompt = currentMessagesHistory.find(msg => msg.id === "user_prompt");
     const containsAssistantId = currentMessagesHistory.some(item => item.id && item.id.startsWith("assistant"));
-
-    // load Values on Start
-    useEffect(() => {
-        setSystemValue(currentSystemPrompt);
-        if (isUserPrompt) {
-            const userText = isUserPrompt.content?.[0]?.text;
-            if (userText) setUserValue(userText);
-        }
-    }, [currentSystemPrompt, isUserPrompt, currentMessagesHistory]);
 
     const [sidebar_1_expanded, setSidebar_1_Expanded] = useState(true);
     const [sidebar_2_expanded, setSidebar_2_Expanded] = useState(false);
@@ -151,7 +153,7 @@ export function Sidebars() {
                     <PromptTextarea
                         isVariable={true}
                         value={systemValue}
-                        onChange={handleChangeSystem}
+                        onChange={setSystemValue}
                         onCommit={updateHistorySystem}
                         title="System prompt"
                         placeholder="Enter system prompt"
@@ -161,8 +163,8 @@ export function Sidebars() {
                         isVariable={true}
                         isUser={true}
                         value={userValue}
-                        onChange={handleChangeUser}
-                        onCommit={(value) => updateHistory(value, `user_prompt`)}
+                        onChange={setUserValue}
+                        onCommit={updateHistoryUser}
                         title="User prompt"
                         placeholder="Enter user prompt"
                         disabled={loadingMessages}
@@ -178,7 +180,6 @@ export function Sidebars() {
                         <PromptVariables systemVariables={systemVariables} userVariables={userVariables}/>
                     </SidebarWrapper>
                 )}
-
                 {containsAssistantId &&
                     <SidebarWrapper
                         isExpanded={sidebar_3_expanded}
@@ -190,7 +191,7 @@ export function Sidebars() {
                             <ContinueTextarea
                                 isUser={true}
                                 value={continueValue}
-                                onChange={handleChangeContinue}
+                                onChange={setContinueValue}
                                 title="User prompt"
                                 placeholder="Type follow up question ..."
                                 disabled={loadingMessages}
@@ -203,11 +204,12 @@ export function Sidebars() {
                 <Button
                     className="w-full"
                     onClick={handleRunContinue}
-                    disabled={isContinueRunDisabled}
-                    size="sm" variant="outlinePrimary"
-                >
-                    <Play/> Run
+                    disabled={isRunButtonDisabled}
+                    size="sm"
+                    variant="outlinePrimary"
+                ><Play/> Run
                 </Button>
+
             </div>
         </div>
     )
