@@ -148,25 +148,25 @@ export function Sidebars() {
                     title="Prompts"
                     className="sidebar_1"
                 >
-                        <PromptTextarea
-                            isVariable={true}
-                            value={systemValue}
-                            onChange={handleChangeSystem}
-                            onCommit={updateHistorySystem}
-                            title="System prompt"
-                            placeholder="Enter system prompt"
-                            disabled={loadingMessages}
-                        />
-                        <PromptTextarea
-                            isVariable={true}
-                            isUser={true}
-                            value={userValue}
-                            onChange={handleChangeUser}
-                            onCommit={(value) => updateHistory(value, `user_prompt`)}
-                            title="User prompt"
-                            placeholder="Enter user prompt"
-                            disabled={loadingMessages}
-                        />
+                    <PromptTextarea
+                        isVariable={true}
+                        value={systemValue}
+                        onChange={handleChangeSystem}
+                        onCommit={updateHistorySystem}
+                        title="System prompt"
+                        placeholder="Enter system prompt"
+                        disabled={loadingMessages}
+                    />
+                    <PromptTextarea
+                        isVariable={true}
+                        isUser={true}
+                        value={userValue}
+                        onChange={handleChangeUser}
+                        onCommit={(value) => updateHistory(value, `user_prompt`)}
+                        title="User prompt"
+                        placeholder="Enter user prompt"
+                        disabled={loadingMessages}
+                    />
                 </SidebarWrapper>
                 {(systemVariables.variables.length > 0 || userVariables.variables.length > 0) && (
                     <SidebarWrapper
@@ -175,7 +175,7 @@ export function Sidebars() {
                         title="Variables"
                         className="sidebar_2"
                     >
-                            <PromptVariables systemVariables={systemVariables} userVariables={userVariables}/>
+                        <PromptVariables systemVariables={systemVariables} userVariables={userVariables}/>
                     </SidebarWrapper>
                 )}
 

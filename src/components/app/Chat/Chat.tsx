@@ -36,12 +36,12 @@ export function Chat() {
     };
 
     return (
-        <main className="flex flex-col h-full w-fit overflow-hidden">
+        <main className="flex flex-col h-full w-fit grow overflow-hidden">
             <div className="flex gap-4 px-4 py-2 justify-between border-b shrink-0">
                 <SessionNameInput/>
                 <SessionsSheet/>
             </div>
-            <div className="flex flex-col gap-4 px-4 pt-4 pb-2 overflow-auto shrink">
+            <div className="flex flex-col gap-4 px-4 pt-4 pb-2 overflow-auto grow">
                 {currentMessagesHistory && currentMessagesHistory.map(message => (
                     <ChatCard
                         key={message.id}
@@ -68,7 +68,7 @@ export function Chat() {
                     />
                 )}
             </div>
-            <footer className="flex gap-4 px-4 h-12 items-center justify-between border-t">
+            <footer className="flex gap-4 px-4 h-14 items-center justify-between border-t">
                 <div>{currentMessagesHistory.length}</div>
                 <div>All tokens: 123</div>
                 <div>All token cost: 123</div>

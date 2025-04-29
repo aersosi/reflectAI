@@ -1,10 +1,11 @@
+import { Button } from "@/components/ui/button";
 import {
     Collapsible,
     CollapsibleContent,
     CollapsibleTrigger,
 } from "@/components/ui/collapsible";
 import { SidebarGroup, SidebarGroupLabel } from "@/components/ui/sidebar";
-import { ChevronDown } from "lucide-react";
+import { ChevronDown, Trash2 } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
 import { PromptTextareaProps } from "@/definitions/props";
 import { Label } from "@/components/ui/label";
@@ -15,6 +16,7 @@ export function PromptTextarea({
                                    value,
                                    onChange,
                                    onCommit,
+                                   onDelete,
                                    className,
                                    isUser,
                                    isVariable,
@@ -51,6 +53,12 @@ export function PromptTextarea({
         onChange?.(val);
     };
 
+    const handleDelete = () => {
+        if (!internalValue.trim()) return; // return on empty textarea
+        committedValueRef.current = internalValue;
+        onDelete?.(internalValue);
+    };
+
     const handleBlur = () => {
         if (!internalValue.trim()) return; // return on empty textarea
         committedValueRef.current = internalValue;
@@ -72,13 +80,20 @@ export function PromptTextarea({
     return (
         <Collapsible defaultOpen className={cn(collapsibleClasses, systemColors, userColors, userRingColor, className)}>
             <SidebarGroup>
-                <SidebarGroupLabel asChild>
-                    <CollapsibleTrigger className={cn("group", userRingColorTrigger)}>
-                        <Label htmlFor={title}>{title}</Label>
-                        <ChevronDown
-                            className="ml-auto transition-transform duration-200 group-data-[state=open]:rotate-180"/>
-                    </CollapsibleTrigger>
-                </SidebarGroupLabel>
+                <div className="flex justify-between gap-2 items-center">
+                    <SidebarGroupLabel asChild>
+                        <CollapsibleTrigger className={cn("group grow", userRingColorTrigger)}>
+                            <Label htmlFor={title}>{title}</Label>
+                            <ChevronDown
+                                className="ml-auto transition-transform duration-200 group-data-[state=open]:rotate-180"/>
+                        </CollapsibleTrigger>
+                    </SidebarGroupLabel>
+                    {onDelete &&
+                        <Button onClick={handleDelete} variant="ghostDestructive" size="iconSmall">
+                            <Trash2></Trash2>
+                        </Button>
+                    }
+                </div>
                 <CollapsibleContent className="relative px-2">
                     <hr className="mt-[2px]"/>
                     <Textarea

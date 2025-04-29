@@ -1,4 +1,4 @@
-import { ComponentPropsWithoutRef, Dispatch, PropsWithChildren, ReactNode, SetStateAction } from "react";
+import { ComponentPropsWithoutRef, Dispatch, KeyboardEvent, PropsWithChildren, ReactNode, SetStateAction } from "react";
 import * as SliderPrimitive from "@radix-ui/react-slider";
 import { AnthropicModel } from "@/definitions/session";
 
@@ -18,6 +18,7 @@ export type PromptTextareaProps = {
     disabled?: boolean;
     onChange?: (value: string) => void;
     onCommit?: (value: string) => void;
+    onDelete?: (e: PointerEvent<HTMLButtonElement>) => void;
     className?: string;
 };
 
