@@ -4,14 +4,15 @@ export type Variable = {
     text: string;
 };
 
-export type VariableGroup = {
-    id: "system_variables" | "user_variables";
+export type SystemVariables = {
+    id: "system_variables";
     title: string;
     variables: Variable[];
 };
 
-export type VariablesHistory = {
-    systemVariables: VariableGroup;
-    userVariables: VariableGroup;
+export type UserVariables = {
+    id: "user_variables";
+    title: string;
+    variables: Variable[];
 };
 

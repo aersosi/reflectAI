@@ -66,14 +66,14 @@ export const AnthropicProvider: FC<AnthropicProviderProps> = ({children}) => {
 
             // Antwort validieren (Grundlegende Prüfung)
             if (!response || !response.id || !Array.isArray(response.content)) {
-                console.error("Ungültige Antwortstruktur vom Anthropic SDK:", response);
-                throw new Error("Ungültige Antwortstruktur von Anthropic erhalten");
+                console.error("Invalid response structure from Anthropic SDK:", response);
+                throw new Error("Invalid response structure received from Anthropic SDK");
             }
 
             return mapToCurrentMessagesHistory(response as AnthropicResponse)
         } catch (error) {
-            console.error("Fehler beim Generieren der Anthropic-Nachricht:", error);
-            setMessagesError(error instanceof Error ? error : new Error('Ein unbekannter Fehler ist aufgetreten'));
+            console.error("Error when generating the Anthropic message:", error);
+            setMessagesError(error instanceof Error ? error : new Error('Error when generating the Anthropic message'));
         } finally {
             setLoadingMessages(false);
         }

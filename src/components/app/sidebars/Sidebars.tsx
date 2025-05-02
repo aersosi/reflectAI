@@ -1,16 +1,15 @@
-import { PromptVariables } from "@/components/app/Sheets/PromptVariables";
+import { PromptVariables } from "@/components/app/MainSidebar/PromptVariables";
 import { SidebarWrapper } from "@/components/app/sidebars/SidebarWrapper";
 import { ContinueTextarea } from "@/components/lib/ContinueTextarea";
 import { useSession } from "@/contexts/SessionContext";
 import { SystemMessage, UserMessage } from "@/definitions/session";
-import { VariableGroup } from "@/definitions/variables";
+import { SystemVariables, UserVariables } from "@/definitions/variables";
 import { Message } from "@/definitions/session";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Play } from "lucide-react";
 import { SettingsSheet } from "@/components/app/Sheets/SettingsSheet";
 import { PromptTextarea } from "@/components/lib/PromptTextarea";
-import { AnthropicResponse } from "@/definitions/api";
 import { useAnthropic } from "@/contexts/AnthropicContext";
 
 export function Sidebars() {
@@ -20,7 +19,6 @@ export function Sidebars() {
         currentMessagesHistory,
         overwriteSession,
         appendToMessagesHistory,
-        appendToVariablesHistory
     } = useSession();
 
     const [systemValue, setSystemValue] = useState('');
@@ -50,7 +48,6 @@ export function Sidebars() {
         return userMessage;
     };
 
-
     const updateHistoryContinue = (value: string) => {
         const continueMessage: Message = {
             id: `continue_${crypto.randomUUID()}`,
@@ -67,7 +64,7 @@ export function Sidebars() {
         setUserValue(currentUserPromptText);
     }, [currentSystemPromptText, currentUserPromptText]);
 
-    const handleRunContinue = async () => {
+    const handleRun = async () => {
         const updatedHistoryUser = updateHistoryUser(userValue);
         const updatedHistoryContinue = updateHistoryContinue(continueValue);
 
@@ -80,6 +77,11 @@ export function Sidebars() {
             console.warn("No messages to send to Anthropic");
             return;
         }
+
+
+        // todo: the systemPromt.text substring that matches any of systemVariables[].name should be sreplaced with systemVariables.text before the message is send.
+
+
         const anthropicReturn = await callAnthropic(updatedHistory, currentSystemPromptText);
         appendToMessagesHistory(anthropicReturn);
     };
@@ -88,7 +90,10 @@ export function Sidebars() {
         const matches = str.match(/\{\{\s*[^}]+\s*}}/g) || [];
 
         return matches.map((variable, index) => {
-            const cleanVar = variable.replace(/^{{\s*|\s*}}$/g, "").trim();
+            const cleanVar = variable
+                .replace(/^{{\s*|\s*}}$/g, "")  // remove wrapping braces and surrounding spaces
+                .replace(/\s+/g, "_")           // replace inner spaces with underscores
+                .trim();
 
             return {
                 id: `${idPrefix}_${cleanVar}_${index}`,
@@ -98,28 +103,23 @@ export function Sidebars() {
         });
     };
 
-    const systemVariables: VariableGroup = {
+    const systemVariables: SystemVariables = {
         id: "system_variables",
         title: "System prompt",
         variables: extractVariables(systemValue, `systemVar`)
     };
-    const userVariables: VariableGroup = {
+    const userVariables: UserVariables = {
         id: "user_variables",
         title: "User prompt",
         variables: extractVariables(userValue, `userVar`)
     };
 
-    useEffect(() => {
-        overwriteSession("appState.variablesHistory.systemVariables", systemVariables);
-        overwriteSession("appState.variablesHistory.userVariables", userVariables);
-    }, [systemValue, userValue]);
-
     const isRunButtonDisabled = loadingMessages || !userValue.trim();
     const containsAssistantId = currentMessagesHistory.some(item => item.id && item.id.startsWith("assistant"));
 
     const [sidebar_1_expanded, setSidebar_1_Expanded] = useState(true);
-    const [sidebar_2_expanded, setSidebar_2_Expanded] = useState(false);
-    const [sidebar_3_expanded, setSidebar_3_Expanded] = useState(false);
+    const [sidebar_2_expanded, setSidebar_2_Expanded] = useState(true);
+    const [sidebar_3_expanded, setSidebar_3_Expanded] = useState(true);
     const [sidebarsWidth, setSidebarsWidth] = useState("");
 
     const calculateSidebarsWidth = useCallback(() => {
@@ -203,7 +203,7 @@ export function Sidebars() {
             <div className="sidebarsFooter px-4 py-2 border-t border-r flex">
                 <Button
                     className="w-full"
-                    onClick={handleRunContinue}
+                    onClick={handleRun}
                     disabled={isRunButtonDisabled}
                     size="sm"
                     variant="outlinePrimary"

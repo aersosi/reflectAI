@@ -1,4 +1,4 @@
-import { ComponentPropsWithoutRef, Dispatch, KeyboardEvent, PropsWithChildren, ReactNode, SetStateAction } from "react";
+import { ComponentPropsWithoutRef, Dispatch, PropsWithChildren, ReactNode, SetStateAction } from "react";
 import * as SliderPrimitive from "@radix-ui/react-slider";
 import { AnthropicModel } from "@/definitions/session";
 
@@ -24,7 +24,7 @@ export type PromptTextareaProps = {
 
 export type CardMessageProps = {
     className?: string,
-    messageId?: string,
+    id?: string,
     isUser?: boolean;
     title: string
     message: string

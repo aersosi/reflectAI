@@ -45,7 +45,7 @@ export function Chat() {
                 {currentMessagesHistory && currentMessagesHistory.map(message => (
                     <ChatCard
                         key={message.id}
-                        messageId={message.id}
+                        id={message.id}
                         isUser={message.role === 'user'}
                         title={getTitleFromRole(message.role)}
                         message={getFirstTextMessage(message)}

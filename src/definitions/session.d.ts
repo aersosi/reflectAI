@@ -1,4 +1,5 @@
-import { VariablesHistory } from "@/definitions/variables";
+import { SystemVariables } from "@/definitions/variables";
+import { UserVariables } from "@/definitions/variables";
 
 export type Settings = {
     model: string;
@@ -39,7 +40,8 @@ export type AppState = {
     systemPrompt: SystemMessage;
     userPrompt: UserMessage;
     messagesHistory: Message[] | [];
-    variablesHistory: VariablesHistory;
+    systemVariables: SystemVariables;
+    userVariables: UserVariables;
 };
 
 export type Session = {
@@ -53,17 +55,24 @@ export type SessionMeta = Omit<Session, 'appState'>;
 
 export type SessionContextType = {
     sessions: SessionMeta[];
+
     currentSessionId: string | null;
     currentSessionName: string;
     initialAppState: AppState;
     currentAppState: AppState;
-    currentMessagesHistory: Message[] | [];
+
     loadSession: (sessionId: string) => boolean;
-    overwriteSession: (path: string, value: any) => void;
-    appendToMessagesHistory: (value: any) => void;
-    appendToVariablesHistory: (variablesHistory: VariablesHistory) => void;
     createSession: (sessionName: string, initialState: AppState) => void;
+    overwriteSession: (path: string, value: any) => void;
     deleteSession: (sessionId: string) => void;
-    deleteMessage: (messageId: string) => void;
+
+    currentMessagesHistory: Message[] | [];
+    appendToMessagesHistory: (value: any) => void;
+    deleteMessage: (id: string) => void;
+
+    appendSessionVariable: (path: string, value: any, id: string) => void;
+    deleteSessionVariable: (id: string) => void;
+    overwriteSessionVariableText: (id: string, value: any) => void;
+
     isSessionLoading: boolean;
 };
