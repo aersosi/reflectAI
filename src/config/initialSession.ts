@@ -1,5 +1,5 @@
 import { AppState, Message, Settings, SystemMessage, UserMessage } from "@/definitions/session";
-import { SystemVariables, UserVariables } from "@/definitions/variables";
+import { PromptVariables} from "@/definitions/variables";
 
 const settings: Settings = {
     model: "",
@@ -25,13 +25,13 @@ const userPrompt: UserMessage = {
 
 };
 
-const systemVariables: SystemVariables = {
+const systemVariables: PromptVariables = {
     id: "system_variables",
     title: "System Variables",
     variables: []
 }
 
-const userVariables: UserVariables = {
+const userVariables: PromptVariables = {
     id: "user_variables",
     title: "User Variables",
     variables: []

@@ -1,16 +1,16 @@
-import { PromptVariables } from "@/components/app/MainSidebar/PromptVariables";
+import { PromptVariablesComp } from "@/components/app/MainSidebar/PromptVariablesComp";
+import { SettingsSheet } from "@/components/app/Sheets/SettingsSheet";
 import { SidebarWrapper } from "@/components/app/sidebars/SidebarWrapper";
 import { ContinueTextarea } from "@/components/lib/ContinueTextarea";
-import { useSession } from "@/contexts/SessionContext";
-import { SystemMessage, UserMessage } from "@/definitions/session";
-import { SystemVariables, UserVariables } from "@/definitions/variables";
-import { Message } from "@/definitions/session";
-import { useCallback, useEffect, useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Play } from "lucide-react";
-import { SettingsSheet } from "@/components/app/Sheets/SettingsSheet";
 import { PromptTextarea } from "@/components/lib/PromptTextarea";
+import { Button } from "@/components/ui/button";
 import { useAnthropic } from "@/contexts/AnthropicContext";
+import { useSession } from "@/contexts/SessionContext";
+import { Message, SystemMessage, UserMessage } from "@/definitions/session";
+import { PromptVariables, Variable } from "@/definitions/variables";
+import { replaceAll } from "@/lib/utils";
+import { Play } from "lucide-react";
+import { useCallback, useEffect, useState } from "react";
 
 export function Sidebars() {
     const {loadingMessages, callAnthropic} = useAnthropic();
@@ -29,6 +29,8 @@ export function Sidebars() {
     const currentUserPrompt = currentAppState.userPrompt
     const currentSystemPromptText = currentSystemPrompt.text;
     const currentUserPromptText = currentUserPrompt.content[0].text;
+    const currentSystemVariables = currentAppState.systemVariables
+    const currentUserVariables = currentAppState.userVariables
 
     const updateHistorySystem = (value: string) => {
         const systemMessage: SystemMessage = {
@@ -64,29 +66,44 @@ export function Sidebars() {
         setUserValue(currentUserPromptText);
     }, [currentSystemPromptText, currentUserPromptText]);
 
-    const handleRun = async () => {
-        const updatedHistoryUser = updateHistoryUser(userValue);
-        const updatedHistoryContinue = updateHistoryContinue(continueValue);
 
-        const updatedHistory = [];
-        updatedHistory.push(...currentMessagesHistory); // can be empty in the beginning
-        if (updatedHistoryUser) updatedHistory.push(updatedHistoryUser); // it's impo
-        if (updatedHistoryContinue) updatedHistory.push(updatedHistoryContinue);
+
+    const buildVariablesMap = (variables: Variable[]): Record<string, string> => {
+        return variables.reduce((acc, variable) => {
+            acc[variable.name] = variable.text;
+            return acc;
+        }, {} as Record<string, string>);
+    };
+
+    const handleRun = async () => {
+        const updatedUserMessage = updateHistoryUser(userValue);
+        const updatedContinueMessage = updateHistoryContinue(continueValue);
+
+        const systemVariablesMap = buildVariablesMap(currentSystemVariables.variables);
+        const userVariablesMap = buildVariablesMap(currentUserVariables.variables);
+
+        // Replace variables in user prompt
+        updatedUserMessage.content[0].text = replaceAll(currentUserPromptText, userVariablesMap);
+        // Replace variables in the system prompt
+        const replacedSystemPrompt = replaceAll(currentSystemPromptText, systemVariablesMap);
+
+        const updatedHistory = [
+            ...currentMessagesHistory,
+            ...(updatedUserMessage ? [updatedUserMessage] : []),
+            ...(updatedContinueMessage ? [updatedContinueMessage] : []),
+        ];
 
         if (updatedHistory.length === 0) {
             console.warn("No messages to send to Anthropic");
             return;
         }
 
-
-        // todo: the systemPromt.text substring that matches any of systemVariables[].name should be sreplaced with systemVariables.text before the message is send.
-
-
-        const anthropicReturn = await callAnthropic(updatedHistory, currentSystemPromptText);
-        appendToMessagesHistory(anthropicReturn);
+        const response = await callAnthropic(updatedHistory, replacedSystemPrompt);
+        appendToMessagesHistory(response);
     };
 
-    const extractVariables = (str: string, idPrefix: string): { id: string; name: string; text: string }[] => {
+
+    const extractVariables = (str: string): { id: string; name: string; text: string }[] => {
         const matches = str.match(/\{\{\s*[^}]+\s*}}/g) || [];
 
         return matches.map((variable, index) => {
@@ -96,22 +113,22 @@ export function Sidebars() {
                 .trim();
 
             return {
-                id: `${idPrefix}_${cleanVar}_${index}`,
+                id: `${cleanVar}_${index}`,
                 name: variable.trim(),
                 text: ""
             };
         });
     };
 
-    const systemVariables: SystemVariables = {
+    const systemVariables: PromptVariables = {
         id: "system_variables",
         title: "System prompt",
-        variables: extractVariables(systemValue, `systemVar`)
+        variables: extractVariables(systemValue)
     };
-    const userVariables: UserVariables = {
+    const userVariables: PromptVariables = {
         id: "user_variables",
         title: "User prompt",
-        variables: extractVariables(userValue, `userVar`)
+        variables: extractVariables(userValue)
     };
 
     const isRunButtonDisabled = loadingMessages || !userValue.trim();
@@ -177,7 +194,8 @@ export function Sidebars() {
                         title="Variables"
                         className="sidebar_2"
                     >
-                        <PromptVariables systemVariables={systemVariables} userVariables={userVariables}/>
+                        <PromptVariablesComp variables={systemVariables} isUser={false} />
+                        <PromptVariablesComp variables={userVariables} isUser={true}/>
                     </SidebarWrapper>
                 )}
                 {containsAssistantId &&

@@ -318,7 +318,7 @@ export const SessionProvider: SessionProviderProps = ({children, initialAppState
         });
     }, [currentSessionId]);
 
-    const deleteSessionVariable = useCallback((id: string) => {
+    const deleteSessionVariable = useCallback((id: string, isUser: boolean = false) => {
         setAllSessions(prevSessions => {
             const sessionIndex = prevSessions.findIndex(s => s.id === currentSessionId);
             if (sessionIndex === -1) {
@@ -327,10 +327,13 @@ export const SessionProvider: SessionProviderProps = ({children, initialAppState
             }
 
             const updatedSession = {...prevSessions[sessionIndex]};
-            const variables = updatedSession.appState?.systemVariables?.variables;
+
+            const updatedAppState = updatedSession.appState;
+            const variables = isUser ? updatedAppState?.userVariables?.variables : updatedAppState?.systemVariables?.variables;
+
 
             if (!Array.isArray(variables)) {
-                console.error("deleteSessionVariable Error: System variables array not found.");
+                console.error(`error: ${isUser ? "User" : "System"} variables array not found.`);
                 return prevSessions;
             }
 
@@ -346,13 +349,25 @@ export const SessionProvider: SessionProviderProps = ({children, initialAppState
                 ...variables.slice(variableIndex + 1)
             ];
 
-            updatedSession.appState = {
-                ...updatedSession.appState,
-                systemVariables: {
-                    ...updatedSession.appState.systemVariables,
-                    variables: updatedVariables
-                }
-            };
+            if (isUser) {
+                updatedSession.appState = {
+                    ...updatedSession.appState,
+                    userVariables: {
+                        ...updatedSession.appState.userVariables,
+                        variables: updatedVariables
+                    }
+                };
+            } else {
+                updatedSession.appState = {
+                    ...updatedSession.appState,
+                    systemVariables: {
+                        ...updatedSession.appState.systemVariables,
+                        variables: updatedVariables
+                    }
+                };
+            }
+
+
             updatedSession.date = Date.now();
 
             return [
@@ -363,7 +378,7 @@ export const SessionProvider: SessionProviderProps = ({children, initialAppState
         });
     }, [currentSessionId]);
 
-    const overwriteSessionVariableText = useCallback((id: string, text: string) => {
+    const overwriteSessionVariableText = useCallback((id: string, text: string, isUser: boolean = false) => {
         setAllSessions(prevSessions => {
             const sessionIndex = prevSessions.findIndex(s => s.id === currentSessionId);
             if (sessionIndex === -1) {
@@ -372,10 +387,12 @@ export const SessionProvider: SessionProviderProps = ({children, initialAppState
             }
 
             const updatedSession = {...prevSessions[sessionIndex]};
-            const variables = updatedSession.appState?.systemVariables?.variables;
+
+            const updatedAppState = updatedSession.appState;
+            const variables = isUser ? updatedAppState?.userVariables?.variables : updatedAppState?.systemVariables?.variables;
 
             if (!Array.isArray(variables)) {
-                console.error("error: System variables array not found.");
+                console.error(`error: ${isUser ? "User" : "System"} variables array not found.`);
                 return prevSessions;
             }
 
@@ -392,13 +409,24 @@ export const SessionProvider: SessionProviderProps = ({children, initialAppState
                 text
             };
 
-            updatedSession.appState = {
-                ...updatedSession.appState,
-                systemVariables: {
-                    ...updatedSession.appState.systemVariables,
-                    variables: updatedVariables
-                }
-            };
+            if (isUser) {
+                updatedSession.appState = {
+                    ...updatedSession.appState,
+                    userVariables: {
+                        ...updatedSession.appState.userVariables,
+                        variables: updatedVariables
+                    }
+                };
+            } else {
+                updatedSession.appState = {
+                    ...updatedSession.appState,
+                    systemVariables: {
+                        ...updatedSession.appState.systemVariables,
+                        variables: updatedVariables
+                    }
+                };
+            }
+
             updatedSession.date = Date.now();
 
             return [

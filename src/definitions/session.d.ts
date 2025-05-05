@@ -1,5 +1,4 @@
-import { SystemVariables } from "@/definitions/variables";
-import { UserVariables } from "@/definitions/variables";
+import { PromptVariables } from "@/definitions/variables";
 
 export type Settings = {
     model: string;
@@ -40,8 +39,8 @@ export type AppState = {
     systemPrompt: SystemMessage;
     userPrompt: UserMessage;
     messagesHistory: Message[] | [];
-    systemVariables: SystemVariables;
-    userVariables: UserVariables;
+    systemVariables: PromptVariables;
+    userVariables: PromptVariables;
 };
 
 export type Session = {
@@ -71,8 +70,8 @@ export type SessionContextType = {
     deleteMessage: (id: string) => void;
 
     appendSessionVariable: (path: string, value: any, id: string) => void;
-    deleteSessionVariable: (id: string) => void;
-    overwriteSessionVariableText: (id: string, value: any) => void;
+    deleteSessionVariable: (id: string, isUser?: boolean) => void;
+    overwriteSessionVariableText: (id: string, value: any, isUser?: boolean) => void;
 
     isSessionLoading: boolean;
 };
