@@ -1,5 +1,4 @@
 import { LOCAL_STORAGE_SESSION } from "@/config/constants";
-import { VariablesHistory } from "@/definitions/variables";
 import { nanoid } from "nanoid";
 import { createContext, useState, useContext, useEffect, useCallback, useRef, useMemo, FC, ReactNode } from 'react';
 import { useNavigate, useSearchParams, useLocation } from 'react-router-dom';
