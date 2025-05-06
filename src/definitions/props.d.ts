@@ -10,9 +10,10 @@ export type ModelInputProps = {
 };
 
 export type PromptTextareaProps = {
-    title: string;
+    title: string | ReactNode;
     value: string;
     isUser?: boolean;
+    isDestructive?: boolean;
     isVariable?: boolean;
     placeholder: string;
     disabled?: boolean;

@@ -56,13 +56,22 @@ export const PromptVariablesComp = ({variables, isUser = true}: {
             return acc;
         }, {} as { [key: string]: string });
         setValue(newValues);
-
-        console.log(variablesPersist)
     }, [variablesPersist]);
 
     const variableInPersist = (variableId: string) => variablesPersist.some((variable) => variable.id === variableId);
     const variableInOrigin = (variableId: string) => variables.variables.some((variable) => variable.id === variableId);
     const hasDuplicateTitles = () => variablesPersist.some((variable, index, arr) => arr.findIndex(x => x.title === variable.title) !== index);
+
+    const variableTitles = ( variableTitle: string, variables: Variable) => {
+        const errorMessage = `${variableTitle.replace(" prompt", ":")} ${variables.title} not found!`;
+        const modifiedTitle = `${variableTitle.replace(" prompt", ":")} ${variables.title}`;
+        if (!variableInOrigin(variables.id)) {
+            return (<span className="text-destructive">{errorMessage}</span>)
+        } else {
+            return modifiedTitle
+        }
+    };
+
 
     return (
         <>
@@ -94,18 +103,11 @@ export const PromptVariablesComp = ({variables, isUser = true}: {
                         onDelete={() => deleteVariable(variable.id)}
                         onClearValue={() => clearVariableValue(variable.id)}
                         isUser={isUser}
+                        isDestructive={!variableInOrigin(variable.id)}
                         isVariable={true}
-                        title={`${variables.title.replace(" prompt", ":")} ${variable.title}`}
+                        title={variableTitles(variables.title, variable)}
                         placeholder={variable.title}
                     />
-
-                    {!variableInOrigin(variable.id) && (
-                        <p className="absolute -bottom-2.5 w-full text-center pointer-events-none">
-                            <span className="text-sm bg-red-400 text-white px-2 pt-0.5 pb-0.75 rounded-md">
-                                {`No variable ${variable.title} in ${isUser ? "User" : "System"} Prompt`}
-                            </span>
-                        </p>
-                    )}
                 </div>
             ))}
         </>

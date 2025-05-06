@@ -20,6 +20,7 @@ export function PromptTextarea({
                                    onClearValue,
                                    className,
                                    isUser,
+                                   isDestructive,
                                    isVariable,
                                    title,
                                    placeholder,
@@ -78,17 +79,32 @@ export function PromptTextarea({
     );
 
     const purpleRing = "[&:has(textarea:focus-visible)]:ring-purple-500/50 [&:has(textarea:focus-visible)]:border-purple-500/50";
-    const systemColors = !isUser && isVariable && "[&_label]:text-primary";
-    const userColors = isUser && isVariable && cn(purpleRing, "[&_label]:text-purple-500");
-    const userRingColor = isUser && purpleRing;
-    const userRingColorTrigger = isUser && "focus-visible:ring-purple-500/90 focus-visible:border-purple-500/90";
+    const destructiveRing = "[&:has(textarea:focus-visible)]:ring-destructive/50 [&:has(textarea:focus-visible)]:border-destructive/50";
+
+    const colors = () => {
+        if (isDestructive) return `${destructiveRing} [&_label]:text-destructive`;
+        if (isVariable) {
+            return isUser
+                ? `${purpleRing} [&_label]:text-purple-500`
+                : "[&_label]:text-primary";
+        }
+        return "";
+    };
+
+    const userRingColorTrigger = () => {
+        if (isDestructive) return "focus-visible:ring-destructive/90 focus-visible:border-destructive/90";
+        if (isUser) return "focus-visible:ring-purple-500/90 focus-visible:border-purple-500/90";
+        return "";
+    };
+
 
     return (
-        <Collapsible defaultOpen className={cn(collapsibleClasses, systemColors, userColors, userRingColor, className)}>
+        <Collapsible defaultOpen
+                     className={cn(collapsibleClasses, colors(), className)}>
             <SidebarGroup>
                 <div className="flex justify-between gap-2 items-center">
                     <SidebarGroupLabel asChild>
-                        <CollapsibleTrigger className={cn("group grow", userRingColorTrigger)}>
+                        <CollapsibleTrigger className={cn("group grow", userRingColorTrigger())}>
                             <Label htmlFor={title}>{title}</Label>
                             <ChevronDown
                                 className="ml-auto transition-transform duration-200 group-data-[state=open]:rotate-180"/>
