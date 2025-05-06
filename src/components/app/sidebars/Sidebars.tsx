@@ -8,8 +8,10 @@ import { useAnthropic } from "@/contexts/AnthropicContext";
 import { useSession } from "@/contexts/SessionContext";
 import { Message, SystemMessage, UserMessage } from "@/definitions/session";
 import { PromptVariables, Variable } from "@/definitions/variables";
+import { useSidebarLayout } from "@/hooks/useSidebarLayout";
 import { replaceAll } from "@/lib/utils";
 import { Play } from "lucide-react";
+import { nanoid } from "nanoid";
 import { useCallback, useEffect, useState } from "react";
 
 export function Sidebars() {
@@ -21,14 +23,22 @@ export function Sidebars() {
         appendToMessagesHistory,
     } = useSession();
 
+    const {
+        sidebar1Expanded,
+        setSidebar1Expanded,
+        sidebar2Expanded,
+        setSidebar2Expanded,
+        sidebar3Expanded,
+        setSidebar3Expanded,
+        sidebarsWidth,
+    } = useSidebarLayout();
+
     const [systemValue, setSystemValue] = useState('');
     const [userValue, setUserValue] = useState('');
     const [continueValue, setContinueValue] = useState('');
 
-    const currentSystemPrompt = currentAppState.systemPrompt
-    const currentUserPrompt = currentAppState.userPrompt
-    const currentSystemPromptText = currentSystemPrompt.text;
-    const currentUserPromptText = currentUserPrompt.content[0].text;
+    const currentSystemPromptText = currentAppState.systemPrompt.text;
+    const currentUserPromptText = currentAppState.userPrompt.content[0].text;
     const currentSystemVariables = currentAppState.systemVariables
     const currentUserVariables = currentAppState.userVariables
 
@@ -52,7 +62,7 @@ export function Sidebars() {
 
     const updateHistoryContinue = (value: string) => {
         const continueMessage: Message = {
-            id: `continue_${crypto.randomUUID()}`,
+            id: `continue_${nanoid(6)}`,
             role: "user",
             content: [{type: "text", text: value}],
         };
@@ -65,8 +75,6 @@ export function Sidebars() {
         setSystemValue(currentSystemPromptText);
         setUserValue(currentUserPromptText);
     }, [currentSystemPromptText, currentUserPromptText]);
-
-
 
     const buildVariablesMap = (variables: Variable[]): Record<string, string> => {
         return variables.reduce((acc, variable) => {
@@ -102,7 +110,6 @@ export function Sidebars() {
         appendToMessagesHistory(response);
     };
 
-
     const extractVariables = (str: string): { id: string; name: string; text: string }[] => {
         const matches = str.match(/\{\{\s*[^}]+\s*}}/g) || [];
 
@@ -134,24 +141,6 @@ export function Sidebars() {
     const isRunButtonDisabled = loadingMessages || !userValue.trim();
     const containsAssistantId = currentMessagesHistory.some(item => item.id && item.id.startsWith("assistant"));
 
-    const [sidebar_1_expanded, setSidebar_1_Expanded] = useState(true);
-    const [sidebar_2_expanded, setSidebar_2_Expanded] = useState(true);
-    const [sidebar_3_expanded, setSidebar_3_Expanded] = useState(true);
-    const [sidebarsWidth, setSidebarsWidth] = useState("");
-
-    const calculateSidebarsWidth = useCallback(() => {
-        const width = (sidebar_1_expanded ? 1 : 0) +
-            (sidebar_2_expanded ? 1 : 0) +
-            (sidebar_3_expanded ? 1 : 0);
-        const widthMap = ["max-w-1/12", "max-w-5/12", "max-w-7/12", "max-w-9/12"];
-        return widthMap[width];
-    }, [sidebar_1_expanded, sidebar_2_expanded, sidebar_3_expanded]);
-
-    useEffect(() => {
-        const newWidth = calculateSidebarsWidth();
-        setSidebarsWidth(newWidth);
-    }, [calculateSidebarsWidth, sidebar_1_expanded, sidebar_2_expanded, sidebar_3_expanded]);
-
     return (
         <div className={`sidebars bg-sidebar flex flex-col w-full min-w-39 ${sidebarsWidth}`}>
             <div className="sidebarsHeader flex items-center justify-between gap-4 px-4 py-2 border-b border-r">
@@ -160,10 +149,10 @@ export function Sidebars() {
                     <SettingsSheet/>
                 </div>
             </div>
-            <div className="sidebarsContent flex border-r grow pt-4 px-2 overflow-hidden">
+            <div className="sidebarsContent flex border-r grow pt-4 px-2 overflow-auto">
                 <SidebarWrapper
-                    isExpanded={sidebar_1_expanded}
-                    setIsExpanded={setSidebar_1_Expanded}
+                    isExpanded={sidebar1Expanded}
+                    setIsExpanded={setSidebar1Expanded}
                     title="Prompts"
                     className="sidebar_1"
                 >
@@ -189,8 +178,8 @@ export function Sidebars() {
                 </SidebarWrapper>
                 {(systemVariables.variables.length > 0 || userVariables.variables.length > 0) && (
                     <SidebarWrapper
-                        isExpanded={sidebar_2_expanded}
-                        setIsExpanded={setSidebar_2_Expanded}
+                        isExpanded={sidebar2Expanded}
+                        setIsExpanded={setSidebar2Expanded}
                         title="Variables"
                         className="sidebar_2"
                     >
@@ -200,8 +189,8 @@ export function Sidebars() {
                 )}
                 {containsAssistantId &&
                     <SidebarWrapper
-                        isExpanded={sidebar_3_expanded}
-                        setIsExpanded={setSidebar_3_Expanded}
+                        isExpanded={sidebar3Expanded}
+                        setIsExpanded={setSidebar3Expanded}
                         title="Followup"
                         className="sidebar_3"
                     >
@@ -227,7 +216,6 @@ export function Sidebars() {
                     variant="outlinePrimary"
                 ><Play/> Run
                 </Button>
-
             </div>
         </div>
     )

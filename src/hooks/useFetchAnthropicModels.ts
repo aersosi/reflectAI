@@ -40,7 +40,7 @@ export const useFetchAnthropicModels = () => {
         const stored = loadDataFromStorage<AnthropicModel>(LOCAL_STORAGE_MODELS);
         if (stored && Array.isArray(stored) && stored.length > 0) setModels(stored);
         setInitialStorageChecked(true);
-    }, []); // Leeres Array stellt sicher, dass dies nur einmal beim Mount ausgeführt wird
+    }, []);
 
     const {
         data: modelsResponse,
