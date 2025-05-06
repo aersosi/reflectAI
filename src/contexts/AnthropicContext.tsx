@@ -1,3 +1,4 @@
+import { useSession } from "@/contexts/SessionContext";
 import { createContext, useContext, useState, useCallback, ReactNode, FC, useMemo } from 'react';
 
 import Anthropic from '@anthropic-ai/sdk';
@@ -22,9 +23,14 @@ export const AnthropicProvider: FC<AnthropicProviderProps> = ({children}) => {
     );
 
     const {models, isLoadingModels, error: modelsError} = useFetchAnthropicModels();
+    const {currentAppState} = useSession()
     const [loadingMessages, setLoadingMessages] = useState(false);
     const {mapToCurrentMessagesHistory} = useSessionActions();
     const [messagesError, setMessagesError] = useState<Error | null>(null);
+
+    const temperature = currentAppState.settings?.temperature;
+    const model = currentAppState.settings?.model;
+    const maxTokens = currentAppState.settings?.maxTokens;
 
     const formatMessagesForAnthropic = useCallback((
         messages: Message[] // Nimmt jetzt direkt Message[] entgegen
@@ -39,15 +45,23 @@ export const AnthropicProvider: FC<AnthropicProviderProps> = ({children}) => {
         setLoadingMessages(true);
         setMessagesError(null);
 
+        console.log("maxTokens", maxTokens)
+        console.log("temperature", temperature)
+        console.log("model", model)
+        console.log("currentMessagesHistory", currentMessagesHistory)
+        console.log("systemPrompt", systemPrompt)
+
         try {
             const formattedMessages = formatMessagesForAnthropic(currentMessagesHistory);
             const response = await anthropic.messages.create({
-                model: "claude-3-haiku-20240307", // TODO: Modell konfigurierbar machen
-                max_tokens: 200,
-                temperature: 1,
-                system: systemPrompt ? systemPrompt : "",
+                model: model || "claude-3-haiku-20240307",
+                max_tokens: maxTokens || 200,
+                temperature: temperature || 0.5,
+                system: systemPrompt || "",
                 messages: formattedMessages
             });
+
+            console.log("response.model", response.model)
 
             // Antwort validieren (Grundlegende Prüfung)
             if (!response || !response.id || !Array.isArray(response.content)) {
@@ -62,7 +76,7 @@ export const AnthropicProvider: FC<AnthropicProviderProps> = ({children}) => {
         } finally {
             setLoadingMessages(false);
         }
-    }, [anthropic, formatMessagesForAnthropic]);
+    }, [anthropic, formatMessagesForAnthropic, currentAppState]);
 
     // --- Kontextwert zusammenstellen ---
     const contextValue: AnthropicContextType = {

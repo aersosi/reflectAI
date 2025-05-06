@@ -68,11 +68,25 @@ export function Chat() {
                     />
                 )}
             </div>
-            <footer className="flex gap-4 px-4 h-14 items-center justify-between border-t">
-                <div>{currentMessagesHistory.length}</div>
-                <div>All tokens: 123</div>
-                <div>All token cost: 123</div>
+
+            <footer
+                className="flex items-center justify-between gap-x-4 gap-y-2 text-sm font-medium flex-wrap border-t px-4 py-3.5">
+                <p>
+                    <span className="text-muted-foreground font-normal">Conversation Length: </span>
+                    {currentMessagesHistory.length}
+                </p>
+                <div className="flex gap-4">
+                    <p>
+                        <span className="text-muted-foreground font-normal">All Tokens: </span>
+                        {currentMessagesHistory.length}
+                    </p>
+                    <p>
+                        <span className="text-muted-foreground font-normal">Tokens Cost: </span>
+                        {currentMessagesHistory.length}
+                    </p>
+                </div>
             </footer>
+
         </main>
     );
 }

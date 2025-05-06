@@ -54,4 +54,9 @@ export type SidebarWrapperProps = {
     title: string;
     children: ReactNode;
     className?: string;
-}
+};
+
+export type TouchTargetProps = {
+    children: ReactNode;
+    onClick?: () => void;
+};

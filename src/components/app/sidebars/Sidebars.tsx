@@ -47,6 +47,13 @@ export function Sidebars() {
         setUserValue(currentUserPromptText);
     }, [currentSystemPromptText, currentUserPromptText]);
 
+
+    // reset sidebar width when sidebars closed
+    useEffect(() => {
+        setSidebar2Expanded(false)
+        setSidebar3Expanded(false)
+    }, [systemVariables.variables.length, userVariables.variables.length]);
+
     const isRunButtonDisabled = loadingMessages || !userValue.trim();
     const containsAssistantId = currentMessagesHistory.some(item => item.id && item.id.startsWith("assistant"));
 
@@ -60,12 +67,24 @@ export function Sidebars() {
 
     return (
         <div className={`sidebars bg-sidebar flex flex-col w-full min-w-39 ${sidebarsWidth}`}>
-            <div className="sidebarsHeader flex items-center justify-between gap-4 px-4 py-2 border-b border-r">
-                <h1 className="font-bold transition-colors text-primary hover:text-purple-500">reflectAI</h1>
-                <div className="flex gap-6">
-                    <SettingsSheet/>
+            <div className="sidebarsHeader relative flex items-center justify-between gap-4 pl-4 pr-4 sm:pr-15 py-2 border-b border-r flex-wrap">
+                <h1 className="font-bold transition-colors text-primary hover:text-purple-500 py-0.5">reflectAI</h1>
+                <div
+                    className="flex items-center gap-x-4 gap-y-2 text-sm font-medium flex-wrap">
+                    <p className="flex gap-2 flex-wrap"><span className="text-muted-foreground font-normal">Model: </span>{currentAppState.settings?.model}
+                    </p>
+                    <p className="flex gap-2 flex-wrap"><span
+                        className="text-muted-foreground font-normal">Temperature: </span>{currentAppState.settings?.temperature}
+                    </p>
+                    <p className="flex gap-2 flex-wrap"><span
+                        className="text-muted-foreground font-normal">Max Tokens: </span>{currentAppState.settings?.maxTokens}
+                    </p>
                 </div>
+                <span className="absolute top-2 right-4">
+                    <SettingsSheet/>
+                </span>
             </div>
+
             <div className="sidebarsContent flex border-r grow pt-4 px-2 overflow-auto">
                 <SidebarWrapper
                     isExpanded={sidebar1Expanded}

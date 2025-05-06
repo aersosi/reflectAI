@@ -32,5 +32,6 @@ export const createPromptVariables = (id: string, title: string, text: string): 
 });
 
 export const replaceVariables = (text: string, variablesMap: Record<string, string>): string => {
+    if (Object.keys(variablesMap).length === 0) return text; // return just text if no variables used
     return replaceAll(text, variablesMap);
 };

@@ -2,11 +2,11 @@ import { AppState, Message, Settings, SystemMessage, UserMessage } from "@/defin
 import { PromptVariables} from "@/definitions/variables";
 
 const settings: Settings = {
-    model: "",
-    temperature: 1,
+    model: "claude-2.0",
+    temperature: 0.5,
     temperatureMax: 1,
     temperatureSteps: 0.1,
-    maxTokens: 4096,
+    maxTokens: 2048,
     maxTokensMax: 4096,
     maxTokensSteps: 4,
     apiKey: "",

@@ -25,7 +25,6 @@ export const SettingsSheet = () => {
             title="Session Settings"
             side="left"
             icon="settings"
-            saveButton={true}
         >
             <div className="grid gap-12">
                 {anthropicModels ?
@@ -35,8 +34,9 @@ export const SettingsSheet = () => {
                         placeholder="Select a model"
                         labelFor="aiModel"
                         labelTitle="Model"
-                    >
-                    </ModelDropdown> : <p>Loading Anthropic Models ...</p>
+                    ></ModelDropdown>
+                    :
+                    <p>Loading Anthropic Models ...</p>
                 }
 
                 <SliderTooltip
