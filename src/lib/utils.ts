@@ -23,7 +23,6 @@ export const saveDataToStorage = <T,>(data: T[], localStorageKey: string) => {
   }
 };
 
-
 /**
  * Replaces all occurrences of specified substrings in a string based on a mapping object.
  *
@@ -37,7 +36,7 @@ export const saveDataToStorage = <T,>(data: T[], localStorageKey: string) => {
  * replaceAll("The cat chased the dog", { cat: "dog", dog: "goat" });
  * // => "The dog chased the goat"
  **/
-export const replaceAll = (str: string, mapObj: Record<string, string>) => {
+export const replaceAll = (str: string, mapObj: Record<string, string>): string => {
     const re = new RegExp(Object.keys(mapObj).join("|"), "g");
     return str.replace(re, matched => mapObj[matched]);
 }

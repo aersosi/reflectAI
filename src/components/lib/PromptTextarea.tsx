@@ -98,7 +98,7 @@ export function PromptTextarea({
                     <hr className="mt-[2px]"/>
                     <Textarea
                         id={title}
-                        name={title}
+                        title={title}
                         value={internalValue}
                         onChange={(e) => handleChange(e.target.value)}
                         onBlur={handleBlur}

@@ -23,7 +23,7 @@ export const SessionProvider: SessionProviderProps = ({children, initialAppState
     }, [allSessions, currentSessionId]);
 
     const currentAppState = currentSessionData?.appState;
-    const currentSessionName = currentSessionData?.name;
+    const currentSessionName = currentSessionData?.title;
     const currentMessagesHistory = currentAppState?.messagesHistory;
 
     useEffect(() => {
@@ -49,7 +49,7 @@ export const SessionProvider: SessionProviderProps = ({children, initialAppState
         if (!sessionToActivate) {
             const newSession: Session = {
                 id: `session_${nanoid(12)}`,
-                name: "New Session",
+                title: "New Session",
                 date: Date.now(),
                 appState: initialAppState,
             };
@@ -110,7 +110,7 @@ export const SessionProvider: SessionProviderProps = ({children, initialAppState
         setIsSessionLoading(true);
         const newSession: Session = {
             id: `session_${nanoid(12)}`,
-            name: sessionName || "New Session",
+            title: sessionName || "New Session",
             date: Date.now(),
             appState: initialState,
         };
@@ -220,7 +220,7 @@ export const SessionProvider: SessionProviderProps = ({children, initialAppState
             } else {
                 const newSession: Session = {
                     id: `session_${nanoid(12)}`,
-                    name: "New Session",
+                    title: "New Session",
                     date: Date.now(),
                     appState: initialAppState
                 };
@@ -274,7 +274,7 @@ export const SessionProvider: SessionProviderProps = ({children, initialAppState
             const updatedSession = {...prevSessions[sessionIndex]};
             const newVariable = {
                 id: id,
-                name: value.name,
+                title: value.title,
                 text: value.text
             };
 
@@ -436,9 +436,9 @@ export const SessionProvider: SessionProviderProps = ({children, initialAppState
         });
     }, [currentSessionId]);
 
-    const sessionMetas: SessionMeta[] = allSessions.map(({id, name, date}) => ({
+    const sessionMetas: SessionMeta[] = allSessions.map(({id, title, date}) => ({
         id,
-        name,
+        title,
         date
     })).sort((a, b) => b.date - a.date);
 

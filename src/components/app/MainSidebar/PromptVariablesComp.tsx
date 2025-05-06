@@ -80,7 +80,7 @@ export const PromptVariablesComp = ({variables, isUser = true}: {
                         size={"sm"}
                         onClick={() => addVariable(variable, variable.id)}
                     >
-                        Add: {variable.name}
+                        Add: {variable.title}
                     </Button>
                 )
             ))}
@@ -94,13 +94,13 @@ export const PromptVariablesComp = ({variables, isUser = true}: {
                         onDelete={() => deleteVariableValue(variable.id)}
                         isUser={isUser}
                         isVariable={true}
-                        title={`${variables.title.replace(" prompt", ":")} ${variable.name}`}
-                        placeholder={variable.name}
+                        title={`${variables.title.replace(" prompt", ":")} ${variable.title}`}
+                        placeholder={variable.title}
                     />
 
                     {!variableInOrigin(variable.id) && (
                         <AlertClose
-                            title={`No matching variable ${variable.name} in ${isUser ? "User" : "System"} Prompt`}
+                            title={`No matching variable ${variable.title} in ${isUser ? "User" : "System"} Prompt`}
                             destructive={true} close={alertHidden[variable.id]} key={variable.id}>
                             <div className="flex gap-2 justify-end w-full">
                                 <Button

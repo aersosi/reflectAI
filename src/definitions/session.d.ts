@@ -45,7 +45,7 @@ export type AppState = {
 
 export type Session = {
     id: string;
-    name: string | null;
+    title: string | null;
     date: number; // Unix Timestamp (ms)
     appState: AppState;
 };

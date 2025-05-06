@@ -7,12 +7,12 @@ import { Button } from "@/components/ui/button";
 import { useAnthropic } from "@/contexts/AnthropicContext";
 import { useSession } from "@/contexts/SessionContext";
 import { Message, SystemMessage, UserMessage } from "@/definitions/session";
-import { PromptVariables, Variable } from "@/definitions/variables";
+import { usePromptValues } from "@/hooks/usePromptValues";
 import { useSidebarLayout } from "@/hooks/useSidebarLayout";
-import { replaceAll } from "@/lib/utils";
+import { createPromptVariables, buildVariablesMap, replaceVariables } from "@/services/variableService";
 import { Play } from "lucide-react";
 import { nanoid } from "nanoid";
-import { useCallback, useEffect, useState } from "react";
+import { useEffect } from "react";
 
 export function Sidebars() {
     const {loadingMessages, callAnthropic} = useAnthropic();
@@ -24,18 +24,13 @@ export function Sidebars() {
     } = useSession();
 
     const {
-        sidebar1Expanded,
-        setSidebar1Expanded,
-        sidebar2Expanded,
-        setSidebar2Expanded,
-        sidebar3Expanded,
-        setSidebar3Expanded,
+        sidebar1Expanded, setSidebar1Expanded,
+        sidebar2Expanded, setSidebar2Expanded,
+        sidebar3Expanded, setSidebar3Expanded,
         sidebarsWidth,
     } = useSidebarLayout();
 
-    const [systemValue, setSystemValue] = useState('');
-    const [userValue, setUserValue] = useState('');
-    const [continueValue, setContinueValue] = useState('');
+    const {systemValue, setSystemValue, userValue, setUserValue, continueValue, setContinueValue} = usePromptValues();
 
     const currentSystemPromptText = currentAppState.systemPrompt.text;
     const currentUserPromptText = currentAppState.userPrompt.content[0].text;
@@ -76,13 +71,6 @@ export function Sidebars() {
         setUserValue(currentUserPromptText);
     }, [currentSystemPromptText, currentUserPromptText]);
 
-    const buildVariablesMap = (variables: Variable[]): Record<string, string> => {
-        return variables.reduce((acc, variable) => {
-            acc[variable.name] = variable.text;
-            return acc;
-        }, {} as Record<string, string>);
-    };
-
     const handleRun = async () => {
         const updatedUserMessage = updateHistoryUser(userValue);
         const updatedContinueMessage = updateHistoryContinue(continueValue);
@@ -91,9 +79,9 @@ export function Sidebars() {
         const userVariablesMap = buildVariablesMap(currentUserVariables.variables);
 
         // Replace variables in user prompt
-        updatedUserMessage.content[0].text = replaceAll(currentUserPromptText, userVariablesMap);
+        updatedUserMessage.content[0].text = replaceVariables(currentUserPromptText, userVariablesMap);
         // Replace variables in the system prompt
-        const replacedSystemPrompt = replaceAll(currentSystemPromptText, systemVariablesMap);
+        const replacedSystemPrompt = replaceVariables(currentSystemPromptText, systemVariablesMap);
 
         const updatedHistory = [
             ...currentMessagesHistory,
@@ -110,33 +98,8 @@ export function Sidebars() {
         appendToMessagesHistory(response);
     };
 
-    const extractVariables = (str: string): { id: string; name: string; text: string }[] => {
-        const matches = str.match(/\{\{\s*[^}]+\s*}}/g) || [];
-
-        return matches.map((variable, index) => {
-            const cleanVar = variable
-                .replace(/^{{\s*|\s*}}$/g, "")  // remove wrapping braces and surrounding spaces
-                .replace(/\s+/g, "_")           // replace inner spaces with underscores
-                .trim();
-
-            return {
-                id: `${cleanVar}_${index}`,
-                name: variable.trim(),
-                text: ""
-            };
-        });
-    };
-
-    const systemVariables: PromptVariables = {
-        id: "system_variables",
-        title: "System prompt",
-        variables: extractVariables(systemValue)
-    };
-    const userVariables: PromptVariables = {
-        id: "user_variables",
-        title: "User prompt",
-        variables: extractVariables(userValue)
-    };
+    const systemVariables = createPromptVariables('system_variables', 'System prompt', systemValue);
+    const userVariables = createPromptVariables('user_variables', 'User prompt', userValue);
 
     const isRunButtonDisabled = loadingMessages || !userValue.trim();
     const containsAssistantId = currentMessagesHistory.some(item => item.id && item.id.startsWith("assistant"));
@@ -183,7 +146,7 @@ export function Sidebars() {
                         title="Variables"
                         className="sidebar_2"
                     >
-                        <PromptVariablesComp variables={systemVariables} isUser={false} />
+                        <PromptVariablesComp variables={systemVariables} isUser={false}/>
                         <PromptVariablesComp variables={userVariables} isUser={true}/>
                     </SidebarWrapper>
                 )}

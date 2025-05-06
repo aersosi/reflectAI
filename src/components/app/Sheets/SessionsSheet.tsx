@@ -15,7 +15,7 @@ export const SessionsSheet = () => {
                             border hover:border-primary/50 [&:has(button:hover)]:border-destructive/50
                             hover:ring-[3px] ring-primary/50 [&:has(button:hover)]:ring-destructive/50">
                         <a href={`/?sessionId=${session.id}`}>
-                            {session.name} ({new Date(session.date).toLocaleString()})
+                            {session.title} ({new Date(session.date).toLocaleString()})
                         </a>
                         <Button onClick={() => deleteSession(session.id)} variant="ghostDestructive" size="iconSmall">
                             <Trash2></Trash2>
