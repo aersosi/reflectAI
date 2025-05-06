@@ -16,15 +16,11 @@ export const useSidebarLayout = () => {
             (sidebar2Expanded ? 1 : 0) +
             (sidebar3Expanded ? 1 : 0);
         const widthMap = ['max-w-3/12', 'max-w-5/12', 'max-w-7/12', 'max-w-9/12'];
-        console.log(width);
-
         return widthMap[width];
     }, [sidebar1Expanded, sidebar2Expanded, sidebar3Expanded]);
 
     useEffect(() => {
         const newWidth = calculateSidebarsWidth();
-
-        console.log(newWidth);
         setSidebarsWidth(newWidth);
     }, [calculateSidebarsWidth]);
 

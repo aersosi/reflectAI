@@ -5,7 +5,7 @@ import {
     CollapsibleTrigger,
 } from "@/components/ui/collapsible";
 import { SidebarGroup, SidebarGroupLabel } from "@/components/ui/sidebar";
-import { ChevronDown, Trash2 } from "lucide-react";
+import { ChevronDown, Trash2, X } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
 import { PromptTextareaProps } from "@/definitions/props";
 import { Label } from "@/components/ui/label";
@@ -17,6 +17,7 @@ export function PromptTextarea({
                                    onChange,
                                    onCommit,
                                    onDelete,
+                                   onClearValue,
                                    className,
                                    isUser,
                                    isVariable,
@@ -54,9 +55,14 @@ export function PromptTextarea({
     };
 
     const handleDelete = () => {
-        if (!internalValue.trim()) return; // return on empty textarea
         committedValueRef.current = internalValue;
         onDelete?.(internalValue);
+    };
+
+    const handleClearValue = () => {
+        if (!internalValue.trim()) return; // return on empty textarea
+        committedValueRef.current = internalValue;
+        onClearValue?.(internalValue);
     };
 
     const handleBlur = () => {
@@ -89,13 +95,28 @@ export function PromptTextarea({
                         </CollapsibleTrigger>
                     </SidebarGroupLabel>
                     {onDelete &&
-                        <Button onClick={handleDelete} variant="ghostDestructive" size="iconSmall">
+                        <Button
+                            onClick={handleDelete}
+                            variant="ghostDestructive"
+                            size="iconSmall"
+                        >
                             <Trash2></Trash2>
                         </Button>
                     }
                 </div>
                 <CollapsibleContent className="relative px-2">
+                    {onClearValue && internalValue.length > 0 &&
+                        <Button
+                            className="absolute cursor-pointer z-50 top-2 right-0.5 opacity-10 hover:opacity-100"
+                            onClick={handleClearValue}
+                            variant="ghostDestructive"
+                            size="iconSmall">
+                            <X></X>
+                        </Button>
+                    }
+
                     <hr className="mt-[2px]"/>
+
                     <Textarea
                         id={title}
                         title={title}

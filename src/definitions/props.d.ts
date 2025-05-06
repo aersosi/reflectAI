@@ -19,6 +19,7 @@ export type PromptTextareaProps = {
     onChange?: (value: string) => void;
     onCommit?: (value: string) => void;
     onDelete?: (e: PointerEvent<HTMLButtonElement>) => void;
+    onClearValue?: (e: PointerEvent<HTMLButtonElement>) => void;
     className?: string;
 };
 

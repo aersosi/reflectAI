@@ -22,7 +22,6 @@ const userPrompt: UserMessage = {
     id: "user_prompt",
     role: "user",
     content: [{type: "text", text: ""}]
-
 };
 
 const systemVariables: PromptVariables = {
