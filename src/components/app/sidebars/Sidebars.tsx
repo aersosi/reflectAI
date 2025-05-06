@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 
-import { PromptVariablesComp } from "@/components/app/MainSidebar/PromptVariablesComp";
+import { PromptVariablesComp } from "@/components/app/sidebars/PromptVariablesComp";
 import { SettingsSheet } from "@/components/app/Sheets/SettingsSheet";
 import { SidebarWrapper } from "@/components/app/sidebars/SidebarWrapper";
 import { ContinueTextarea } from "@/components/lib/ContinueTextarea";

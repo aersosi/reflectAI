@@ -11,7 +11,6 @@ export function ApiKeyInput({className}: { className?: string }) {
     const [showApiKey, setShowApiKey] = useState(false);
     const [inputValue, setInputValue] = useState("");
 
-
     // Sync with context value on mount/context change
     useEffect(() => {
         currentAppState.settings?.apiKey && setInputValue(currentAppState.settings.apiKey);

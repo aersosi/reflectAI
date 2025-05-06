@@ -1,7 +1,7 @@
+import { useSession } from "@/contexts/SessionContext";
 import { SheetWrapper } from "@/components/lib/SheetWrapper";
 import { Button } from "@/components/ui/button";
 import { Trash2 } from "lucide-react";
-import { useSession } from "@/contexts/SessionContext";
 
 export const SessionsSheet = () => {
     const {sessions, deleteSession} = useSession();
