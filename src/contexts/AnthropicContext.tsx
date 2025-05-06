@@ -1,18 +1,13 @@
-import { nanoid } from "nanoid";
-import {
-    createContext,
-    useContext,
-    useState,
-    useCallback,
-    ReactNode,
-    FC,
-    useMemo
-} from 'react';
+import { createContext, useContext, useState, useCallback, ReactNode, FC, useMemo } from 'react';
+
 import Anthropic from '@anthropic-ai/sdk';
 import { MessageParam } from "@anthropic-ai/sdk/resources";
-import { Message } from "@/definitions/session";
-import { AnthropicContextType, AnthropicResponse } from '@/definitions/api';
+
+import { useSessionActions } from "@/hooks/sidebars/useSessionActions";
 import { useFetchAnthropicModels } from '@/hooks/useFetchAnthropicModels';
+
+import { AnthropicContextType, AnthropicResponse } from '@/definitions/api';
+import { Message } from "@/definitions/session";
 
 const apiKey = import.meta.env.VITE_ANTHROPIC_API_KEY;
 const AnthropicContext = createContext<AnthropicContextType | undefined>(undefined);
@@ -28,6 +23,7 @@ export const AnthropicProvider: FC<AnthropicProviderProps> = ({children}) => {
 
     const {models, isLoadingModels, error: modelsError} = useFetchAnthropicModels();
     const [loadingMessages, setLoadingMessages] = useState(false);
+    const {mapToCurrentMessagesHistory} = useSessionActions();
     const [messagesError, setMessagesError] = useState<Error | null>(null);
 
     const formatMessagesForAnthropic = useCallback((
@@ -38,17 +34,6 @@ export const AnthropicProvider: FC<AnthropicProviderProps> = ({children}) => {
             content: msg.content.map((c) => ({type: "text", text: c.text}))
         }));
     }, []);
-
-    const mapToCurrentMessagesHistory = (source: AnthropicResponse) => {
-        return {
-            id: `assistant_${nanoid(6)}`,
-            role: "assistant",
-            content: source.content.map((block) => ({
-                type: "text",
-                text: block.text
-            }))
-        };
-    };
 
     const callAnthropic = useCallback(async (currentMessagesHistory: Message[], systemPrompt: string | undefined) => {
         setLoadingMessages(true);

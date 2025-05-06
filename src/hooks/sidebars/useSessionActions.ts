@@ -1,4 +1,5 @@
 import { useSession } from '@/contexts/SessionContext';
+import { AnthropicResponse } from "@/definitions/api";
 import { Message, SystemMessage, UserMessage } from '@/definitions/session';
 import { nanoid } from 'nanoid';
 
@@ -39,5 +40,17 @@ export const useSessionActions = () => {
         return continueMessage;
     };
 
-    return { updateHistorySystem, updateHistoryUser, updateHistoryContinue };
+    const mapToCurrentMessagesHistory = (source: AnthropicResponse) => {
+        return {
+            id: `assistant_${nanoid(6)}`,
+            role: "assistant",
+            content: source.content.map((block) => ({
+                type: "text",
+                text: block.text
+            }))
+        };
+    };
+
+
+    return { updateHistorySystem, updateHistoryUser, updateHistoryContinue, mapToCurrentMessagesHistory };
 };
