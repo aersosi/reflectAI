@@ -1,69 +1,45 @@
+import { useEffect } from "react";
+
 import { PromptVariablesComp } from "@/components/app/MainSidebar/PromptVariablesComp";
 import { SettingsSheet } from "@/components/app/Sheets/SettingsSheet";
 import { SidebarWrapper } from "@/components/app/sidebars/SidebarWrapper";
 import { ContinueTextarea } from "@/components/lib/ContinueTextarea";
 import { PromptTextarea } from "@/components/lib/PromptTextarea";
 import { Button } from "@/components/ui/button";
-import { useAnthropic } from "@/contexts/AnthropicContext";
+
 import { useSession } from "@/contexts/SessionContext";
-import { Message, SystemMessage, UserMessage } from "@/definitions/session";
-import { usePromptValues } from "@/hooks/usePromptValues";
-import { useSidebarLayout } from "@/hooks/useSidebarLayout";
-import { createPromptVariables, buildVariablesMap, replaceVariables } from "@/services/variableService";
+import { createPromptVariables } from "@/services/variableService";
+
+import { usePromptValues } from "@/hooks/sidebars/usePromptValues";
+import { useRunPrompt } from "@/hooks/sidebars/useRunPrompt";
+import { useSessionActions } from "@/hooks/sidebars/useSessionActions";
+import { useSidebarLayout } from "@/hooks/sidebars/useSidebarLayout";
+
 import { Play } from "lucide-react";
-import { nanoid } from "nanoid";
-import { useEffect } from "react";
 
 export function Sidebars() {
-    const {loadingMessages, callAnthropic} = useAnthropic();
-    const {
-        currentAppState,
-        currentMessagesHistory,
-        overwriteSession,
-        appendToMessagesHistory,
-    } = useSession();
-
+    const {currentAppState, currentMessagesHistory,} = useSession();
     const {
         sidebar1Expanded, setSidebar1Expanded,
         sidebar2Expanded, setSidebar2Expanded,
         sidebar3Expanded, setSidebar3Expanded,
         sidebarsWidth,
     } = useSidebarLayout();
-
-    const {systemValue, setSystemValue, userValue, setUserValue, continueValue, setContinueValue} = usePromptValues();
+    const {
+        systemValue, setSystemValue,
+        userValue, setUserValue,
+        continueValue, setContinueValue
+    } = usePromptValues();
+    const {updateHistorySystem, updateHistoryUser} = useSessionActions();
+    const {runPrompt, loadingMessages} = useRunPrompt();
 
     const currentSystemPromptText = currentAppState.systemPrompt.text;
     const currentUserPromptText = currentAppState.userPrompt.content[0].text;
     const currentSystemVariables = currentAppState.systemVariables
     const currentUserVariables = currentAppState.userVariables
 
-    const updateHistorySystem = (value: string) => {
-        const systemMessage: SystemMessage = {
-            id: "system_Prompt",
-            text: value,
-        };
-        if (value !== currentUserPromptText) overwriteSession("appState.systemPrompt", systemMessage);
-    };
-
-    const updateHistoryUser = (value: string) => {
-        const userMessage: UserMessage = {
-            id: "user_prompt",
-            role: "user",
-            content: [{type: "text", text: value}],
-        };
-        if (value !== currentUserPromptText) overwriteSession("appState.userPrompt", userMessage);
-        return userMessage;
-    };
-
-    const updateHistoryContinue = (value: string) => {
-        const continueMessage: Message = {
-            id: `continue_${nanoid(6)}`,
-            role: "user",
-            content: [{type: "text", text: value}],
-        };
-        if (value.length > 0) appendToMessagesHistory(continueMessage);
-        return continueMessage
-    };
+    const systemVariables = createPromptVariables('system_variables', 'System prompt', systemValue);
+    const userVariables = createPromptVariables('user_variables', 'User prompt', userValue);
 
     // load Values on Start
     useEffect(() => {
@@ -71,38 +47,16 @@ export function Sidebars() {
         setUserValue(currentUserPromptText);
     }, [currentSystemPromptText, currentUserPromptText]);
 
-    const handleRun = async () => {
-        const updatedUserMessage = updateHistoryUser(userValue);
-        const updatedContinueMessage = updateHistoryContinue(continueValue);
-
-        const systemVariablesMap = buildVariablesMap(currentSystemVariables.variables);
-        const userVariablesMap = buildVariablesMap(currentUserVariables.variables);
-
-        // Replace variables in user prompt
-        updatedUserMessage.content[0].text = replaceVariables(currentUserPromptText, userVariablesMap);
-        // Replace variables in the system prompt
-        const replacedSystemPrompt = replaceVariables(currentSystemPromptText, systemVariablesMap);
-
-        const updatedHistory = [
-            ...currentMessagesHistory,
-            ...(updatedUserMessage ? [updatedUserMessage] : []),
-            ...(updatedContinueMessage ? [updatedContinueMessage] : []),
-        ];
-
-        if (updatedHistory.length === 0) {
-            console.warn("No messages to send to Anthropic");
-            return;
-        }
-
-        const response = await callAnthropic(updatedHistory, replacedSystemPrompt);
-        appendToMessagesHistory(response);
-    };
-
-    const systemVariables = createPromptVariables('system_variables', 'System prompt', systemValue);
-    const userVariables = createPromptVariables('user_variables', 'User prompt', userValue);
-
     const isRunButtonDisabled = loadingMessages || !userValue.trim();
     const containsAssistantId = currentMessagesHistory.some(item => item.id && item.id.startsWith("assistant"));
+
+    const handleRun = () => {
+        runPrompt(
+            userValue, continueValue,
+            currentSystemVariables.variables, currentUserVariables.variables,
+            currentSystemPromptText, currentUserPromptText
+        );
+    };
 
     return (
         <div className={`sidebars bg-sidebar flex flex-col w-full min-w-39 ${sidebarsWidth}`}>
