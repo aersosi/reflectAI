@@ -2,11 +2,11 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { AlertCircle } from "lucide-react"
 import { ReactNode } from "react";
 
-export const AlertClose = ({children, title, destructive = false,close = false}: {
+export const AlertClose = ({children, title, destructive, close}: {
     children: ReactNode,
     title: string,
-    destructive: boolean
-    close: boolean
+    destructive?: boolean
+    close?: boolean
 }) => {
     return (
         <Alert className={`${close ? "hidden" : ""}`}>

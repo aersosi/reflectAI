@@ -1,5 +1,5 @@
 import { useSession } from "@/contexts/SessionContext";
-import { createContext, useContext, useState, useCallback, ReactNode, FC, useMemo } from 'react';
+import { createContext, useContext, useState, useCallback, ReactNode, FC, useMemo, useEffect } from 'react';
 
 import Anthropic from '@anthropic-ai/sdk';
 import { MessageParam } from "@anthropic-ai/sdk/resources";
@@ -10,46 +10,60 @@ import { useFetchAnthropicModels } from '@/hooks/useFetchAnthropicModels';
 import { AnthropicContextType, AnthropicResponse } from '@/definitions/api';
 import { Message } from "@/definitions/session";
 
-const apiKey = import.meta.env.VITE_ANTHROPIC_API_KEY;
 const AnthropicContext = createContext<AnthropicContextType | undefined>(undefined);
 export type AnthropicProviderProps = { children: ReactNode };
 
 export const AnthropicProvider: FC<AnthropicProviderProps> = ({children}) => {
-    const anthropic = useMemo(() => apiKey
-        ? new Anthropic({
-            apiKey,
-            dangerouslyAllowBrowser: true,
-        }) : new Anthropic(), []
-    );
-
-    const {models, isLoadingModels, error: modelsError} = useFetchAnthropicModels();
+    const {anthropicModels, isLoadingModels, error: modelsError} = useFetchAnthropicModels();
     const {currentAppState} = useSession()
     const [loadingMessages, setLoadingMessages] = useState(false);
     const {mapToCurrentMessagesHistory} = useSessionActions();
     const [messagesError, setMessagesError] = useState<Error | null>(null);
+    const [apiKeyError, setApiKeyError] = useState(false);
 
     const temperature = currentAppState.settings?.temperature;
     const model = currentAppState.settings?.model;
     const maxTokens = currentAppState.settings?.maxTokens;
 
-    const formatMessagesForAnthropic = useCallback((
-        messages: Message[] // Nimmt jetzt direkt Message[] entgegen
-    ): MessageParam[] => {
+    const apiKeyEnv = import.meta.env.VITE_ANTHROPIC_API_KEY;
+    const apiKeyInput = currentAppState.settings?.apiKey;
+    const apiKey = apiKeyEnv || (apiKeyInput?.trim() || null);
+
+    useEffect(() => {
+        // set error when no key
+        // useEffect prevents rerender error
+        setApiKeyError(!apiKey);
+    }, [apiKey]);
+
+    const anthropic = useMemo(() => {
+        if (!apiKey) return null;
+        return new Anthropic({
+            apiKey,
+            dangerouslyAllowBrowser: true,
+        });
+    }, [apiKey]);
+
+    const formatMessagesForAnthropic = useCallback((messages: Message[]): MessageParam[] => {
         return messages.map((msg) => ({
             role: msg.role,
-            content: msg.content.map((c) => ({type: "text", text: c.text}))
+            content: msg.content.map((c) => ({ type: "text", text: c.text }))
         }));
     }, []);
 
     const callAnthropic = useCallback(async (currentMessagesHistory: Message[], systemPrompt: string | undefined) => {
+        if (!anthropic) {
+            console.warn("Anthropic client not initialized due to missing API key.");
+            return;
+        }
+
         setLoadingMessages(true);
         setMessagesError(null);
 
-        console.log("maxTokens", maxTokens)
-        console.log("temperature", temperature)
-        console.log("model", model)
-        console.log("currentMessagesHistory", currentMessagesHistory)
-        console.log("systemPrompt", systemPrompt)
+        // console.log("maxTokens", maxTokens)
+        // console.log("temperature", temperature)
+        // console.log("model", model)
+        // console.log("currentMessagesHistory", currentMessagesHistory)
+        // console.log("systemPrompt", systemPrompt)
 
         try {
             const formattedMessages = formatMessagesForAnthropic(currentMessagesHistory);
@@ -61,6 +75,7 @@ export const AnthropicProvider: FC<AnthropicProviderProps> = ({children}) => {
                 messages: formattedMessages
             });
 
+            console.log("response", response)
             console.log("response.model", response.model)
 
             // Antwort validieren (Grundlegende Prüfung)
@@ -80,14 +95,15 @@ export const AnthropicProvider: FC<AnthropicProviderProps> = ({children}) => {
 
     // --- Kontextwert zusammenstellen ---
     const contextValue: AnthropicContextType = {
-        anthropicModels: models,
-        isLoadingModels: isLoadingModels,
-        modelsError: modelsError ? modelsError : null,
+        anthropicModels,
+        isLoadingModels,
+        modelsError: modelsError ?? null,
+        apiKeyError,
 
-        loadingMessages: loadingMessages,
-        messagesError: messagesError,
+        loadingMessages,
+        messagesError,
 
-        callAnthropic: callAnthropic,
+        callAnthropic,
     };
 
     return (

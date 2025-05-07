@@ -20,14 +20,10 @@ export function ContinueTextarea({
     }, [value]);
 
     const handleKeyDown = (e: KeyboardEvent<HTMLTextAreaElement>) => {
-        if (!internalValue.trim()) return; // return on empty textarea
-
-        if (e.key === "Enter" && !e.shiftKey) {
-            e.preventDefault();
+        if (e.key === "Enter" && e.shiftKey) {
             committedValueRef.current = internalValue;
             onCommit?.(internalValue);
         } else if (e.key === "Escape") {
-            e.preventDefault();
             const previous = committedValueRef.current;
             setInternalValue(previous);
             onChange?.(previous);

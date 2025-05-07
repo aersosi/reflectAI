@@ -36,14 +36,11 @@ export function PromptTextarea({
     }, [value]);
 
     const handleKeyDown = (e: KeyboardEvent<HTMLTextAreaElement>) => {
-        if (!internalValue.trim()) return; // return on empty textarea
-
-        if (e.key === "Enter" && !e.shiftKey) {
-            e.preventDefault();
+        // safe on shift+enter
+        if (e.key === "Enter" && e.shiftKey) {
             committedValueRef.current = internalValue;
             onCommit?.(internalValue);
         } else if (e.key === "Escape") {
-            e.preventDefault();
             const previous = committedValueRef.current;
             setInternalValue(previous);
             onChange?.(previous);
@@ -61,13 +58,11 @@ export function PromptTextarea({
     };
 
     const handleClearValue = () => {
-        if (!internalValue.trim()) return; // return on empty textarea
         committedValueRef.current = internalValue;
         onClearValue?.(internalValue);
     };
 
     const handleBlur = () => {
-        if (!internalValue.trim()) return; // return on empty textarea
         committedValueRef.current = internalValue;
         onCommit?.(internalValue);
     };
@@ -96,7 +91,6 @@ export function PromptTextarea({
         if (isUser) return "focus-visible:ring-purple-500/90 focus-visible:border-purple-500/90";
         return "";
     };
-
 
     return (
         <Collapsible defaultOpen
@@ -137,6 +131,7 @@ export function PromptTextarea({
                         id={title}
                         title={title}
                         value={internalValue}
+                        wrap={"hard"}
                         onChange={(e) => handleChange(e.target.value)}
                         onBlur={handleBlur}
                         onKeyDown={handleKeyDown}

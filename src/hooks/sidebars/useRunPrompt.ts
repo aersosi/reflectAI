@@ -5,7 +5,7 @@ import { buildVariablesMap, replaceVariables } from '@/services/variableService'
 import { Variable } from '@/definitions/variables';
 
 export const useRunPrompt = () => {
-    const { callAnthropic, loadingMessages } = useAnthropic();
+    const { callAnthropic, loadingMessages, apiKeyError } = useAnthropic();
     const { currentMessagesHistory, appendToMessagesHistory } = useSession();
     const { updateHistoryUser, updateHistoryContinue } = useSessionActions();
 
@@ -17,6 +17,12 @@ export const useRunPrompt = () => {
         currentSystemPromptText: string,
         currentUserPromptText: string
     ) => {
+
+        if (apiKeyError) {
+            console.warn("No API key provided. Please set the environment variable or enter one in the settings.");
+            return;
+        }
+
         const updatedUserMessage = updateHistoryUser(userValue);
         const updatedContinueMessage = updateHistoryContinue(continueValue);
 

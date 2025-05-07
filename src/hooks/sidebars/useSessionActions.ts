@@ -11,6 +11,7 @@ export const useSessionActions = () => {
             id: 'system_Prompt',
             text: value,
         };
+        console.log(systemMessage);
         if (value !== currentAppState.systemPrompt.text) {
             overwriteSession('appState.systemPrompt', systemMessage);
         }
