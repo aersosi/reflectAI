@@ -58,13 +58,6 @@ export function Sidebars() {
         setUserValue(currentUserPromptText);
     }, [currentSystemPromptText, currentUserPromptText]);
 
-
-    // reset sidebar width when sidebars closed
-    useEffect(() => {
-        setSidebar2Expanded(false)
-        setSidebar3Expanded(false)
-    }, [systemVariables.variables.length, userVariables.variables.length]);
-
     const isRunButtonDisabled = loadingMessages || !userValue.trim();
     const containsAssistantId = currentMessagesHistory.some(item => item.id && item.id.startsWith("assistant"));
 
