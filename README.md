@@ -1,17 +1,28 @@
-# 🚀 reflectAI
+# reflectAI
 
 **Intelligent Conversations with Customizable AI Models**  
-_A web application for interacting with Anthropic AI models, featuring session management, flexible settings, and dynamic prompts with variables._
+A web application for interacting with Anthropic AI models, featuring session management, 
+flexible settings, and dynamic prompts with variables.
 
-## 🖼️ Project Screenshot
 
 ![reflectAI Screenshot](https://github.com/aersosi/reflectAI/blob/main/public/reflectAI_120525.png?raw=true)
 
-## 📝 Project Description
+## Project Description
 
 reflectAI is a user interface that enables interaction with various AI models from Anthropic. It solves the problem of simple and customizable communication with AI by allowing users to define system and user prompts, insert variables into those prompts, and control parameters such as model, temperature, and maximum tokens per session. The application is intended for developers or AI enthusiasts who need a flexible environment to test and utilize Anthropic models. Core features include session management (create, load, delete), dynamic variable substitution in prompts, and configuration of API keys and model parameters.
 
-## 🧰 Tech Stack
+## Features
+
+-   **Model Selection & Configuration** – Choose from available Anthropic models and adjust parameters like temperature and max tokens.
+-   **Dynamic Prompting** – Define system and user prompts; use `{{variables}}` which are automatically detected and replaced at runtime.
+-   **Session Management** – Create, name, load, and delete conversation sessions. Progress is automatically saved to Local Storage.
+-   **Conversation History** – Track the dialogue with the AI and delete individual messages if needed.
+-   **API Key Management** – Securely input your Anthropic API key (stored locally or used via environment variable).
+-   **Flexible Layout** – Adjustable and collapsible sidebars for optimal workspace utilization.
+-   **Light & Dark Mode** – Switch between light and dark themes for comfortable viewing.
+-   **Responsive Design** – Adapts the interface for different screen sizes.
+
+## Tech Stack
 
 - **Frontend:** React, TypeScript, Tailwind CSS, Vite
 - **Backend:** Direct interaction with the Anthropic API
@@ -19,7 +30,8 @@ reflectAI is a user interface that enables interaction with various AI models fr
 
 ---
 
-## 🛠️ Local Setup
+
+## Local Development
 
 Follow these steps to set up and run the project locally:
 
