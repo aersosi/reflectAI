@@ -1,9 +1,9 @@
-import { SheetWrapper } from "@/components/lib/SheetWrapper";
-import { ModelDropdown } from "@/components/app/MainSidebar/ModelDropdown";
-import { SliderTooltip } from "@/components/lib/SliderTooltip";
-import { ApiKeyInput } from "@/components/app/MainSidebar/ApiKeyInput";
-import { useAnthropic } from "@/contexts/AnthropicContext";
 import { useSession } from "@/contexts/SessionContext";
+import { SheetWrapper } from "@/components/lib/SheetWrapper";
+import { ModelDropdown } from "@/components/app/Sheets/ModelDropdown";
+import { SliderTooltip } from "@/components/lib/SliderTooltip";
+import { ApiKeyInput } from "@/components/app/Sheets/ApiKeyInput";
+import { useAnthropic } from "@/contexts/AnthropicContext";
 
 export const SettingsSheet = () => {
     const {anthropicModels} = useAnthropic()
@@ -25,7 +25,6 @@ export const SettingsSheet = () => {
             title="Session Settings"
             side="left"
             icon="settings"
-            saveButton={true}
         >
             <div className="grid gap-12">
                 {anthropicModels ?
@@ -35,8 +34,9 @@ export const SettingsSheet = () => {
                         placeholder="Select a model"
                         labelFor="aiModel"
                         labelTitle="Model"
-                    >
-                    </ModelDropdown> : <p>Loading Anthropic Models ...</p>
+                    ></ModelDropdown>
+                    :
+                    <p>Loading Anthropic Models ...</p>
                 }
 
                 <SliderTooltip

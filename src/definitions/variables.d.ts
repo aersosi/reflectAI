@@ -1,6 +1,12 @@
-export type DataItem = {
+export type Variable = {
+    id: string;
     title: string;
-    variables: string[];
+    text: string;
 };
 
-export type DataArray = DataItem[];
+export type PromptVariables = {
+    id: "system_variables" | "user_variables";
+    title: string;
+    variables: Variable[];
+};
+

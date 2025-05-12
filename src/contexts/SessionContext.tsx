@@ -1,8 +1,8 @@
 import { LOCAL_STORAGE_SESSION } from "@/config/constants";
-import { AnthropicResponse } from "@/definitions/api";
+import { nanoid } from "nanoid";
 import { createContext, useState, useContext, useEffect, useCallback, useRef, useMemo, FC, ReactNode } from 'react';
 import { useNavigate, useSearchParams, useLocation } from 'react-router-dom';
-import { SessionContextType, Session, SessionMeta, AppState } from "@/definitions/session";
+import { SessionContextType, Session, SessionMeta, AppState, Message } from "@/definitions/session";
 import { loadDataFromStorage, saveDataToStorage } from "@/lib/utils";
 
 const SessionContext = createContext<SessionContextType | undefined>(undefined);
@@ -23,7 +23,7 @@ export const SessionProvider: SessionProviderProps = ({children, initialAppState
     }, [allSessions, currentSessionId]);
 
     const currentAppState = currentSessionData?.appState;
-    const currentSessionName = currentSessionData?.name;
+    const currentSessionName = currentSessionData?.title;
     const currentMessagesHistory = currentAppState?.messagesHistory;
 
     useEffect(() => {
@@ -48,13 +48,12 @@ export const SessionProvider: SessionProviderProps = ({children, initialAppState
 
         if (!sessionToActivate) {
             const newSession: Session = {
-                id: crypto.randomUUID(),
-                name: "New Session",
+                id: `session_${nanoid(12)}`,
+                title: "New Session",
                 date: Date.now(),
                 appState: initialAppState,
             };
             sessionsToSave = [newSession];
-            saveDataToStorage<Session>(sessionsToSave, LOCAL_STORAGE_SESSION);
             sessionToActivate = newSession;
             navigateToSession(newSession);
         }
@@ -79,6 +78,12 @@ export const SessionProvider: SessionProviderProps = ({children, initialAppState
 
     }, [searchParams, allSessions, currentSessionId, isSessionLoading]);
 
+    useEffect(() => {
+        if (isInitialized.current) {
+            saveDataToStorage<Session>(allSessions, LOCAL_STORAGE_SESSION);
+        }
+    }, [allSessions]);
+
     const navigateToSession = (session: Session) => {
         if (location.pathname === '/') {
             navigate(`/?sessionId=${session.id}`, {replace: true});
@@ -87,7 +92,6 @@ export const SessionProvider: SessionProviderProps = ({children, initialAppState
 
     const updateAndSaveSessions = (newSessions: Session[]) => {
         setAllSessions(newSessions);
-        saveDataToStorage<Session>(newSessions, LOCAL_STORAGE_SESSION);
     }
 
     const loadSession = useCallback((sessionId: string): boolean => {
@@ -105,8 +109,8 @@ export const SessionProvider: SessionProviderProps = ({children, initialAppState
     const createSession = useCallback((sessionName: string, initialState: AppState) => {
         setIsSessionLoading(true);
         const newSession: Session = {
-            id: crypto.randomUUID(),
-            name: sessionName || "New Session",
+            id: `session_${nanoid(12)}`,
+            title: sessionName || "New Session",
             date: Date.now(),
             appState: initialState,
         };
@@ -118,85 +122,92 @@ export const SessionProvider: SessionProviderProps = ({children, initialAppState
         setIsSessionLoading(false);
     }, [allSessions, navigate, initialAppState]);
 
-    const appendToMessagesHistory = useCallback((response: AnthropicResponse) => {
-        if (!currentSessionId) {
-            console.error("appendToMessagesHistory Error: No current session ID.");
-            return;
-        }
-
-        const sessionIndex = allSessions.findIndex(s => s.id === currentSessionId);
-        if (sessionIndex === -1) {
-            console.error("appendToMessagesHistory Error: Current session not found in allSessions.");
-            return;
-        }
-
-        const session = { ...allSessions[sessionIndex] };
-        const messages = Array.isArray(session.appState?.messagesHistory)
-            ? [...session.appState.messagesHistory]
-            : [];
-
-        session.appState = {
-            ...session.appState,
-            messagesHistory: [...messages, response]
-        };
-        session.date = Date.now();
-
-        const updatedSessions = [
-            ...allSessions.slice(0, sessionIndex),
-            session,
-            ...allSessions.slice(sessionIndex + 1)
-        ];
-
-        updateAndSaveSessions(updatedSessions);
-    }, [allSessions, currentSessionId, updateAndSaveSessions]);
-
-    const overwriteSession = useCallback((path: string, value: any) => {
-        if (!currentSessionId) {
-            console.error("overwriteSession Error: No current session ID.");
-            return;
-        }
-
-        const sessionIndex = allSessions.findIndex(s => s.id === currentSessionId);
-        if (sessionIndex === -1) {
-            console.error("overwriteSession Error: Current session not found in allSessions.");
-            return;
-        }
-
-        const updatedSession = { ...allSessions[sessionIndex] };
-
-        try {
-            const keys = path.split('.');
-            let currentLevel: any = updatedSession;
-
-            for (let i = 0; i < keys.length - 1; i++) {
-                const key = keys[i];
-
-                if (typeof currentLevel[key] !== 'object' || currentLevel[key] === null) {
-                    console.error(`overwriteSession Error: Invalid path segment "${key}" in path "${path}". Not an object.`);
-                    return;
-                }
-
-                currentLevel[key] = { ...currentLevel[key] };
-                currentLevel = currentLevel[key];
+    const appendToMessagesHistory = useCallback((newMessage: Message) => {
+        setAllSessions(prevSessions => {
+            const sessionIndex = prevSessions.findIndex(s => s.id === currentSessionId);
+            if (sessionIndex === -1) {
+                console.error("appendToMessagesHistory Error: Current session not found in allSessions.");
+                return prevSessions;
             }
 
-            const finalKey = keys[keys.length - 1];
-            currentLevel[finalKey] = value;
+            const prevSession = prevSessions[sessionIndex];
+            const prevMessages = Array.isArray(prevSession.appState?.messagesHistory)
+                ? prevSession.appState.messagesHistory
+                : [];
 
-            updatedSession.date = Date.now();
+            // Message has same id?
+            const existingIndex = prevMessages.findIndex(msg => msg.id === newMessage.id);
+            let updatedMessages;
 
-            const updatedSessions = [
-                ...allSessions.slice(0, sessionIndex),
+            if (existingIndex !== -1) {
+                // overwrite
+                updatedMessages = [
+                    ...prevMessages.slice(0, existingIndex),
+                    newMessage,
+                    ...prevMessages.slice(existingIndex + 1)
+                ];
+            } else {
+                // append
+                updatedMessages = [...prevMessages, newMessage];
+            }
+
+            const updatedSession = {
+                ...prevSession,
+                appState: {
+                    ...prevSession.appState,
+                    messagesHistory: updatedMessages
+                },
+                date: Date.now()
+            };
+
+            return [
+                ...prevSessions.slice(0, sessionIndex),
                 updatedSession,
-                ...allSessions.slice(sessionIndex + 1)
+                ...prevSessions.slice(sessionIndex + 1)
             ];
+        });
+    }, [currentSessionId]);
 
-            updateAndSaveSessions(updatedSessions);
+    const overwriteSession = useCallback((path: string, value: any) => {
+        setAllSessions(prevSessions => {
+            const sessionIndex = prevSessions.findIndex(s => s.id === currentSessionId);
+            if (sessionIndex === -1) {
+                console.error("error: Current session not found.");
+                return prevSessions;
+            }
+            const updatedSession = {...prevSessions[sessionIndex]};
 
-        } catch (error) {
-            console.error(`overwriteSession Error: Failed to update path "${path}".`, error);
-        }
-    }, [allSessions, currentSessionId, updateAndSaveSessions]);
+            try {
+                const keys = path.split('.');
+                let currentLevel: any = updatedSession;
+
+                for (let i = 0; i < keys.length - 1; i++) {
+                    const key = keys[i];
+                    if (typeof currentLevel[key] !== 'object' || currentLevel[key] === null) {
+                        console.error(`error: Invalid path segment "${key}" in path "${path}". Not an object.`);
+                        return prevSessions;
+                    }
+                    currentLevel[key] = {...currentLevel[key]};
+                    currentLevel = currentLevel[key];
+                }
+
+                const finalKey = keys[keys.length - 1];
+                currentLevel[finalKey] = value;
+
+                updatedSession.date = Date.now();
+
+                return [
+                    ...prevSessions.slice(0, sessionIndex),
+                    updatedSession,
+                    ...prevSessions.slice(sessionIndex + 1)
+                ];
+
+            } catch (error) {
+                console.error(`error: Failed to update path "${path}".`, error);
+                return prevSessions;
+            }
+        });
+    }, [currentSessionId]);
 
     const deleteSession = useCallback((sessionId: string) => {
         const updatedSessions = allSessions.filter(s => s.id !== sessionId);
@@ -208,8 +219,8 @@ export const SessionProvider: SessionProviderProps = ({children, initialAppState
                 loadSession(latestSession.id);
             } else {
                 const newSession: Session = {
-                    id: crypto.randomUUID(),
-                    name: "New Session",
+                    id: `session_${nanoid(12)}`,
+                    title: "New Session",
                     date: Date.now(),
                     appState: initialAppState
                 };
@@ -220,56 +231,240 @@ export const SessionProvider: SessionProviderProps = ({children, initialAppState
         }
     }, [allSessions, currentSessionId, navigate, loadSession, initialAppState]);
 
-    const deleteMessage = useCallback((messageId: string): void => {
-        const updatedSessions = JSON.parse(JSON.stringify(allSessions)); // Deep clone
+    const deleteMessage = useCallback((id: string): void => {
+        setAllSessions(prevSessions => {
+            const updatedSessions = JSON.parse(JSON.stringify(prevSessions)); // Deep clone
 
-        JSON.stringify(updatedSessions, function (_, value) {
-            if (
-                value &&
-                typeof value === 'object' &&
-                value["id"] === messageId
-            ) {
-                if (this && typeof this === 'object') {
-                    if (Array.isArray(this)) {
-                        const index = this.indexOf(value);
-                        if (index > -1) {
-                            this.splice(index, 1); // ✅ remove from array
-                        }
-                    } else {
-                        for (const prop in this) {
-                            if (this[prop] === value) {
-                                delete this[prop]; // ✅ remove from object
+            JSON.stringify(updatedSessions, function (_, value) {
+                if (
+                    value &&
+                    typeof value === 'object' &&
+                    value["id"] === id
+                ) {
+                    if (this && typeof this === 'object') {
+                        if (Array.isArray(this)) {
+                            const index = this.indexOf(value);
+                            if (index > -1) {
+                                this.splice(index, 1); // ✅ remove from array
+                            }
+                        } else {
+                            for (const prop in this) {
+                                if (this[prop] === value) {
+                                    delete this[prop]; // ✅ remove from object
+                                }
                             }
                         }
                     }
                 }
-            }
-            return value;
+                return value;
+            });
+
+            return updatedSessions;
         });
+    }, []);
 
-        updateAndSaveSessions(updatedSessions);
-    }, [allSessions, updateAndSaveSessions]);
+    const appendSessionVariable = useCallback((path: string, value: any, id: string) => {
+        setAllSessions(prevSessions => {
+            const sessionIndex = prevSessions.findIndex(s => s.id === currentSessionId);
+            if (sessionIndex === -1) {
+                console.error("error: Current session not found.");
+                return prevSessions;
+            }
 
-    const sessionMetas: SessionMeta[] = allSessions.map(({id, name, date}) => ({
+            const updatedSession = {...prevSessions[sessionIndex]};
+            const newVariable = {
+                id: id,
+                title: value.title,
+                text: value.text
+            };
+
+            try {
+                const keys = path.split('.');
+                let currentLevel: any = updatedSession;
+
+                // Navigate to the target array
+                for (let i = 0; i < keys.length; i++) {
+                    const key = keys[i];
+                    if (i === keys.length - 1) {
+                        // At the target array, append the new variable
+                        if (!Array.isArray(currentLevel[key])) {
+                            console.error(`error: Target "${key}" is not an array.`);
+                            return prevSessions;
+                        }
+                        currentLevel[key] = [...currentLevel[key], newVariable];
+                    } else {
+                        if (typeof currentLevel[key] !== 'object' || currentLevel[key] === null) {
+                            console.error(`error: Invalid path segment "${key}" in path "${path}".`);
+                            return prevSessions;
+                        }
+                        currentLevel[key] = {...currentLevel[key]};
+                        currentLevel = currentLevel[key];
+                    }
+                }
+
+                updatedSession.date = Date.now();
+
+                return [
+                    ...prevSessions.slice(0, sessionIndex),
+                    updatedSession,
+                    ...prevSessions.slice(sessionIndex + 1)
+                ];
+
+            } catch (error) {
+                console.error(`error: Failed to append to path "${path}".`, error);
+                return prevSessions;
+            }
+        });
+    }, [currentSessionId]);
+
+    const deleteSessionVariable = useCallback((id: string, isUser: boolean = false) => {
+        setAllSessions(prevSessions => {
+            const sessionIndex = prevSessions.findIndex(s => s.id === currentSessionId);
+            if (sessionIndex === -1) {
+                console.error("deleteSessionVariable Error: Current session not found.");
+                return prevSessions;
+            }
+
+            const updatedSession = {...prevSessions[sessionIndex]};
+
+            const updatedAppState = updatedSession.appState;
+            const variables = isUser ? updatedAppState?.userVariables?.variables : updatedAppState?.systemVariables?.variables;
+
+
+            if (!Array.isArray(variables)) {
+                console.error(`error: ${isUser ? "User" : "System"} variables array not found.`);
+                return prevSessions;
+            }
+
+            const variableIndex = variables.findIndex(v => v.id === id);
+            if (variableIndex === -1) {
+                console.error(`deleteSessionVariable Error: Variable with id "${id}" not found.`);
+                return prevSessions;
+            }
+
+            // Remove the variable at the found index
+            const updatedVariables = [
+                ...variables.slice(0, variableIndex),
+                ...variables.slice(variableIndex + 1)
+            ];
+
+            if (isUser) {
+                updatedSession.appState = {
+                    ...updatedSession.appState,
+                    userVariables: {
+                        ...updatedSession.appState.userVariables,
+                        variables: updatedVariables
+                    }
+                };
+            } else {
+                updatedSession.appState = {
+                    ...updatedSession.appState,
+                    systemVariables: {
+                        ...updatedSession.appState.systemVariables,
+                        variables: updatedVariables
+                    }
+                };
+            }
+
+
+            updatedSession.date = Date.now();
+
+            return [
+                ...prevSessions.slice(0, sessionIndex),
+                updatedSession,
+                ...prevSessions.slice(sessionIndex + 1)
+            ];
+        });
+    }, [currentSessionId]);
+
+    const overwriteSessionVariableText = useCallback((id: string, text: string, isUser: boolean = false) => {
+        setAllSessions(prevSessions => {
+            const sessionIndex = prevSessions.findIndex(s => s.id === currentSessionId);
+            if (sessionIndex === -1) {
+                console.error("error: Current session not found.");
+                return prevSessions;
+            }
+
+            const updatedSession = {...prevSessions[sessionIndex]};
+
+            const updatedAppState = updatedSession.appState;
+            const variables = isUser ? updatedAppState?.userVariables?.variables : updatedAppState?.systemVariables?.variables;
+
+            if (!Array.isArray(variables)) {
+                console.error(`error: ${isUser ? "User" : "System"} variables array not found.`);
+                return prevSessions;
+            }
+
+            const variableIndex = variables.findIndex(v => v.id === id);
+            if (variableIndex === -1) {
+                console.error(`error: Variable with id "${id}" not found.`);
+                return prevSessions;
+            }
+
+            // Update the specific variable's text
+            const updatedVariables = [...variables];
+            updatedVariables[variableIndex] = {
+                ...updatedVariables[variableIndex],
+                text
+            };
+
+            if (isUser) {
+                updatedSession.appState = {
+                    ...updatedSession.appState,
+                    userVariables: {
+                        ...updatedSession.appState.userVariables,
+                        variables: updatedVariables
+                    }
+                };
+            } else {
+                updatedSession.appState = {
+                    ...updatedSession.appState,
+                    systemVariables: {
+                        ...updatedSession.appState.systemVariables,
+                        variables: updatedVariables
+                    }
+                };
+            }
+
+            updatedSession.date = Date.now();
+
+            return [
+                ...prevSessions.slice(0, sessionIndex),
+                updatedSession,
+                ...prevSessions.slice(sessionIndex + 1)
+            ];
+        });
+    }, [currentSessionId]);
+
+    const sessionMetas: SessionMeta[] = allSessions.map(({id, title, date}) => ({
         id,
-        name,
+        title,
         date
     })).sort((a, b) => b.date - a.date);
 
     const contextValue: SessionContextType = {
+        // todo: what props to expose and which not?
         sessions: sessionMetas,
+
         currentSessionId,
         currentSessionName,
+        initialAppState,
         currentAppState,
-        currentMessagesHistory,
+
         loadSession,
         createSession,
         overwriteSession,
-        appendToMessagesHistory,
         deleteSession,
+
+        currentMessagesHistory,
+        appendToMessagesHistory,
         deleteMessage,
-        isSessionLoading,
-        initialAppState
+
+        appendSessionVariable,
+        deleteSessionVariable,
+        overwriteSessionVariableText,
+
+        isSessionLoading
     };
 
     return (

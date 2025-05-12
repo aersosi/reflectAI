@@ -33,14 +33,14 @@ const fetchAnthropicModels = async (): Promise<AnthropicModelListResponse> => {
 };
 
 export const useFetchAnthropicModels = () => {
-    const [models, setModels] = useState<AnthropicModel[] | null>(null);
+    const [anthropicModels, setAnthropicModels] = useState<AnthropicModel[] | null>(null);
     const [initialStorageChecked, setInitialStorageChecked] = useState(false);
 
     useEffect(() => {
         const stored = loadDataFromStorage<AnthropicModel>(LOCAL_STORAGE_MODELS);
-        if (stored && Array.isArray(stored) && stored.length > 0) setModels(stored);
+        if (stored && Array.isArray(stored) && stored.length > 0) setAnthropicModels(stored);
         setInitialStorageChecked(true);
-    }, []); // Leeres Array stellt sicher, dass dies nur einmal beim Mount ausgeführt wird
+    }, []);
 
     const {
         data: modelsResponse,
@@ -53,25 +53,25 @@ export const useFetchAnthropicModels = () => {
         staleTime: 10 * 60 * 1000, // 10 Minuten
         refetchOnWindowFocus: false,
         // Aktiviere den Query nur, wenn der Storage-Check abgeschlossen ist UND keine Modelle gefunden wurden.
-        enabled: initialStorageChecked && models === null,
+        enabled: initialStorageChecked && anthropicModels === null,
     });
 
     // Modelle aus API-Antwort übernehmen und im Local Storage speichern
     useEffect(() => {
         if (isSuccess && modelsResponse?.data) {
             console.log("API fetch successful, updating state and storage:", modelsResponse.data);
-            setModels(modelsResponse.data);
+            setAnthropicModels(modelsResponse.data);
             saveDataToStorage(modelsResponse.data, LOCAL_STORAGE_MODELS);
         }
     }, [modelsResponse, isSuccess]); // Nur auf Änderungen der Query-Ergebnisse reagieren
 
     // Kombinierter Ladezustand: True, wenn Storage noch nicht geprüft ODER wenn geprüft,
     // keine Modelle vorhanden sind UND die API noch lädt.
-    const isLoadingModels = !initialStorageChecked || (initialStorageChecked && models === null && isLoadingFromAPI);
+    const isLoadingModels = !initialStorageChecked || (initialStorageChecked && anthropicModels === null && isLoadingFromAPI);
 
     return {
-        models,
+        anthropicModels,
         isLoadingModels,
-        error: queryError, // Fehler vom API-Aufruf
+        error: queryError, // Error of API-Call
     };
 };

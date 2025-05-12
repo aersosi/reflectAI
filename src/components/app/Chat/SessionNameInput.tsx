@@ -34,9 +34,9 @@ export function SessionNameInput() {
     };
 
     const handleKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
-        if (e.key === "Enter" && !e.shiftKey) {
+        if (e.key === "Enter" && e.shiftKey) {
             e.preventDefault(); // Kein Zeilenumbruch
-            if (inputValue) overwriteSession("name", inputValue.trim());
+            if (inputValue) overwriteSession("title", inputValue.trim());
             setIsEditing(false);
         } else if (e.key === "Escape") {
             setIsEditing(false);
@@ -68,7 +68,7 @@ export function SessionNameInput() {
                         {currentSessionName || "New Session"}
                     </h2>
                     <Button
-                        size="sm"
+                        size="xs"
                         onClick={handleCreateNewSession}
                         variant="outlinePrimary"
                     >
