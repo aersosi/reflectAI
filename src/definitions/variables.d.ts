@@ -1,17 +1,12 @@
 export type Variable = {
     id: string;
-    name: string;
+    title: string;
     text: string;
 };
 
-export type VariableGroup = {
+export type PromptVariables = {
     id: "system_variables" | "user_variables";
     title: string;
     variables: Variable[];
-};
-
-export type VariablesHistory = {
-    systemVariables: VariableGroup;
-    userVariables: VariableGroup;
 };
 

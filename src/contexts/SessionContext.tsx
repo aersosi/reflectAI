@@ -1,6 +1,4 @@
 import { LOCAL_STORAGE_SESSION } from "@/config/constants";
-import { AnthropicResponse } from "@/definitions/api";
-import { VariablesHistory, VariablesHistory2 } from "@/definitions/variables";
 import { nanoid } from "nanoid";
 import { createContext, useState, useContext, useEffect, useCallback, useRef, useMemo, FC, ReactNode } from 'react';
 import { useNavigate, useSearchParams, useLocation } from 'react-router-dom';
@@ -25,7 +23,7 @@ export const SessionProvider: SessionProviderProps = ({children, initialAppState
     }, [allSessions, currentSessionId]);
 
     const currentAppState = currentSessionData?.appState;
-    const currentSessionName = currentSessionData?.name;
+    const currentSessionName = currentSessionData?.title;
     const currentMessagesHistory = currentAppState?.messagesHistory;
 
     useEffect(() => {
@@ -51,7 +49,7 @@ export const SessionProvider: SessionProviderProps = ({children, initialAppState
         if (!sessionToActivate) {
             const newSession: Session = {
                 id: `session_${nanoid(12)}`,
-                name: "New Session",
+                title: "New Session",
                 date: Date.now(),
                 appState: initialAppState,
             };
@@ -112,7 +110,7 @@ export const SessionProvider: SessionProviderProps = ({children, initialAppState
         setIsSessionLoading(true);
         const newSession: Session = {
             id: `session_${nanoid(12)}`,
-            name: sessionName || "New Session",
+            title: sessionName || "New Session",
             date: Date.now(),
             appState: initialState,
         };
@@ -170,20 +168,14 @@ export const SessionProvider: SessionProviderProps = ({children, initialAppState
         });
     }, [currentSessionId]);
 
-    const appendToVariablesHistory = useCallback( (variablesHistory: VariablesHistory2) => {
-        console.log(variablesHistory)
-        }, []
-    );
-
-
     const overwriteSession = useCallback((path: string, value: any) => {
         setAllSessions(prevSessions => {
             const sessionIndex = prevSessions.findIndex(s => s.id === currentSessionId);
             if (sessionIndex === -1) {
-                console.error("overwriteSession Error: Current session not found.");
+                console.error("error: Current session not found.");
                 return prevSessions;
             }
-            const updatedSession = { ...prevSessions[sessionIndex] };
+            const updatedSession = {...prevSessions[sessionIndex]};
 
             try {
                 const keys = path.split('.');
@@ -192,10 +184,10 @@ export const SessionProvider: SessionProviderProps = ({children, initialAppState
                 for (let i = 0; i < keys.length - 1; i++) {
                     const key = keys[i];
                     if (typeof currentLevel[key] !== 'object' || currentLevel[key] === null) {
-                        console.error(`overwriteSession Error: Invalid path segment "${key}" in path "${path}". Not an object.`);
+                        console.error(`error: Invalid path segment "${key}" in path "${path}". Not an object.`);
                         return prevSessions;
                     }
-                    currentLevel[key] = { ...currentLevel[key] };
+                    currentLevel[key] = {...currentLevel[key]};
                     currentLevel = currentLevel[key];
                 }
 
@@ -211,7 +203,7 @@ export const SessionProvider: SessionProviderProps = ({children, initialAppState
                 ];
 
             } catch (error) {
-                console.error(`overwriteSession Error: Failed to update path "${path}".`, error);
+                console.error(`error: Failed to update path "${path}".`, error);
                 return prevSessions;
             }
         });
@@ -228,7 +220,7 @@ export const SessionProvider: SessionProviderProps = ({children, initialAppState
             } else {
                 const newSession: Session = {
                     id: `session_${nanoid(12)}`,
-                    name: "New Session",
+                    title: "New Session",
                     date: Date.now(),
                     appState: initialAppState
                 };
@@ -239,7 +231,7 @@ export const SessionProvider: SessionProviderProps = ({children, initialAppState
         }
     }, [allSessions, currentSessionId, navigate, loadSession, initialAppState]);
 
-    const deleteMessage = useCallback((messageId: string): void => {
+    const deleteMessage = useCallback((id: string): void => {
         setAllSessions(prevSessions => {
             const updatedSessions = JSON.parse(JSON.stringify(prevSessions)); // Deep clone
 
@@ -247,7 +239,7 @@ export const SessionProvider: SessionProviderProps = ({children, initialAppState
                 if (
                     value &&
                     typeof value === 'object' &&
-                    value["id"] === messageId
+                    value["id"] === id
                 ) {
                     if (this && typeof this === 'object') {
                         if (Array.isArray(this)) {
@@ -271,27 +263,208 @@ export const SessionProvider: SessionProviderProps = ({children, initialAppState
         });
     }, []);
 
-    const sessionMetas: SessionMeta[] = allSessions.map(({id, name, date}) => ({
+    const appendSessionVariable = useCallback((path: string, value: any, id: string) => {
+        setAllSessions(prevSessions => {
+            const sessionIndex = prevSessions.findIndex(s => s.id === currentSessionId);
+            if (sessionIndex === -1) {
+                console.error("error: Current session not found.");
+                return prevSessions;
+            }
+
+            const updatedSession = {...prevSessions[sessionIndex]};
+            const newVariable = {
+                id: id,
+                title: value.title,
+                text: value.text
+            };
+
+            try {
+                const keys = path.split('.');
+                let currentLevel: any = updatedSession;
+
+                // Navigate to the target array
+                for (let i = 0; i < keys.length; i++) {
+                    const key = keys[i];
+                    if (i === keys.length - 1) {
+                        // At the target array, append the new variable
+                        if (!Array.isArray(currentLevel[key])) {
+                            console.error(`error: Target "${key}" is not an array.`);
+                            return prevSessions;
+                        }
+                        currentLevel[key] = [...currentLevel[key], newVariable];
+                    } else {
+                        if (typeof currentLevel[key] !== 'object' || currentLevel[key] === null) {
+                            console.error(`error: Invalid path segment "${key}" in path "${path}".`);
+                            return prevSessions;
+                        }
+                        currentLevel[key] = {...currentLevel[key]};
+                        currentLevel = currentLevel[key];
+                    }
+                }
+
+                updatedSession.date = Date.now();
+
+                return [
+                    ...prevSessions.slice(0, sessionIndex),
+                    updatedSession,
+                    ...prevSessions.slice(sessionIndex + 1)
+                ];
+
+            } catch (error) {
+                console.error(`error: Failed to append to path "${path}".`, error);
+                return prevSessions;
+            }
+        });
+    }, [currentSessionId]);
+
+    const deleteSessionVariable = useCallback((id: string, isUser: boolean = false) => {
+        setAllSessions(prevSessions => {
+            const sessionIndex = prevSessions.findIndex(s => s.id === currentSessionId);
+            if (sessionIndex === -1) {
+                console.error("deleteSessionVariable Error: Current session not found.");
+                return prevSessions;
+            }
+
+            const updatedSession = {...prevSessions[sessionIndex]};
+
+            const updatedAppState = updatedSession.appState;
+            const variables = isUser ? updatedAppState?.userVariables?.variables : updatedAppState?.systemVariables?.variables;
+
+
+            if (!Array.isArray(variables)) {
+                console.error(`error: ${isUser ? "User" : "System"} variables array not found.`);
+                return prevSessions;
+            }
+
+            const variableIndex = variables.findIndex(v => v.id === id);
+            if (variableIndex === -1) {
+                console.error(`deleteSessionVariable Error: Variable with id "${id}" not found.`);
+                return prevSessions;
+            }
+
+            // Remove the variable at the found index
+            const updatedVariables = [
+                ...variables.slice(0, variableIndex),
+                ...variables.slice(variableIndex + 1)
+            ];
+
+            if (isUser) {
+                updatedSession.appState = {
+                    ...updatedSession.appState,
+                    userVariables: {
+                        ...updatedSession.appState.userVariables,
+                        variables: updatedVariables
+                    }
+                };
+            } else {
+                updatedSession.appState = {
+                    ...updatedSession.appState,
+                    systemVariables: {
+                        ...updatedSession.appState.systemVariables,
+                        variables: updatedVariables
+                    }
+                };
+            }
+
+
+            updatedSession.date = Date.now();
+
+            return [
+                ...prevSessions.slice(0, sessionIndex),
+                updatedSession,
+                ...prevSessions.slice(sessionIndex + 1)
+            ];
+        });
+    }, [currentSessionId]);
+
+    const overwriteSessionVariableText = useCallback((id: string, text: string, isUser: boolean = false) => {
+        setAllSessions(prevSessions => {
+            const sessionIndex = prevSessions.findIndex(s => s.id === currentSessionId);
+            if (sessionIndex === -1) {
+                console.error("error: Current session not found.");
+                return prevSessions;
+            }
+
+            const updatedSession = {...prevSessions[sessionIndex]};
+
+            const updatedAppState = updatedSession.appState;
+            const variables = isUser ? updatedAppState?.userVariables?.variables : updatedAppState?.systemVariables?.variables;
+
+            if (!Array.isArray(variables)) {
+                console.error(`error: ${isUser ? "User" : "System"} variables array not found.`);
+                return prevSessions;
+            }
+
+            const variableIndex = variables.findIndex(v => v.id === id);
+            if (variableIndex === -1) {
+                console.error(`error: Variable with id "${id}" not found.`);
+                return prevSessions;
+            }
+
+            // Update the specific variable's text
+            const updatedVariables = [...variables];
+            updatedVariables[variableIndex] = {
+                ...updatedVariables[variableIndex],
+                text
+            };
+
+            if (isUser) {
+                updatedSession.appState = {
+                    ...updatedSession.appState,
+                    userVariables: {
+                        ...updatedSession.appState.userVariables,
+                        variables: updatedVariables
+                    }
+                };
+            } else {
+                updatedSession.appState = {
+                    ...updatedSession.appState,
+                    systemVariables: {
+                        ...updatedSession.appState.systemVariables,
+                        variables: updatedVariables
+                    }
+                };
+            }
+
+            updatedSession.date = Date.now();
+
+            return [
+                ...prevSessions.slice(0, sessionIndex),
+                updatedSession,
+                ...prevSessions.slice(sessionIndex + 1)
+            ];
+        });
+    }, [currentSessionId]);
+
+    const sessionMetas: SessionMeta[] = allSessions.map(({id, title, date}) => ({
         id,
-        name,
+        title,
         date
     })).sort((a, b) => b.date - a.date);
 
     const contextValue: SessionContextType = {
+        // todo: what props to expose and which not?
         sessions: sessionMetas,
+
         currentSessionId,
         currentSessionName,
+        initialAppState,
         currentAppState,
-        currentMessagesHistory,
+
         loadSession,
         createSession,
         overwriteSession,
-        appendToMessagesHistory,
-        appendToVariablesHistory,
         deleteSession,
+
+        currentMessagesHistory,
+        appendToMessagesHistory,
         deleteMessage,
-        isSessionLoading,
-        initialAppState
+
+        appendSessionVariable,
+        deleteSessionVariable,
+        overwriteSessionVariableText,
+
+        isSessionLoading
     };
 
     return (

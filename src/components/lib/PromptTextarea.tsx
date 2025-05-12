@@ -1,10 +1,11 @@
+import { Button } from "@/components/ui/button";
 import {
     Collapsible,
     CollapsibleContent,
     CollapsibleTrigger,
 } from "@/components/ui/collapsible";
 import { SidebarGroup, SidebarGroupLabel } from "@/components/ui/sidebar";
-import { ChevronDown } from "lucide-react";
+import { ChevronDown, Trash2, X } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
 import { PromptTextareaProps } from "@/definitions/props";
 import { Label } from "@/components/ui/label";
@@ -15,8 +16,11 @@ export function PromptTextarea({
                                    value,
                                    onChange,
                                    onCommit,
+                                   onDelete,
+                                   onClearValue,
                                    className,
                                    isUser,
+                                   isDestructive,
                                    isVariable,
                                    title,
                                    placeholder,
@@ -32,14 +36,11 @@ export function PromptTextarea({
     }, [value]);
 
     const handleKeyDown = (e: KeyboardEvent<HTMLTextAreaElement>) => {
-        if (!internalValue.trim()) return; // return on empty textarea
-
-        if (e.key === "Enter" && !e.shiftKey) {
-            e.preventDefault();
+        // safe on shift+enter
+        if (e.key === "Enter" && e.shiftKey) {
             committedValueRef.current = internalValue;
             onCommit?.(internalValue);
         } else if (e.key === "Escape") {
-            e.preventDefault();
             const previous = committedValueRef.current;
             setInternalValue(previous);
             onChange?.(previous);
@@ -51,8 +52,17 @@ export function PromptTextarea({
         onChange?.(val);
     };
 
+    const handleDelete = () => {
+        committedValueRef.current = internalValue;
+        onDelete?.(internalValue);
+    };
+
+    const handleClearValue = () => {
+        committedValueRef.current = internalValue;
+        onClearValue?.(internalValue);
+    };
+
     const handleBlur = () => {
-        if (!internalValue.trim()) return; // return on empty textarea
         committedValueRef.current = internalValue;
         onCommit?.(internalValue);
     };
@@ -64,27 +74,64 @@ export function PromptTextarea({
     );
 
     const purpleRing = "[&:has(textarea:focus-visible)]:ring-purple-500/50 [&:has(textarea:focus-visible)]:border-purple-500/50";
-    const systemColors = !isUser && isVariable && "[&_label]:text-primary";
-    const userColors = isUser && isVariable && cn(purpleRing, "[&_label]:text-purple-500");
-    const userRingColor = isUser && purpleRing;
-    const userRingColorTrigger = isUser && "focus-visible:ring-purple-500/90 focus-visible:border-purple-500/90";
+    const destructiveRing = "[&:has(textarea:focus-visible)]:ring-destructive/50 [&:has(textarea:focus-visible)]:border-destructive/50";
+
+    const colors = () => {
+        if (isDestructive) return `${destructiveRing} [&_label]:text-destructive`;
+        if (isVariable) {
+            return isUser
+                ? `${purpleRing} [&_label]:text-purple-500`
+                : "[&_label]:text-primary";
+        }
+        return "";
+    };
+
+    const userRingColorTrigger = () => {
+        if (isDestructive) return "focus-visible:ring-destructive/90 focus-visible:border-destructive/90";
+        if (isUser) return "focus-visible:ring-purple-500/90 focus-visible:border-purple-500/90";
+        return "";
+    };
 
     return (
-        <Collapsible defaultOpen className={cn(collapsibleClasses, systemColors, userColors, userRingColor, className)}>
+        <Collapsible defaultOpen
+                     className={cn(collapsibleClasses, colors(), className)}>
             <SidebarGroup>
-                <SidebarGroupLabel asChild>
-                    <CollapsibleTrigger className={cn("group", userRingColorTrigger)}>
-                        <Label htmlFor={title}>{title}</Label>
-                        <ChevronDown
-                            className="ml-auto transition-transform duration-200 group-data-[state=open]:rotate-180"/>
-                    </CollapsibleTrigger>
-                </SidebarGroupLabel>
+                <div className="flex justify-between gap-2 items-center">
+                    <SidebarGroupLabel asChild>
+                        <CollapsibleTrigger className={cn("group grow", userRingColorTrigger())}>
+                            <Label htmlFor={title}>{title}</Label>
+                            <ChevronDown
+                                className="ml-auto transition-transform duration-200 group-data-[state=open]:rotate-180"/>
+                        </CollapsibleTrigger>
+                    </SidebarGroupLabel>
+                    {onDelete &&
+                        <Button
+                            onClick={handleDelete}
+                            variant="ghostDestructive"
+                            size="iconSmall"
+                        >
+                            <Trash2/>
+                        </Button>
+                    }
+                </div>
                 <CollapsibleContent className="relative px-2">
+                    {onClearValue && internalValue.length > 0 &&
+                        <Button
+                            className="absolute cursor-pointer z-50 top-2 right-0.5 opacity-10 hover:opacity-100"
+                            onClick={handleClearValue}
+                            variant="ghostDestructive"
+                            size="iconSmall">
+                            <X/>
+                        </Button>
+                    }
+
                     <hr className="mt-[2px]"/>
+
                     <Textarea
                         id={title}
-                        name={title}
+                        title={title}
                         value={internalValue}
+                        wrap={"hard"}
                         onChange={(e) => handleChange(e.target.value)}
                         onBlur={handleBlur}
                         onKeyDown={handleKeyDown}

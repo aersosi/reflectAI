@@ -1,5 +1,4 @@
 import { clsx, type ClassValue } from "clsx"
-import { nanoid } from "nanoid";
 import { twMerge } from "tailwind-merge"
 
 export function cn(...inputs: ClassValue[]) {
@@ -24,21 +23,20 @@ export const saveDataToStorage = <T,>(data: T[], localStorageKey: string) => {
   }
 };
 
-export const extractVariablesObj = (
-    str: string,
-    idPrefix: string
-): Record<string, { id: string; name: string; text: string }> => {
-    const matches = str.match(/\{\{\s*[^}]+\s*}}/g) || [];
-    const result: Record<string, { id: string; name: string; text: string }> = {};
-
-    matches.forEach((variable) => {
-        const varId = `${idPrefix}${nanoid(6)}`;
-        result[varId] = {
-            id: varId,
-            name: variable.trim(),
-            text: "Lorem ipsum dolor sit"
-        };
-    });
-
-    return result;
-};
+/**
+ * Replaces all occurrences of specified substrings in a string based on a mapping object.
+ *
+ * @param {string} str - The input string in which replacements should be made.
+ * @param {Record<string, string>} mapObj - An object where each key is a substring to search for,
+ * and its value is the replacement string.
+ *
+ * @returns {string} The resulting string after all replacements have been made.
+ *
+ * @example
+ * replaceAll("The cat chased the dog", { cat: "dog", dog: "goat" });
+ * // => "The dog chased the goat"
+ **/
+export const replaceAll = (str: string, mapObj: Record<string, string>): string => {
+    const re = new RegExp(Object.keys(mapObj).join("|"), "g");
+    return str.replace(re, matched => mapObj[matched]);
+}
