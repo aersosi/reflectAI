@@ -1,9 +1,16 @@
 import { AlertClose } from "@/components/lib/AlertClose";
+import {
+    DropdownMenu,
+    DropdownMenuContent, DropdownMenuItem,
+    DropdownMenuLabel, DropdownMenuSeparator,
+    DropdownMenuTrigger
+} from "@/components/ui/dropdown-menu";
 import { useSession } from "@/contexts/SessionContext";
 import { SheetWrapper } from "@/components/lib/SheetWrapper";
 import { Button } from "@/components/ui/button";
-import { Trash2 } from "lucide-react";
+import { Download, Ellipsis, Trash2, Upload } from "lucide-react";
 import { useState } from "react";
+
 
 export const SessionsSheet = () => {
     const {sessions, deleteSession} = useSession();
@@ -14,8 +21,17 @@ export const SessionsSheet = () => {
         setIsAlert(false)
     }
 
+    const UploadButton = () => (
+        <Button variant="outlinePrimary" className="w-full mt-2" onClick={() => {
+        }}>
+            Upload Session
+            <Upload/>
+        </Button>
+    );
+
     return (
-        <SheetWrapper key="Sessions" title="Sessions" side="right" icon="list">
+        <SheetWrapper key="Sessions" title="Sessions" headerChildren={<UploadButton/>} side="right" icon="list">
+
             {!sessions.length && <p>No sessions saved yet.</p>}
             <ul className="flex flex-col gap-2">
                 {sessions.map(session => (
@@ -25,10 +41,28 @@ export const SessionsSheet = () => {
                             <a href={`/?sessionId=${session.id}`}>
                                 {session.title} ({new Date(session.date).toLocaleString()})
                             </a>
-                            <Button onClick={() => setIsAlert(true)} variant="ghost"
-                                    size="iconSmall">
-                                <Trash2></Trash2>
-                            </Button>
+
+                            <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                    <Button variant="ghost" size="iconSmall">
+                                        <Ellipsis/>
+                                    </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent>
+                                    <DropdownMenuItem
+                                        className="transition-colors hover:bg-primary/10"
+                                        onClick={() => setIsAlert(true)}>
+                                        Delete
+                                        <Trash2/>
+                                    </DropdownMenuItem>
+                                    <DropdownMenuItem
+                                        className="transition-colors hover:bg-primary/10" onClick={() => {
+                                    }}>
+                                        Download
+                                        <Download/>
+                                    </DropdownMenuItem>
+                                </DropdownMenuContent>
+                            </DropdownMenu>
                         </li>
                         {isAlert &&
                             <AlertClose

@@ -13,7 +13,17 @@ import { Braces, List, Settings, Smile } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { SheetWrapperProps } from "@/definitions/props";
 
-export function SheetWrapper({open, title, side, icon, isWide, saveButton, disabled, children}: SheetWrapperProps) {
+export function SheetWrapper({
+                                 open,
+                                 title,
+                                 description,
+                                 headerChildren,
+                                 side,
+                                 icon,
+                                 isWide,
+                                 disabled,
+                                 children
+                             }: SheetWrapperProps) {
     // Todo: on sheet close: -> check if changes:
     //  -> no: exit without saving
     //  -> yes: -> ask: "do you want to save?"
@@ -41,20 +51,18 @@ export function SheetWrapper({open, title, side, icon, isWide, saveButton, disab
             <SheetContent side={side} className={cn(isWide && "sm:max-w-[40rem] lg:max-w-[60rem]", "gap-0")}>
                 <SheetHeader>
                     <SheetTitle className="flex items-center h-7">{title}</SheetTitle>
-                    <SheetDescription> Description goes here</SheetDescription>
+                    {(headerChildren || description) && (
+                        <div className="flex justify-between items-center gap-2">
+                            {headerChildren}
+                            {description && <SheetDescription>{description}</SheetDescription>}
+                        </div>
+                    )}
                 </SheetHeader>
                 <hr/>
-                <div className="flex flex-col gap-4 p-4 grow overflow-auto">
+                <div className="flex flex-col gap-4 p-4 grow overflow-y-auto">
                     {children}
                 </div>
                 <hr/>
-                {saveButton &&
-                    <SheetFooter>
-                        <SheetClose asChild>
-                            <Button type="submit">Save changes</Button>
-                        </SheetClose>
-                    </SheetFooter>
-                }
             </SheetContent>
         </Sheet>
 

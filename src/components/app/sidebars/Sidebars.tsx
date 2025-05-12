@@ -91,7 +91,7 @@ export function Sidebars() {
                                    href="https://docs.anthropic.com/en/api/admin-api/apikeys/get-api-key">
                                     <Button variant="link">
                                         Anthropic Docs
-                                        <ExternalLink></ExternalLink>
+                                        <ExternalLink/>
                                     </Button>
                                 </a>
                             </p>

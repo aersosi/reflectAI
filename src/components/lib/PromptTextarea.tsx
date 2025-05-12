@@ -110,7 +110,7 @@ export function PromptTextarea({
                             variant="ghostDestructive"
                             size="iconSmall"
                         >
-                            <Trash2></Trash2>
+                            <Trash2/>
                         </Button>
                     }
                 </div>
@@ -121,7 +121,7 @@ export function PromptTextarea({
                             onClick={handleClearValue}
                             variant="ghostDestructive"
                             size="iconSmall">
-                            <X></X>
+                            <X/>
                         </Button>
                     }
 

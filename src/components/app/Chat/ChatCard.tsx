@@ -15,18 +15,19 @@ export function ChatCard({className, id, isUser, title, message}: CardMessagePro
 
     const roleColor =
         isUser ?
-        "border-purple-500/30 shadow-purple-500/30" :
-        "border-primary/40 shadow-primary/40";
+            "border-purple-500/30 shadow-purple-500/30" :
+            "border-primary/40 shadow-primary/40";
 
     return (
         <div className={cn("flex gap-4 items-center", className)}>
             <Card className={cn(roleColor, "w-full gap-0")}>
                 <CardHeader>
                     <CardDescription className="flex justify-between items-center">
-                        <span>{title}</span>
-                        <span>{id}</span>
-                        <Button onClick={() => deleteMessage(id)} variant="ghostDestructive" size="iconSmall">
-                            <Trash2></Trash2>
+                        <span title={id}>{title}</span>
+                        <span>Tokens</span>
+                        <Button title="Remove this variable" onClick={() => deleteMessage(id)}
+                                variant="ghostDestructive" size="iconSmall">
+                            <Trash2/>
                         </Button>
                     </CardDescription>
                 </CardHeader>

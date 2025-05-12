@@ -41,7 +41,7 @@ export function Chat() {
                 <SessionNameInput/>
                 <SessionsSheet/>
             </div>
-            <div className="flex flex-col gap-4 px-4 pt-4 pb-2 overflow-auto grow">
+            <div className="flex flex-col gap-4 px-4 pt-4 pb-2 overflow-y-auto grow">
                 {currentMessagesHistory && currentMessagesHistory.map(message => (
                     <ChatCard
                         key={message.id}

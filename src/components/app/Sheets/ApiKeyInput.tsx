@@ -53,7 +53,7 @@ export function ApiKeyInput({className}: { className?: string }) {
                     <div className="w-8 h-8">
                         {inputValue.length > 0 && (
                             <Button onClick={handleDelete} variant="ghostDestructive" size="iconSmall">
-                                <Trash2></Trash2>
+                                <Trash2/>
                             </Button>
                         )}
                     </div>
