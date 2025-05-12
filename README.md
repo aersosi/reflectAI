@@ -4,7 +4,6 @@
 A web application for interacting with Anthropic AI models, featuring session management, 
 flexible settings, and dynamic prompts with variables.
 
-
 ![reflectAI Screenshot](https://github.com/aersosi/reflectAI/blob/main/public/reflectAI_120525.png?raw=true)
 
 ## Project Description
@@ -29,7 +28,6 @@ reflectAI is a user interface that enables interaction with various AI models fr
 - **Others:** Shadcn UI, TanStack Query, Axios, Lucide Icons, ESLint, Prettier
 
 ---
-
 
 ## Local Development
 
