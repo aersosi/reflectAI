@@ -36,7 +36,10 @@ export const SettingsSheet = () => {
                         labelTitle="Model"
                     ></ModelDropdown>
                     :
-                    <p>Loading Anthropic Models ...</p>
+                    <div className="flex flex-col gap-0">
+                        <p>Loading Anthropic Models ...</p>
+                        <p>Please Provide Anthropic API Key</p>
+                    </div>
                 }
 
                 <SliderTooltip

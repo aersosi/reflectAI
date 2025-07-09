@@ -5,7 +5,7 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
 }
 
-export const loadDataFromStorage = <T,>(localStorageKey: string): T[] => {
+export const loadDataFromStorage = <T>(localStorageKey: string): T[] => {
   try {
     const storedData = localStorage.getItem(localStorageKey);
     return storedData ? JSON.parse(storedData) : [];
@@ -15,7 +15,7 @@ export const loadDataFromStorage = <T,>(localStorageKey: string): T[] => {
   }
 };
 
-export const saveDataToStorage = <T,>(data: T[], localStorageKey: string) => {
+export const saveDataToStorage = <T>(data: T[], localStorageKey: string) => {
   try {
     localStorage.setItem(localStorageKey, JSON.stringify(data));
   } catch (error) {

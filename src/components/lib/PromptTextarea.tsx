@@ -36,8 +36,7 @@ export function PromptTextarea({
     }, [value]);
 
     const handleKeyDown = (e: KeyboardEvent<HTMLTextAreaElement>) => {
-        // safe on shift+enter
-        if (e.key === "Enter" && e.shiftKey) {
+        if (e.key === "Enter") {
             committedValueRef.current = internalValue;
             onCommit?.(internalValue);
         } else if (e.key === "Escape") {

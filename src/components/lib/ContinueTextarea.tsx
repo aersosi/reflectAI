@@ -20,7 +20,7 @@ export function ContinueTextarea({
     }, [value]);
 
     const handleKeyDown = (e: KeyboardEvent<HTMLTextAreaElement>) => {
-        if (e.key === "Enter" && e.shiftKey) {
+        if (e.key === "Enter") {
             committedValueRef.current = internalValue;
             onCommit?.(internalValue);
         } else if (e.key === "Escape") {
