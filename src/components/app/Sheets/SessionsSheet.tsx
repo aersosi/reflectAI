@@ -2,7 +2,6 @@ import { AlertClose } from "@/components/lib/AlertClose";
 import {
     DropdownMenu,
     DropdownMenuContent, DropdownMenuItem,
-    DropdownMenuLabel, DropdownMenuSeparator,
     DropdownMenuTrigger
 } from "@/components/ui/dropdown-menu";
 import { useSession } from "@/contexts/SessionContext";

@@ -447,16 +447,16 @@ export const SessionProvider: SessionProviderProps = ({children, initialAppState
         sessions: sessionMetas,
 
         currentSessionId,
-        currentSessionName,
+        currentSessionName: currentSessionName ?? "",
         initialAppState,
-        currentAppState,
+        currentAppState: currentAppState ?? initialAppState,
 
         loadSession,
         createSession,
         overwriteSession,
         deleteSession,
 
-        currentMessagesHistory,
+        currentMessagesHistory: currentMessagesHistory ?? [],
         appendToMessagesHistory,
         deleteMessage,
 

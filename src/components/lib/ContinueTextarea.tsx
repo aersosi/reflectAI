@@ -44,8 +44,8 @@ export function ContinueTextarea({
 
     return (
         <Textarea
-            id={title}
-            title={title}
+            id={title as string}
+            title={title as string}
             value={internalValue}
             onChange={(e) => handleChange(e.target.value)}
             onBlur={handleBlur}

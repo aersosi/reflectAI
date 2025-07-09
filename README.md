@@ -25,7 +25,7 @@ reflectAI is a user interface that enables interaction with various AI models fr
 
 - **Frontend:** React, TypeScript, Tailwind CSS, Vite
 - **Backend:** Direct interaction with the Anthropic API
-- **Others:** Shadcn UI, TanStack Query, Axios, Lucide Icons, ESLint, Prettier
+- **Others:** Shadcn UI, TanStack Query, Lucide Icons, ESLint, Prettier
 
 ---
 
