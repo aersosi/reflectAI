@@ -34,7 +34,7 @@ export function SessionNameInput() {
     };
 
     const handleKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
-        if (e.key === "Enter" && e.shiftKey) {
+        if (e.key === "Enter") {
             e.preventDefault(); // Kein Zeilenumbruch
             if (inputValue) overwriteSession("title", inputValue.trim());
             setIsEditing(false);

@@ -1,20 +1,26 @@
+import { useSession } from "@/contexts/SessionContext";
 import { useState, useEffect } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import Anthropic from '@anthropic-ai/sdk';
 import { AnthropicModelListResponse, AnthropicModel } from '@/definitions/api';
 import { loadDataFromStorage, saveDataToStorage } from '@/lib/utils';
 import { LOCAL_STORAGE_MODELS } from "@/config/constants";
 
-const anthropic = new Anthropic({
-    apiKey: import.meta.env.VITE_ANTHROPIC_API_KEY,
-    dangerouslyAllowBrowser: true, // Stelle sicher, dass dies in deiner Produktionsumgebung sicher ist
-});
+const fetchAnthropicModels = async (apiKey: string | null): Promise<AnthropicModelListResponse> => {
+    if (!apiKey) {
+        throw new Error("No API key provided");
+    }
 
-const fetchAnthropicModels = async (): Promise<AnthropicModelListResponse> => {
+    const anthropic = new Anthropic({
+        apiKey,
+        dangerouslyAllowBrowser: true,
+    });
+
     try {
         const response = await anthropic.models.list({
             limit: 20,
         });
+
         if (!response || !Array.isArray(response.data)) {
             console.error("Invalid API response structure:", response);
             throw new Error("Invalid API response structure from Anthropic");
@@ -27,51 +33,63 @@ const fetchAnthropicModels = async (): Promise<AnthropicModelListResponse> => {
         };
     } catch (error) {
         console.error("Error fetching Anthropic models:", error);
-        // Wirf den Fehler weiter, damit useQuery ihn behandeln kann
         throw error;
     }
 };
 
 export const useFetchAnthropicModels = () => {
+    const { currentAppState } = useSession();
+    const queryClient = useQueryClient();
     const [anthropicModels, setAnthropicModels] = useState<AnthropicModel[] | null>(null);
     const [initialStorageChecked, setInitialStorageChecked] = useState(false);
 
+    const apiKeyEnv = import.meta.env.VITE_ANTHROPIC_API_KEY;
+    const apiKeyInput = currentAppState.settings?.apiKey;
+    const apiKey = apiKeyEnv || (apiKeyInput?.trim() || null);
+
+    // Lade gespeicherte Modelle aus dem Local Storage
     useEffect(() => {
         const stored = loadDataFromStorage<AnthropicModel>(LOCAL_STORAGE_MODELS);
-        if (stored && Array.isArray(stored) && stored.length > 0) setAnthropicModels(stored);
+        if (stored && Array.isArray(stored) && stored.length > 0) {
+            setAnthropicModels(stored);
+        }
         setInitialStorageChecked(true);
     }, []);
 
+    // Query für das Abrufen der Modelle
     const {
         data: modelsResponse,
         isLoading: isLoadingFromAPI,
         error: queryError,
         isSuccess,
     } = useQuery<AnthropicModelListResponse, Error>({
-        queryKey: ['anthropicModels'],
-        queryFn: fetchAnthropicModels,
+        queryKey: ['anthropicModels', apiKey], // apiKey als Teil des queryKey
+        queryFn: () => fetchAnthropicModels(apiKey),
         staleTime: 10 * 60 * 1000, // 10 Minuten
         refetchOnWindowFocus: false,
-        // Aktiviere den Query nur, wenn der Storage-Check abgeschlossen ist UND keine Modelle gefunden wurden.
-        enabled: initialStorageChecked && anthropicModels === null,
+        enabled: initialStorageChecked && !!apiKey, // Nur ausführen, wenn apiKey vorhanden
     });
 
-    // Modelle aus API-Antwort übernehmen und im Local Storage speichern
+    // Modelle aktualisieren und im Local Storage speichern
     useEffect(() => {
         if (isSuccess && modelsResponse?.data) {
-            console.log("API fetch successful, updating state and storage:", modelsResponse.data);
             setAnthropicModels(modelsResponse.data);
             saveDataToStorage(modelsResponse.data, LOCAL_STORAGE_MODELS);
         }
-    }, [modelsResponse, isSuccess]); // Nur auf Änderungen der Query-Ergebnisse reagieren
+    }, [modelsResponse, isSuccess]);
 
-    // Kombinierter Ladezustand: True, wenn Storage noch nicht geprüft ODER wenn geprüft,
-    // keine Modelle vorhanden sind UND die API noch lädt.
-    const isLoadingModels = !initialStorageChecked || (initialStorageChecked && anthropicModels === null && isLoadingFromAPI);
+    // Invalidiere die Abfrage, wenn der apiKey sich ändert
+    useEffect(() => {
+        if (initialStorageChecked && apiKey) {
+            queryClient.invalidateQueries({ queryKey: ['anthropicModels', apiKey] });
+        }
+    }, [apiKey, initialStorageChecked, queryClient]);
+
+    const isLoadingModels = !initialStorageChecked || (initialStorageChecked && !anthropicModels && isLoadingFromAPI);
 
     return {
         anthropicModels,
         isLoadingModels,
-        error: queryError, // Error of API-Call
+        error: queryError,
     };
 };

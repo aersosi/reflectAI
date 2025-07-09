@@ -93,7 +93,7 @@ export const AnthropicProvider: FC<AnthropicProviderProps> = ({children}) => {
         }
     }, [anthropic, formatMessagesForAnthropic, currentAppState]);
 
-    // --- Kontextwert zusammenstellen ---
+    // Kontextwert zusammenstellen
     const contextValue: AnthropicContextType = {
         anthropicModels,
         isLoadingModels,
