@@ -25,7 +25,12 @@ const extractVariables = (str: string): Variable[] => {
     });
 };
 
-export const createPromptVariables = (id: string, title: string, text: string): PromptVariables => ({
+// just use type properly
+export const createPromptVariables = (
+    id: "system_variables" | "user_variables",
+    title: string,
+    text: string
+): PromptVariables => ({
     id,
     title,
     variables: extractVariables(text),

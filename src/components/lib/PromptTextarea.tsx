@@ -99,7 +99,7 @@ export function PromptTextarea({
                 <div className="flex justify-between gap-2 items-center">
                     <SidebarGroupLabel asChild>
                         <CollapsibleTrigger className={cn("group grow", userRingColorTrigger())}>
-                            <Label htmlFor={title}>{title}</Label>
+                            <Label htmlFor={title as string}>{title}</Label>
                             <ChevronDown
                                 className="ml-auto transition-transform duration-200 group-data-[state=open]:rotate-180"/>
                         </CollapsibleTrigger>
@@ -128,8 +128,8 @@ export function PromptTextarea({
                     <hr className="mt-[2px]"/>
 
                     <Textarea
-                        id={title}
-                        title={title}
+                        id={title as string}
+                        title={title as string}
                         value={internalValue}
                         wrap={"hard"}
                         onChange={(e) => handleChange(e.target.value)}

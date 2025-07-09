@@ -25,7 +25,7 @@ export function ChatCard({className, id, isUser, title, message}: CardMessagePro
                     <CardDescription className="flex justify-between items-center">
                         <span title={id}>{title}</span>
                         <span>Tokens</span>
-                        <Button title="Remove this variable" onClick={() => deleteMessage(id)}
+                        <Button title="Remove this variable" onClick={() => id && deleteMessage(id)}
                                 variant="ghostDestructive" size="iconSmall">
                             <Trash2/>
                         </Button>
